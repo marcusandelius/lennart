@@ -1,6 +1,12 @@
 # Koppla Waveshare 2"-skärmen till Raspberry Pi 5
 
-Skärmen (Electrokit art.nr 41036261, "2" LCD 320x240 for Raspberry Pi Pico 4x buttons") är gjord för att sitta på en Raspberry Pi Pico. Den talar vanlig SPI, så den kopplas till Pi 5 med kopplingskablar (hona–hona).
+Skärmen (Electrokit art.nr 41036261, "2" LCD 320x240 for Raspberry Pi Pico 4x buttons") är gjord för att sitta på en Raspberry Pi Pico. Den talar vanlig SPI, så den kopplas till Pi 5 med kopplingskablar (Dupont).
+
+**Vilka kablar:** Pi 5 har stift (hane). Skärmkortet för Pico har troligen hylsor (hona) på baksidan, där Pico:n skulle tryckas in [verifiera genom att titta på kortet].
+- Hylsor på kortet → **hane–hona**-kablar.
+- Stift på kortet → **hona–hona**-kablar.
+
+8 kablar behövs. 20 cm räcker på skrivbordet. I huset kan avståndet till elektroniklådan kräva 30 cm, och då kan SPI-hastigheten behöva sänkas (se tabellen längre ned).
 
 > **Stäng av Pi:n och dra ur strömmen innan du kopplar.**
 > Pinnarna på skärmsidan är tagna från Waveshares beskrivning av Pico-LCD-2 och är **[verifiera]**: kontrollera mot Waveshares wiki eller tryck på kortet innan du kopplar. Pi-sidan är standard för Raspberry Pi.

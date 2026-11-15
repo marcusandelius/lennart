@@ -54,6 +54,10 @@ Pris markerat med "?" är inte kontrollerat.
 | Del | Antal | Pris | Till |
 |---|---|---|---|
 | PCA9685, I2C-servodrivkort | 1 | 60–100 kr? | Servostyrning från Pi 5 |
+| Kopplingskablar (Dupont), blandsats hane–hane, hane–hona och hona–hona, 20 cm (gärna även 30 cm) | 1 sats | ? | Skärmen (8 st) och PCA9685 (4 st) till Pi:n. Tillagt 2026-11-15. Kontrollera först om "kopplingskablar" i 3.1 är sådana. |
+| Tvinnad tvåledare, cirka 0,75 mm², röd och svart | cirka 1 m | ? | 5 V från DC/DC-omvandlaren (8–23 V → 5 V, 3 A) till PCA9685:s skruvplint för servoström. Tillagt 2026-11-15. |
+| Servoförlängning, 3-pol, 30 cm | 0–2 | ? | Bara om servonas kablar inte når från elektroniklådan till doseraren och luckan. Mät först. Tillagt 2026-11-15. |
+| USB-C-kabel med öppna ledare ("pigtail") | 1 | ? | Möjligt sätt att mata Pi 5 från 5 V-omvandlaren (5 A). Beslutas senare. Tillagt 2026-11-15. |
 | Nätadapter 12 V (Akyga AK-TB-12) | 1 | 149 kr | Strömförsörjning, inomhus eller under tak |
 | 12 V-kabel, 2 × 1,5 mm², för utomhusbruk | efter behov | ? | Från adaptern till stationen |
 | 4G-modem Huawei E3372-325 | 1 | cirka 395 kr? | Uppkoppling. Stöder modemet SIM-kortets LTE-band? [osäkert] |
