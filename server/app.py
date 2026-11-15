@@ -362,7 +362,9 @@ class Handler(BaseHTTPRequestHandler):
             print(f"Admin loggade in från {ip}", flush=True)
             self._redirect("/admin", admin.cookie_header(admin.new_session()))
         else:
-            print(f"Felaktigt adminlösenord från {ip}", flush=True)
+            tried = password.strip()
+            print(f"Felaktigt adminlösenord från {ip}: {len(tried)} tecken, "
+                  f"fingeravtryck {admin.fingerprint(tried)}", flush=True)
             self._html("login", 401, fel="Fel lösenord.")
 
     def log_message(self, fmt: str, *args) -> None:
@@ -379,7 +381,8 @@ def main() -> None:
         print("Obs: ADMIN_PASSWORD saknas – adminvyn är avstängd.", flush=True)
     else:
         # Bara längden, aldrig lösenordet, så att det går att jämföra med det man skriver in.
-        print(f"Adminvyn är på. Lösenordet har {len(admin.ADMIN_PASSWORD)} tecken.", flush=True)
+        print(f"Adminvyn är på. Lösenordet har {len(admin.ADMIN_PASSWORD)} tecken, "
+              f"fingeravtryck {admin.fingerprint(admin.ADMIN_PASSWORD)}.", flush=True)
     if not settings.persisted:
         print(f"Obs: {DATA_DIR} är ingen volym – inställningar försvinner vid nästa deploy.", flush=True)
     httpd = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)

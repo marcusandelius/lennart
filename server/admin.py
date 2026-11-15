@@ -7,6 +7,7 @@
 - Efter för många felaktiga försök spärras inloggningen en stund.
 """
 
+import hashlib
 import hmac
 import os
 import secrets
@@ -33,6 +34,12 @@ MAX_FAILS_TOTAL = 30  # skydd även om någon försöker från många adresser
 _lock = threading.Lock()
 _sessions: dict[str, float] = {}       # kaka -> giltig till (i minnet, nollställs vid deploy)
 _fails: dict[str, list[float]] = {}    # ip -> tidpunkter för felaktiga försök
+
+
+def fingerprint(value: str) -> str:
+    """De första 6 tecknen av SHA-256. Avslöjar inget användbart om ett långt slumpmässigt
+    lösenord, men gör det möjligt att se om två lösenord är samma."""
+    return hashlib.sha256(value.encode()).hexdigest()[:6]
 
 
 def enabled() -> bool:
