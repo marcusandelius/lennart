@@ -1,8 +1,11 @@
-# Lennart
+# Lennarts matstation
+
+**Ett smart matställe för ekorren Lennart, som bara släpper in rätt gäst.**
 
 Bidrag till SweClockers/ASUS-tävlingen **"Gick inte. Nu går det."** (2026)
 
-> **[Fylls i]** En mening om vad Lennart är och vilket problem som "inte gick" men nu går.
+> **Gick inte:** Ekorren Lennart har besökt uteplatsen nästan varje dag sedan sommaren, men fåglarna stjäl hans mat. Att bygga något som skiljer en ekorre från en skata, utan CAD-vana och utan modelleringsprogram, gick inte.
+> **Nu går det:** Med AI har ett litet falurött hus konstruerats helt i kod, skrivits ut i 3D och fått en kamera som känner igen Lennart.
 
 ## Personlig kod
 
@@ -14,48 +17,59 @@ Bidrag till SweClockers/ASUS-tävlingen **"Gick inte. Nu går det."** (2026)
 
 ## Vad är det?
 
-**[Fylls i från HANDOFF-filerna]**
+Ett litet falurött hus med vita knutar, cirka 31 cm högt med skorsten, som står på en pedestal på uteplatsen.
 
-- Vad det gör
-- Vem det är till för
-- Varför det "inte gick" förut
+- När något landar på framgården tar en kamera i gaveln 2–3 bilder.
+- **Ekorre:** skärmen visar **ACCESS GRANTED** i grönt, och ett doseringshjul släpper ut en hasselnöt till skålen.
+- **Andra djur**, till exempel skator, får **ACCESS DENIED** i rött och ingen nöt.
+- Är svaret osäkert visar skärmen **VERIFIERAR…** och tar en ny bild.
+- Varje besök loggas med bild och tid. En publik besöksliggare visar besöken på webben.
 
 ## Hur funkar det?
 
 ```
- ┌─────────────────────┐        4G / wifi        ┌──────────────────────┐
- │  Raspberry Pi 5     │  ─────────────────────▶ │  Webbdel på Coolify  │
- │  kamera + appen     │   (bara utgående trafik) │                      │
- └─────────────────────┘                          └──────────────────────┘
+ ┌───────────────────────────────┐                    ┌──────────────────────────┐
+ │ Huset (Raspberry Pi 5)        │   4G, bara         │ Webbdelen på Coolify     │
+ │  kamera → bild vid rörelse    │   utgående trafik  │  besökslogg              │
+ │  servo → doseringshjul, lucka │ ─────────────────▶ │  publik besöksliggare    │
+ │  2" skärm → GRANTED / DENIED  │                    │                          │
+ └───────────────────────────────┘                    └──────────────────────────┘
 ```
 
-**[Fylls i]** Var bildigenkänningen sker beslutas i [docs/beslut/bildigenkanning.md](docs/beslut/bildigenkanning.md).
+Var själva bildigenkänningen ska ske, på Pi:n, på servern eller i ett moln-API, beslutas i [docs/beslut/bildigenkanning.md](docs/beslut/bildigenkanning.md).
+
+**Mekaniken:** ett hjul med en ficka, som i en tuggummiautomat. Ett servo vrider hjulet 130° och en nöt (18–22 mm) faller ner i rännan till skålen. Taket hålls av magneter och lyfts av för påfyllning. Elektroniken sitter på en platta som dras rakt upp ur en låda. Allt sitter ihop med snäppfästen, presspassningar och magneter i stället för lim.
+
+## Så byggdes det med AI
+
+- **3D-modellen** är byggd helt i Python-kod av Claude, med `manifold3d` och `trimesh`. Marcus har inget CAD-program. Koden finns i [model/](model/) och beskrivs i [docs/modellen.md](docs/modellen.md).
+- **Förhandsgranskningen** med 3D, röntgenvy, monteringsvisning och demo finns i [web/](web/).
+- **Beslut** med datum och skäl finns i [docs/beslut/beslutslogg.md](docs/beslut/beslutslogg.md).
+- **Hela AI-historiken** finns i [docs/historik/](docs/historik/).
 
 ## Hårdvara
 
-| Del | Kommentar |
-|---|---|
-| Raspberry Pi 5, 8 GB | Raspberry Pi OS Bookworm |
-| 4G-modem | Köps senare. Under bygget används wifi. |
-| **[Fylls i]** | Kamera, hölje (3D-utskrift) med mera |
+Raspberry Pi 5 (8 GB), Camera Module 3 Wide, Waveshare 2" skärm, servon via PCA9685, 4G-modem och 12 V-matning. Huset skrivs ut i PETG på en Bambu Lab X2D. Hela listan finns i [docs/hardvara.md](docs/hardvara.md).
 
-## Hur det byggs och driftsätts
+## Bygga och driftsätta
 
-Allt driftsätts automatiskt vid push till `main` ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)):
+**3D-utskrift:** STL-filerna återskapas ur förhandsgranskningen med [tools/extract_from_html.py](tools/extract_from_html.py). Utskriftsråd finns i [docs/modellen.md](docs/modellen.md).
 
-1. **Webbdelen**: GitHub Actions ber Coolify bygga om och starta appen via Coolifys API.
-2. **Raspberry Pi**: en GitHub-runner på Pi:n hämtar koden, installerar och startar om systemd-tjänsten `lennart`. Runnern tar bara kontakt utåt, så inga portar öppnas och det fungerar likadant på wifi och 4G.
+**Programvaran** driftsätts automatiskt vid push till `main` ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)):
 
-Sätta upp Pi:n från början: [docs/SETUP-PI.md](docs/SETUP-PI.md).
+1. **Webbdelen:** GitHub Actions ber Coolify bygga om och starta appen via Coolifys API.
+2. **Raspberry Pi:** en GitHub-runner på Pi:n hämtar koden, installerar den och startar om systemd-tjänsten `lennart`. Runnern tar bara kontakt utåt, så inga portar öppnas och det fungerar likadant på wifi och 4G.
 
-## Öppenhet
+Sätta upp Pi:n från början: [docs/SETUP-PI.md](docs/SETUP-PI.md). Det som återstår: [docs/att-gora.md](docs/att-gora.md).
+
+## Öppenhet enligt tävlingens villkor
 
 | Fil | Innehåll |
 |---|---|
 | [FORE-TAVLINGEN.md](FORE-TAVLINGEN.md) | Allt som fanns före tävlingsstarten 16 okt 2026 |
-| [KALLOR.md](KALLOR.md) | Bibliotek, modeller, verktyg, lånade resurser och hjälp |
-| [TOKENS.md](TOKENS.md) | AI-användning per arbetspass |
-| [docs/historik/](docs/historik/) | Orörda överlämningsfiler från tidigare AI-chattar |
+| [KALLOR.md](KALLOR.md) | Modeller, bibliotek, verktyg, källor och hjälp |
+| [TOKENS.md](TOKENS.md) | AI-användning per arbetspass, i molnet och lokalt |
+| [docs/historik/](docs/historik/) | Orörda överlämningsfiler från AI-chattarna |
 
 ## Licens
 
