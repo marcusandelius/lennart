@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lennart.cam – logga in</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/static/logo.webp">
+<link rel="stylesheet" href="/static/site.css">
+<style>
+  .login { max-width:24rem; margin:clamp(2rem,8vw,4rem) auto; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:1.5rem 1.4rem 1.4rem; }
+  .login h1 { font-size:1.6rem; font-weight:800; margin:0 0 1rem; }
+  .login label { display:block; font-weight:600; margin-bottom:.35rem; }
+  .login input { width:100%; font:inherit; padding:.6rem .7rem; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); }
+  .login button { margin-top:1rem; width:100%; font:inherit; font-weight:700; padding:.65rem; border:0; border-radius:10px; background:var(--ink); color:var(--paper); cursor:pointer; }
+  .fel { color:var(--denied); font-weight:600; min-height:1.4em; margin:0 0 .75rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-head">
+    <a class="brand" href="/status" aria-label="Lennart.cam, till statussidan"><img src="/static/logo.webp" alt="Lennart.cam" width="720" height="490"></a>
+  </header>
+  <main>
+    <form class="login" method="post" action="/admin/login">
+      <h1>Admin</h1>
+      <p class="fel" role="alert">{{fel}}</p>
+      <label for="password">Lösenord</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+      <button type="submit">Logga in</button>
+    </form>
+  </main>
+</div>
+</body>
+</html>

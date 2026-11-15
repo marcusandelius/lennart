@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lennart.cam – admin</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/static/logo.webp">
+<link rel="stylesheet" href="/static/site.css">
+<style>
+  main { display:grid; gap:1.25rem; padding-top:1.5rem; max-width:44rem; }
+  h1 { font-size:clamp(1.9rem,5vw,2.6rem); font-weight:800; letter-spacing:-.02em; margin:0; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:1.25rem 1.25rem 1.1rem; }
+  .card h2 { font-size:1.25rem; font-weight:800; margin:0 0 .9rem; }
+  .row { display:grid; grid-template-columns:minmax(9rem, 14rem) 1fr; gap:.4rem 1rem; align-items:center; margin-bottom:.7rem; }
+  @media (max-width:30rem) { .row { grid-template-columns:1fr; } }
+  label { font-weight:600; }
+  select, input[type=number] { font:inherit; padding:.45rem .6rem; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); width:100%; max-width:12rem; }
+  .switch { display:flex; align-items:center; gap:.6rem; font-weight:700; font-size:1.1rem; margin-bottom:1rem; }
+  .switch input { width:1.3rem; height:1.3rem; accent-color:var(--granted); }
+  button { font:inherit; font-weight:700; padding:.55rem 1.1rem; border:0; border-radius:10px; background:var(--ink); color:var(--paper); cursor:pointer; }
+  button.secondary { background:transparent; color:var(--ink); border:1px solid var(--line); }
+  .hint { color:var(--ink-2); font-size:.92rem; margin:.15rem 0 0; }
+  .msg { min-height:1.4em; margin:.75rem 0 0; font-weight:600; }
+  .msg.ok { color:var(--granted); } .msg.no { color:var(--denied); }
+  .warn { background:color-mix(in srgb, var(--denied) 12%, transparent); border:1px solid color-mix(in srgb, var(--denied) 45%, transparent); border-radius:10px; padding:.6rem .8rem; margin:0 0 1rem; }
+  dl { display:grid; grid-template-columns:auto 1fr; gap:.3rem 1rem; margin:0; }
+  dt { color:var(--ink-2); } dd { margin:0; font-variant-numeric:tabular-nums; }
+  .preview img { width:100%; aspect-ratio:16/9; object-fit:cover; background:#000; border-radius:10px; margin:.75rem 0; }
+  .head-actions { display:flex; gap:.6rem; align-items:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-head">
+    <a class="brand" href="/status" aria-label="Lennart.cam, till statussidan"><img src="/static/logo.webp" alt="Lennart.cam" width="720" height="490"></a>
+    <div class="head-actions">
+      <nav class="nav" aria-label="Sidor">
+        <a href="/status">Status</a>
+        <a href="/demo">Demo</a>
+        <a href="/admin" aria-current="page">Admin</a>
+      </nav>
+      <form method="post" action="/admin/logout"><button type="submit" class="secondary">Logga ut</button></form>
+    </div>
+  </header>
+
+  <main>
+    <h1>Admin</h1>
+
+    <section class="card">
+      <h2>Livebild</h2>
+      <p class="warn" id="notpersisted" hidden>Inställningarna sparas bara i minnet och återställs vid nästa deploy. Lägg till en volym på <code>/data</code> i Coolify.</p>
+      <form id="settings">
+        <label class="switch"><input type="checkbox" id="live_enabled"> Livebilden är på</label>
+        <div class="row">
+          <label for="resolution">Upplösning</label>
+          <select id="resolution"></select>
+        </div>
+        <div class="row">
+          <label for="fps">Bilder per sekund</label>
+          <div><input type="number" id="fps" step="1"><p class="hint">Fler bilder ger mjukare bild men mer mobildata.</p></div>
+        </div>
+        <div class="row">
+          <label for="quality">JPEG-kvalitet</label>
+          <div><input type="number" id="quality" step="5"><p class="hint">70 är en bra balans mellan skärpa och storlek.</p></div>
+        </div>
+        <div class="row">
+          <label for="max_view_min">Minuter per tittning</label>
+          <div><input type="number" id="max_view_min" step="1"><p class="hint">Sedan får besökaren klicka igen, så att en glömd flik inte drar data.</p></div>
+        </div>
+        <button type="submit">Spara</button>
+        <p class="msg" id="msg" role="status"></p>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Just nu</h2>
+      <dl>
+        <dt>Stationen</dt><dd id="online">–</dd>
+        <dt>Tittar på livebilden</dt><dd id="viewers">–</dd>
+        <dt>Senaste livebild</dt><dd id="lastframe">–</dd>
+        <dt>Temperatur</dt><dd id="temp">–</dd>
+        <dt>Uppkoppling</dt><dd id="net">–</dd>
+        <dt>Version på stationen</dt><dd id="version">–</dd>
+      </dl>
+    </section>
+
+    <section class="card preview">
+      <h2>Förhandsvisning</h2>
+      <button type="button" id="previewbtn">Visa livebilden</button>
+      <img id="previewimg" alt="Livebild från kameran vid matstationen" hidden>
+    </section>
+  </main>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const fields = ["fps", "quality", "max_view_min"];
+  let loaded = false;
+
+  async function load() {
+    const r = await fetch("/api/admin/state", { cache: "no-store" });
+    if (r.status === 401) { location.href = "/admin/login"; return; }
+    const s = await r.json();
+    if (!loaded) {
+      $("resolution").innerHTML = s.resolutions.map(v => `<option value="${v}">${v.replace("x", " × ")}</option>`).join("");
+      for (const f of fields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
+      $("resolution").value = s.settings.resolution;
+      $("live_enabled").checked = s.settings.live_enabled;
+      loaded = true;
+    }
+    $("notpersisted").hidden = s.persisted;
+    const st = s.status, rep = st.report || {};
+    $("online").textContent = st.online ? `igång (hörd av för ${st.seen_ago_s} s sedan)` : "hörs inte av";
+    $("viewers").textContent = `${s.live.viewers} av högst ${s.live.max_viewers}`;
+    $("lastframe").textContent = s.live.last_frame_age_s == null ? "ingen än" : `${s.live.last_frame_age_s} s sedan`;
+    $("temp").textContent = rep.cpu_temp_c != null ? `${rep.cpu_temp_c.toFixed(1)} °C` : "–";
+    $("net").textContent = rep.network || "–";
+    $("version").textContent = rep.version || "–";
+  }
+
+  $("settings").addEventListener("submit", async e => {
+    e.preventDefault();
+    const body = { live_enabled: $("live_enabled").checked, resolution: $("resolution").value };
+    for (const f of fields) body[f] = parseInt($(f).value, 10);
+    const r = await fetch("/api/admin/settings", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    const s = await r.json();
+    $("msg").className = "msg " + (r.ok ? "ok" : "no");
+    $("msg").textContent = r.ok ? "Sparat. Ändringen gäller direkt." : (s.fel || "Kunde inte spara.");
+    if (r.ok) $("notpersisted").hidden = s.persisted;
+  });
+
+  $("previewbtn").addEventListener("click", () => {
+    const img = $("previewimg");
+    if (img.hidden) { img.src = "/live.mjpg?t=" + Date.now(); img.hidden = false; $("previewbtn").textContent = "Stäng förhandsvisningen"; }
+    else { img.removeAttribute("src"); img.hidden = true; $("previewbtn").textContent = "Visa livebilden"; }
+  });
+
+  load();
+  setInterval(load, 5000);
+</script>
+</body>
+</html>
