@@ -1,0 +1,24 @@
+# Hemligheter – får aldrig committas
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Bygg och loggar
+dist/
+build/
+*.log
+
+# System
+.DS_Store
+Thumbs.db
