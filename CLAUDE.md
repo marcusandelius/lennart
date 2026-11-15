@@ -15,10 +15,13 @@ Repot är **publikt**. Läs hela filen innan du gör något.
 
 Villkoren finns på https://projekt.sweclockers.com/asus/villkor. Om något här verkar strida mot villkoren gäller villkoren. Säg i så fall till.
 
-Enligt villkoren, som de återges i HANDOFF-filen (inte kontrollerat direkt mot sidan) [verifiera], ska bidraget:
+Sammanfattning med citat: `docs/villkor.md` (läst 2026-11-15). Bidraget ska bland annat:
+- vara på svenska;
 - visa vad som fanns före och vad som gjorts med AI från 16 oktober;
-- ange använda modeller, verktyg och bibliotek;
-- redovisa tokens, uppdelat på lokalt och i molnet, med en kort förklaring av hur de räknats.
+- ange vilka modeller, verktyg, bibliotek och vilken öppen källkod som använts;
+- redovisa tokens, lokalt och i molnet, med en kort förklaring av hur de räknats;
+- ha tillstånd från personer som syns på bilder;
+- för topp 3: kunna visa daterad historik och tokenunderlag, och ha den personliga koden inlagd i projektet.
 
 ## Projektet i korthet
 
