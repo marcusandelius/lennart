@@ -31,7 +31,8 @@ Under **Environment Variables**, lägg till:
 
 ## 3. Hälsokontroll och deploy
 
-- **Healthcheck:** sökväg `/healthz`, port `8000`. Coolify ser då om appen faktiskt svarar efter en deploy.
+- **Healthcheck:** sökväg `/healthz`, **port `8000`**. Coolify ser då om appen faktiskt svarar efter en deploy. Står porten kvar på 80 misslyckas kontrollen, eftersom appen lyssnar på 8000. Coolify kör kontrollen med `curl` inuti containern, och därför installeras `curl` i Dockerfile.
+- **Ports Exposes** under General ska också vara `8000`. Annars skickar Coolify trafiken från lennart.cam till fel port.
 - **Automatisk deploy från Coolify:** stäng av "Auto Deploy" under Advanced [verifiera]. Det är GitHub Actions som startar deployen, annars kan det bli två deployer per push.
 - **Commit-nummer på statussidan (valfritt):** slå på "Include Source Commit in Build" under Advanced [verifiera]. Då visar lennart.cam vilken commit servern kör.
 - Tryck **Deploy** en gång för hand och kontrollera att bygget blir grönt.

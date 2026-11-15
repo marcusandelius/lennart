@@ -1,6 +1,11 @@
 # Webbdelen för Lennarts matstation. Coolify bygger den här filen vid varje deploy.
 FROM python:3.12-slim
 
+# curl behövs för Coolifys hälsokontroll, som anropar /healthz med curl eller wget.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/*
+
 # Kör inte som root i containern.
 RUN useradd --create-home --uid 10001 lennart
 WORKDIR /app
