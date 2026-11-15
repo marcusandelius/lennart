@@ -39,10 +39,12 @@ jobs:
             echo "::warning::Coolify-secrets saknas ännu – hoppar över deploy av webbdelen."
             exit 0
           fi
-          # Coolifys API: GET /api/v1/deploy?uuid=<app-uuid> med Bearer-token.
+          # Coolifys API: POST /api/v1/deploy?uuid=<app-uuid> med Bearer-token.
+          # (Äldre Coolify tog GET. Nyare svarar 405 och kräver POST.)
           # --fail-with-body gör att jobbet blir rött om Coolify svarar med fel.
           curl --silent --show-error --fail-with-body \
             --max-time 60 \
+            -X POST --data '' \
             -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
             "${COOLIFY_URL%/}/api/v1/deploy?uuid=${COOLIFY_APP_UUID}&force=false"
           echo
