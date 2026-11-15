@@ -37,8 +37,8 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | picamera2 | BSD-2-Clause [verifiera] | Kameran på Pi:n | https://github.com/raspberrypi/picamera2 |
 | libcamera | LGPL-2.1 [verifiera] | Kamerastacken under picamera2 | https://libcamera.org |
 | spidev (py-spidev) | MIT [verifiera] | SPI till skärmen | https://github.com/doceme/py-spidev |
-| gpiozero | BSD-3-Clause [verifiera] | Styrpinnar till skärmen | https://gpiozero.readthedocs.io |
-| lgpio | Unlicense [verifiera] | GPIO-stöd på Pi 5 under gpiozero | https://abyz.me.uk/lg/py_lgpio.html |
+| gpiozero | BSD-3-Clause [verifiera] | Installerad. Provades för skärmens styrpinnar men valde fel GPIO-krets på Pi 5, så den används inte för skärmen. | https://gpiozero.readthedocs.io |
+| lgpio | Unlicense [verifiera] | Styrpinnarna till skärmen (DC, RST, BL) på Pi 5 | https://abyz.me.uk/lg/py_lgpio.html |
 
 ## Typsnitt
 

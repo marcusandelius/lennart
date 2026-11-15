@@ -37,7 +37,7 @@ fi
 
 # Paketen installeras en gång för hand med apt (docs/SETUP-PI.md, steg 4).
 # Kontrollera dem här, så att ett tydligt fel syns i GitHub i stället för en krasch.
-if ! /usr/bin/python3 -c "import picamera2, spidev, gpiozero, PIL, numpy" 2>/dev/null; then
+if ! /usr/bin/python3 -c "import picamera2, spidev, lgpio, PIL, numpy" 2>/dev/null; then
   echo "::error::Python-paket saknas på Pi:n. Kör: sudo apt install -y python3-picamera2 python3-spidev python3-gpiozero python3-lgpio python3-pil python3-numpy --no-install-recommends"
   exit 1
 fi

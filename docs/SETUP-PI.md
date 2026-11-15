@@ -154,7 +154,7 @@ sudo apt install -y python3-picamera2 python3-spidev python3-gpiozero python3-lg
 |---|---|
 | `python3-picamera2` | Kameran |
 | `python3-spidev` | SPI till skärmen |
-| `python3-gpiozero`, `python3-lgpio` | Styrpinnarna DC, RST och BL. `lgpio` är den del som fungerar på Pi 5. |
+| `python3-lgpio` | Styrpinnarna DC, RST och BL. Fungerar på Pi 5. (`python3-gpiozero` installeras också inför servona, men skärmen använder lgpio direkt.) |
 | `python3-pil` | Text på skärmen |
 | `python3-numpy` | Räkna om bilden till skärmens färgformat |
 | `fonts-dejavu-core` | Typsnittet för texten |

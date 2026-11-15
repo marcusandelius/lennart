@@ -4,8 +4,9 @@ Skärmen är byggd för Raspberry Pi Pico men talar vanlig SPI, så den kan kopp
 till Pi:ns SPI0 med kopplingskablar (se docs/koppling-display.md).
 
 Varför egen drivrutin: den är kort, går att förstå rad för rad, och använder bara
-spidev och gpiozero, som båda fungerar på Pi 5. Flera färdiga bibliotek bygger på
-RPi.GPIO, som inte fungerar på Pi 5.
+spidev (SPI) och lgpio (styrpinnarna), som båda fungerar på Pi 5. Flera färdiga
+bibliotek bygger på RPi.GPIO, som inte fungerar på Pi 5. Även gpiozero valde fel
+bibliotek eller fel GPIO-krets på Pi 5, så pinnarna styrs med lgpio direkt.
 
 Hur skärmen fungerar: Pi:n skickar ett kommando (DC-pinnen låg) följt av data
 (DC-pinnen hög). Bilden skickas som 16 bitar per pixel (RGB565): 5 bitar rött,
@@ -39,17 +40,38 @@ def _env_int(name: str, default: int) -> int:
     return int(os.environ.get(name, default))
 
 
+class OutputPin:
+    """En GPIO-pinne som utgång, via lgpio. Pinnens nummer är samma som GPIO-numret."""
+
+    _handles: dict = {}  # en öppen GPIO-krets delas av alla pinnar
+
+    def __init__(self, chip: int, pin: int, initial: bool = False) -> None:
+        import lgpio
+
+        self._lgpio = lgpio
+        try:
+            if chip not in OutputPin._handles:
+                OutputPin._handles[chip] = lgpio.gpiochip_open(chip)
+            self._h = OutputPin._handles[chip]
+            lgpio.gpio_claim_output(self._h, pin, int(initial))
+        except Exception as e:
+            raise RuntimeError(f"GPIO {pin} på gpiochip{chip}: {e}") from e
+        self._pin = pin
+        self.value = initial
+
+    def on(self) -> None:
+        self._lgpio.gpio_write(self._h, self._pin, 1)
+        self.value = True
+
+    def off(self) -> None:
+        self._lgpio.gpio_write(self._h, self._pin, 0)
+        self.value = False
+
+
 class Display:
     def __init__(self) -> None:
         # Importeras här så att resten av programmet kan testas utan Pi-hårdvara.
         import spidev
-        from gpiozero import Device, DigitalOutputDevice
-        from gpiozero.pins.lgpio import LGPIOFactory
-
-        # Välj lgpio uttryckligen. Annars kan gpiozero välja RPi.GPIO, som inte
-        # fungerar på Pi 5 ("Cannot determine SOC peripheral base address").
-        if not isinstance(Device.pin_factory, LGPIOFactory):
-            Device.pin_factory = LGPIOFactory(chip=find_header_gpiochip())
 
         dc_pin = _env_int("LCD_DC", 25)
         rst_pin = _env_int("LCD_RST", 27)
@@ -57,9 +79,10 @@ class Display:
         rotation = _env_int("LCD_ROTATION", 90)
         bgr = os.environ.get("LCD_BGR", "0") == "1"
 
-        self.dc = DigitalOutputDevice(dc_pin)
-        self.rst = DigitalOutputDevice(rst_pin, initial_value=True)
-        self.bl = DigitalOutputDevice(bl_pin)
+        chip = find_header_gpiochip()
+        self.dc = OutputPin(chip, dc_pin)
+        self.rst = OutputPin(chip, rst_pin, initial=True)
+        self.bl = OutputPin(chip, bl_pin)
 
         self.spi = spidev.SpiDev()
         self.spi.open(0, 0)  # SPI0, chip select CE0 (GPIO 8)
