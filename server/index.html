@@ -48,6 +48,17 @@
     .choice .go { margin-top:.4rem; }
   }
   .val:focus { outline:none; }
+
+  /* Livebilden */
+  .live { margin-bottom:1.25rem; }
+  .live h2 { font-size:1.3rem; font-weight:800; margin:0 0 .75rem; }
+  .live-frame { position:relative; aspect-ratio:16/9; background:#0d1410; border-radius:10px; overflow:hidden; display:grid; place-items:center; }
+  .live-frame img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .live-frame p { color:#cfd8cf; text-align:center; padding:1rem; margin:0; max-width:28rem; }
+  .live-actions { display:flex; flex-wrap:wrap; gap:.6rem 1rem; align-items:center; margin-top:.8rem; }
+  .live button { font:inherit; font-weight:700; padding:.55rem 1.1rem; border:0; border-radius:10px; background:var(--ink); color:var(--paper); cursor:pointer; }
+  .live button:disabled { opacity:.45; cursor:default; }
+  .live .note { color:var(--ink-2); font-size:.92rem; margin:0; }
 </style>
 </head>
 <body>
@@ -64,6 +75,18 @@
     <section class="intro">
       <h1>Följ min matresa</h1>
       <p class="sig">/ Lennart</p>
+    </section>
+
+    <section class="card live" aria-labelledby="liveRubrik">
+      <h2 id="liveRubrik">Live från matstationen</h2>
+      <div class="live-frame">
+        <img id="liveimg" alt="Livebild från kameran vid matstationen" hidden>
+        <p id="livemsg">Tryck på knappen för att se livebilden.</p>
+      </div>
+      <div class="live-actions">
+        <button type="button" id="livebtn">Se live</button>
+        <p class="note" id="livenote"></p>
+      </div>
     </section>
 
     <section class="card" id="card" aria-live="polite">
@@ -173,6 +196,44 @@
   }
   refresh();
   setInterval(refresh, 10000);
+
+  // Livebilden startar först när besökaren klickar, så att ingen data går åt i onödan.
+  let live = { enabled: false, max_view_min: 5 }, stationOnline = false, watching = false, stopTimer = null;
+  const img = $("liveimg"), btn = $("livebtn"), msg = $("livemsg");
+  function showMsg(text) { img.hidden = true; img.removeAttribute("src"); msg.hidden = false; msg.textContent = text; }
+  function stopLive(text) {
+    watching = false; clearTimeout(stopTimer);
+    showMsg(text); btn.textContent = "Se live"; updateLiveButton();
+  }
+  function updateLiveButton() {
+    if (watching) return;
+    btn.disabled = !live.enabled || !stationOnline;
+    $("livenote").textContent = !live.enabled ? "Livebilden är avstängd just nu."
+      : !stationOnline ? "Stationen hörs inte av just nu."
+      : `${live.resolution}, ${live.fps} bilder per sekund, i högst ${live.max_view_min} minuter åt gången.`;
+  }
+  async function refreshLive() {
+    try {
+      live = await (await fetch("/api/live/info", { cache: "no-store" })).json();
+      stationOnline = (await (await fetch("/api/status", { cache: "no-store" })).json()).online;
+      if (watching && !live.enabled) stopLive("Livebilden stängdes av.");
+      updateLiveButton();
+    } catch (e) { /* försök igen vid nästa uppdatering */ }
+  }
+  btn.addEventListener("click", () => {
+    if (watching) { stopLive("Livebilden är stoppad."); return; }
+    watching = true;
+    msg.textContent = "Väcker kameran …";
+    img.onload = () => { msg.hidden = true; img.hidden = false; };
+    img.onerror = () => { if (watching) stopLive("Livebilden kunde inte visas just nu. Försök igen om en stund."); };
+    img.src = "/live.mjpg?t=" + Date.now();
+    btn.textContent = "Stoppa";
+    btn.disabled = false;
+    $("livenote").textContent = "";
+    stopTimer = setTimeout(() => stopLive("Tiden är slut. Tryck igen för att fortsätta titta."), live.max_view_min * 60000);
+  });
+  refreshLive();
+  setInterval(refreshLive, 10000);
 </script>
 </body>
 </html>
