@@ -31,6 +31,13 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | three.js r128 | MIT | 3D i förhandsgranskningen och minihusen, från cdnjs.cloudflare.com | https://threejs.org |
 | Bambu Studio | AGPL-3.0 [verifiera] | Skivning, gjord av Marcus | https://bambulab.com/en/download/studio |
 | Blender | GPL | Planerat för trailern | https://www.blender.org |
+| Python 3, standardbiblioteket | PSF-licens | Webbdelen (`server/app.py`) och heartbeat på Pi:n | https://www.python.org |
+| Docker-avbildningen `python:3.12-slim` | PSF-licens och Debians licenser [verifiera] | Grund för webbdelens container i Coolify | https://hub.docker.com/_/python |
+| picamera2 | BSD-2-Clause [verifiera] | Kameran på Pi:n | https://github.com/raspberrypi/picamera2 |
+| libcamera | LGPL-2.1 [verifiera] | Kamerastacken under picamera2 | https://libcamera.org |
+| spidev (py-spidev) | MIT [verifiera] | SPI till skärmen | https://github.com/doceme/py-spidev |
+| gpiozero | BSD-3-Clause [verifiera] | Styrpinnar till skärmen | https://gpiozero.readthedocs.io |
+| lgpio | Unlicense [verifiera] | GPIO-stöd på Pi 5 under gpiozero | https://abyz.me.uk/lg/py_lgpio.html |
 
 ## Typsnitt
 
@@ -38,7 +45,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 |---|---|---|---|
 | Bricolage Grotesque | SIL OFL 1.1 [verifiera] | Webbsidorna | https://fonts.google.com |
 | Special Elite | Apache-2.0 [verifiera] | Webbsidorna | https://fonts.google.com |
-| DejaVu Sans | Bitstream Vera-licens / fri [verifiera] | Text i 3D-modellen | https://dejavu-fonts.github.io |
+| DejaVu Sans | Bitstream Vera-licens / fri [verifiera] | Text i 3D-modellen och på skärmen i huset | https://dejavu-fonts.github.io |
 
 ## Verktyg och tjänster för drift
 
@@ -47,6 +54,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | GitHub och GitHub Actions | Kod, versionshistorik, automatisk deploy | https://github.com |
 | GitHub Actions: `actions/checkout` | Hämtar koden i deploy-jobbet på Pi:n | https://github.com/actions/checkout |
 | Coolify | Hosting av webbdelen | https://coolify.io |
+| Cloudflare | DNS för lennart.cam | https://www.cloudflare.com |
 | Raspberry Pi OS (Bookworm) | Operativsystem på Pi:n | https://www.raspberrypi.com/software/ |
 
 ## Hårdvara
@@ -57,6 +65,8 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Raspberry Pi 5, Camera Module 3 Wide, Waveshare 2" skärm m.m. | Se [docs/hardvara.md](docs/hardvara.md) |
 
 ## Mått och webbkällor
+
+- **ST7789-kommandon** i `pi/display.py`: från Sitronix datablad för ST7789 och Waveshares beskrivning av Pico-LCD-2 [verifiera länk].
 
 - **Mått från standarder och datablad:** Raspberry Pi 5 och Camera Module 3 (hålmönster 21 × 12,5 mm), Waveshare 2" skärm för Pico (varianten med knappar) samt servomått för MG996R och MG90S. Alla ska kontrolleras mot de riktiga delarna.
 - **Bambu Lab wiki:** filamentgrupper för munstyckena ("H2D filament config limit") och munstyckenas räckvidd.
