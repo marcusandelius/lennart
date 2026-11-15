@@ -43,7 +43,13 @@ class Display:
     def __init__(self) -> None:
         # Importeras här så att resten av programmet kan testas utan Pi-hårdvara.
         import spidev
-        from gpiozero import DigitalOutputDevice
+        from gpiozero import Device, DigitalOutputDevice
+        from gpiozero.pins.lgpio import LGPIOFactory
+
+        # Välj lgpio uttryckligen. Annars kan gpiozero välja RPi.GPIO, som inte
+        # fungerar på Pi 5 ("Cannot determine SOC peripheral base address").
+        if not isinstance(Device.pin_factory, LGPIOFactory):
+            Device.pin_factory = LGPIOFactory()
 
         dc_pin = _env_int("LCD_DC", 25)
         rst_pin = _env_int("LCD_RST", 27)
