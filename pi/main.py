@@ -1,12 +1,13 @@
-"""Lennarts matstation – första testversion på Raspberry Pi.
+"""Lennarts matstation – programmet på Raspberry Pi.
 
-Visar kamerans bild live på 2"-skärmen och rapporterar status till lennart.cam.
-Syftet är att se att kamera, skärm, uppkoppling och automatisk deploy fungerar,
-innan igenkänning, servon och lucka läggs till.
+Visar kamerans bild live på 2"-skärmen, rapporterar status till lennart.cam
+och skickar livebild till lennart.cam när någon tittar där. Igenkänning,
+servon och lucka läggs till senare.
 
 Inställningar läses från miljön (~/.config/lennart/.env via systemd):
   LENNART_SERVER_URL, LENNART_DEVICE_TOKEN  – för heartbeat
   CAMERA_FLIP=1                              – vänd bilden 180° om kameran sitter upp och ner
+  DISPLAY_FPS                                – bilder per sekund på skärmen (standard 10)
   LCD_*                                      – se display.py
 """
 
@@ -21,8 +22,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 from display import HEIGHT, WIDTH, Display
 from heartbeat import Heartbeat
+from live import LiveSender
 
 CAMERA_RETRY_S = 30
+# Kameran levererar 1280 × 720 (16:9). Livebilden skalas ner till vald upplösning,
+# och skärmen får var fjärde bildpunkt (320 × 180) med svarta kanter upptill och nedtill.
+CAMERA_SIZE = (1280, 720)
 # Skärmen är en förhandsvisning, så 10 bilder per sekund räcker. Färre bilder ger
 # mindre processorlast och värme. Kan ändras med DISPLAY_FPS i .env.
 DISPLAY_FPS = float(os.environ.get("DISPLAY_FPS", "10"))
@@ -45,16 +50,14 @@ FONT_BIG = load_font(26)
 
 
 def start_camera():
-    """Startar Camera Module 3 med en bildström i skärmens storlek."""
-    import os
-
+    """Startar Camera Module 3 med en bildström i 1280 × 720."""
     from libcamera import Transform, controls
     from picamera2 import Picamera2
 
     flip = os.environ.get("CAMERA_FLIP", "0") == "1"
     cam = Picamera2()
     config = cam.create_video_configuration(
-        main={"size": (WIDTH, HEIGHT), "format": "RGB888"},
+        main={"size": CAMERA_SIZE, "format": "RGB888"},
         transform=Transform(hflip=flip, vflip=flip),
         buffer_count=4,
     )
@@ -74,6 +77,15 @@ def message_screen(title: str, detail: str = "") -> np.ndarray:
     for i, line in enumerate(textwrap.wrap(detail, 34)[:5]):
         draw.text((16, 124 + i * 18), line, font=FONT_SMALL, fill=GREY)
     return np.asarray(img)
+
+
+def for_display(rgb: np.ndarray) -> np.ndarray:
+    """Skala ner kamerabilden till skärmen: var fjärde bildpunkt, centrerad med svarta kanter."""
+    small = rgb[::4, ::4][:HEIGHT, :WIDTH]
+    canvas = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
+    top = (HEIGHT - small.shape[0]) // 2
+    canvas[top:top + small.shape[0], :small.shape[1]] = small
+    return canvas
 
 
 def add_status_bar(rgb: np.ndarray, server_ok: bool | None, fps: float) -> np.ndarray:
@@ -130,6 +142,11 @@ def main() -> int:
     heartbeat = Heartbeat(status)
     heartbeat.start()
 
+    # Senaste kamerabilden delas med livebilden, som skickar den när någon tittar.
+    latest = {"rgb": None}
+    live = LiveSender(lambda: latest["rgb"])
+    live.start()
+
     frames, fps_since = 0, time.monotonic()
     while running:
         now = time.monotonic()
@@ -142,27 +159,30 @@ def main() -> int:
                 camera_error = f"{type(e).__name__}: {e}"
                 print(f"Kameran gick inte att starta: {camera_error}", flush=True)
 
-        if display is None:
-            time.sleep(1)  # utan skärm finns inget att rita, men heartbeat fortsätter
+        # Kameran behövs bara när skärmen ska visa något eller någon tittar på livebilden.
+        if camera is None or (display is None and not live.active):
+            latest["rgb"] = None
+            if display is not None and camera is None:
+                display.show(add_status_bar(message_screen("Ingen kamera", camera_error), heartbeat.last_ok, fps))
+            time.sleep(0.5)
             continue
 
-        if camera is not None:
-            try:
-                frame = camera.capture_array("main")[:HEIGHT, :WIDTH]
-                rgb = frame[..., ::-1]  # picamera2 levererar "RGB888" i ordningen blå, grön, röd
-            except Exception as e:
-                camera_error = f"{type(e).__name__}: {e}"
-                print(f"Kameran slutade fungera: {camera_error}", flush=True)
-                camera = None
-                continue
-        else:
-            rgb = message_screen("Ingen kamera", camera_error)
-            time.sleep(0.5)
+        try:
+            frame = camera.capture_array("main")
+        except Exception as e:
+            camera_error = f"{type(e).__name__}: {e}"
+            print(f"Kameran slutade fungera: {camera_error}", flush=True)
+            camera = None
+            continue
+        rgb = np.ascontiguousarray(frame[..., ::-1])  # picamera2 levererar "RGB888" i ordningen blå, grön, röd
+        latest["rgb"] = rgb
 
-        display.show(add_status_bar(np.ascontiguousarray(rgb), heartbeat.last_ok, fps))
+        if display is not None:
+            display.show(add_status_bar(for_display(rgb), heartbeat.last_ok, fps))
 
-        # Vänta in nästa bild, så att skärmen inte uppdateras oftare än DISPLAY_FPS.
-        spare = 1 / DISPLAY_FPS - (time.monotonic() - now)
+        # Vänta in nästa bild: skärmens takt, eller livebildens om ingen skärm finns.
+        target_fps = DISPLAY_FPS if display is not None else max(live.fps, 1)
+        spare = 1 / target_fps - (time.monotonic() - now)
         if spare > 0:
             time.sleep(spare)
 
@@ -173,6 +193,7 @@ def main() -> int:
 
     print("Stänger av", flush=True)
     heartbeat.stop()
+    live.stop()
     if camera is not None:
         camera.stop()
     if display is not None:
