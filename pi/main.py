@@ -93,21 +93,37 @@ def main() -> int:
     signal.signal(signal.SIGTERM, stop)  # systemd stoppar tjänsten med SIGTERM
     signal.signal(signal.SIGINT, stop)
 
-    display = None
+    display, display_error = None, ""
     try:
         display = Display()
         print("Skärmen är igång", flush=True)
     except Exception as e:
-        print(f"Skärmen gick inte att starta: {e}", flush=True)
+        display_error = f"{type(e).__name__}: {e}"
+        print(f"Skärmen gick inte att starta: {display_error}", flush=True)
 
-    camera, camera_error, camera_tried = None, "", 0.0
+    # Starta kameran innan första rapporten, så att den inte felaktigt säger "fel".
+    camera, camera_error, camera_tried = None, "", time.monotonic()
+    try:
+        camera = start_camera()
+        print("Kameran är igång", flush=True)
+    except Exception as e:
+        camera_error = f"{type(e).__name__}: {e}"
+        print(f"Kameran gick inte att starta: {camera_error}", flush=True)
     fps = 0.0
 
-    heartbeat = Heartbeat(lambda: {
-        "camera_ok": camera is not None,
-        "display_ok": display is not None,
-        "fps": round(fps, 1),
-    })
+    def status() -> dict:
+        # Felmeddelandet skickas med, så att fel kan felsökas från lennart.cam utan att logga in på Pi:n.
+        problems = []
+        if camera is None and camera_error:
+            problems.append(f"Kamera: {camera_error}")
+        if display is None and display_error:
+            problems.append(f"Skärm: {display_error}")
+        report = {"camera_ok": camera is not None, "display_ok": display is not None, "fps": round(fps, 1)}
+        if problems:
+            report["message"] = " · ".join(problems)[:200]
+        return report
+
+    heartbeat = Heartbeat(status)
     heartbeat.start()
 
     frames, fps_since = 0, time.monotonic()
@@ -119,8 +135,8 @@ def main() -> int:
                 camera = start_camera()
                 print("Kameran är igång", flush=True)
             except Exception as e:
-                camera_error = str(e)
-                print(f"Kameran gick inte att starta: {e}", flush=True)
+                camera_error = f"{type(e).__name__}: {e}"
+                print(f"Kameran gick inte att starta: {camera_error}", flush=True)
 
         if display is None:
             time.sleep(1)  # utan skärm finns inget att rita, men heartbeat fortsätter
@@ -131,8 +147,8 @@ def main() -> int:
                 frame = camera.capture_array("main")[:HEIGHT, :WIDTH]
                 rgb = frame[..., ::-1]  # picamera2 levererar "RGB888" i ordningen blå, grön, röd
             except Exception as e:
-                print(f"Kameran slutade fungera: {e}", flush=True)
-                camera_error = str(e)
+                camera_error = f"{type(e).__name__}: {e}"
+                print(f"Kameran slutade fungera: {camera_error}", flush=True)
                 camera = None
                 continue
         else:
