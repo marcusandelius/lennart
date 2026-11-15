@@ -113,17 +113,19 @@ class Display:
 def find_header_gpiochip() -> int:
     """Hitta GPIO-kretsen för stiftlisten.
 
-    På Pi 5 sitter stiftlisten på RP1-kretsen ("pinctrl-rp1"). Den heter
-    gpiochip4 med äldre kärnor och gpiochip0 med nyare. Kan styras med LCD_GPIOCHIP.
+    På Pi 5 sitter stiftlisten på RP1-kretsen ("pinctrl-rp1"). Dess nummer skiljer
+    sig mellan kärnversioner (gpiochip4, gpiochip0, gpiochip1x …), så den letas upp
+    via etiketten. Kan styras med LCD_GPIOCHIP.
     """
     if "LCD_GPIOCHIP" in os.environ:
         return int(os.environ["LCD_GPIOCHIP"])
     import lgpio
 
     opened, first_error = [], None
-    for chip in range(8):
-        if not os.path.exists(f"/dev/gpiochip{chip}"):
-            continue
+    # Numren varierar mellan kärnversioner (t.ex. 0–4 eller 11–15), så leta igenom alla.
+    import glob
+    chips = sorted(int(p.removeprefix("/dev/gpiochip")) for p in glob.glob("/dev/gpiochip[0-9]*"))
+    for chip in chips:
         try:
             handle = lgpio.gpiochip_open(chip)
         except Exception as e:
@@ -137,7 +139,7 @@ def find_header_gpiochip() -> int:
         if "rp1" in f"{name} {label}".lower():
             return chip
     if not opened:
-        raise RuntimeError(f"Kan inte öppna någon GPIO-krets ({first_error}). Är kontot med i gruppen gpio?")
+        raise RuntimeError(f"Kan inte öppna någon GPIO-krets av {chips} ({first_error}). Är kontot med i gruppen gpio?")
     raise RuntimeError(f"Ingen GPIO-krets heter pinctrl-rp1. Hittade: {', '.join(opened)}")
 
 
