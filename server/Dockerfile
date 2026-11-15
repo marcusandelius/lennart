@@ -13,4 +13,9 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3).status == 200 else 1)"
 
+# Coolify kan skicka med vilken commit som byggs ("Include Source Commit in Build").
+# Läggs sist, så att resten av bygget kan återanvändas från cache.
+ARG SOURCE_COMMIT=""
+ENV SOURCE_COMMIT=${SOURCE_COMMIT}
+
 CMD ["python", "app.py"]
