@@ -87,7 +87,7 @@ def hole(side, yc):
     r = HOLE_D / 2
     parts = [local_cyl(r, -HOLE_DEPTH, 1.0)]
     # infasning: kon med radie r+CHAMFER vid ytan
-    k = cone(radius=r + CHAMFER + 1.0, height=r + CHAMFER + 1.0, sections=64)   # 45 grader
+    k = cone(radius=r + CHAMFER + 1.0, height=r + CHAMFER + 1.0, sections=60)   # 45 grader
     k.apply_transform(np.diag([1, 1, -1, 1]))   # spetsen nedåt (trimesh rättar vridningen själv)
     k.apply_translation([HOLE_U, 0, 1.0])
     parts.append(k)
