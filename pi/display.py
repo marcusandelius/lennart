@@ -49,7 +49,7 @@ class Display:
         # Välj lgpio uttryckligen. Annars kan gpiozero välja RPi.GPIO, som inte
         # fungerar på Pi 5 ("Cannot determine SOC peripheral base address").
         if not isinstance(Device.pin_factory, LGPIOFactory):
-            Device.pin_factory = LGPIOFactory()
+            Device.pin_factory = LGPIOFactory(chip=find_header_gpiochip())
 
         dc_pin = _env_int("LCD_DC", 25)
         rst_pin = _env_int("LCD_RST", 27)
@@ -108,6 +108,37 @@ class Display:
             self.spi.close()
         except Exception:
             pass
+
+
+def find_header_gpiochip() -> int:
+    """Hitta GPIO-kretsen för stiftlisten.
+
+    På Pi 5 sitter stiftlisten på RP1-kretsen ("pinctrl-rp1"). Den heter
+    gpiochip4 med äldre kärnor och gpiochip0 med nyare. Kan styras med LCD_GPIOCHIP.
+    """
+    if "LCD_GPIOCHIP" in os.environ:
+        return int(os.environ["LCD_GPIOCHIP"])
+    import lgpio
+
+    opened, first_error = [], None
+    for chip in range(8):
+        if not os.path.exists(f"/dev/gpiochip{chip}"):
+            continue
+        try:
+            handle = lgpio.gpiochip_open(chip)
+        except Exception as e:
+            first_error = first_error or f"gpiochip{chip}: {e}"
+            continue
+        try:
+            _, _, name, label = lgpio.gpio_get_chip_info(handle)
+        finally:
+            lgpio.gpiochip_close(handle)
+        opened.append(f"{chip}={label}")
+        if "rp1" in f"{name} {label}".lower():
+            return chip
+    if not opened:
+        raise RuntimeError(f"Kan inte öppna någon GPIO-krets ({first_error}). Är kontot med i gruppen gpio?")
+    raise RuntimeError(f"Ingen GPIO-krets heter pinctrl-rp1. Hittade: {', '.join(opened)}")
 
 
 def to_rgb565(rgb: np.ndarray) -> bytes:
