@@ -1,10 +1,25 @@
 # Tokenlogg
 
-En rad per arbetspass. **Moln** = AI-tjänster i molnet (t.ex. Claude på claude.ai / Claude Code i molnet). **Lokalt** = modeller som körs på egen hårdvara (t.ex. Pi:n eller egen dator).
+En rad per arbetspass. **Moln** = AI-tjänster i molnet (claude.ai, Claude Code i molnet). **Lokalt** = modeller som körs på egen hårdvara (Pi:n eller egen dator).
 
-Metod anger hur siffran togs fram: *exakt* (avläst i verktyget) eller *uppskattat* (med beskrivning).
+Metoden anger hur siffran togs fram: *exakt* (avläst i verktyget) eller *uppskattat* (med beskrivning). claude.ai visar ingen tokenräknare, så alla siffror hittills är uppskattningar.
+
+**"In"** räknar allt modellen läser vid varje anrop, eftersom hela kontexten läses om varje gång. En stor del av detta kommer sannolikt från cache, men hur tjänsten räknar det är [osäkert].
 
 | Datum | Vad vi gjorde | Tokens moln | Metod moln | Tokens lokalt | Metod lokalt |
 |---|---|---|---|---|---|
-| [osäkert] | *Tidigare chattar – fylls i från HANDOFF-filerna i `docs/historik/`* | | | | |
-| 2026-11-15 | Repo-uppsättning: CLAUDE.md, loggfiler, README-skelett, deploy-workflows (Coolify + Pi), förslag på bildigenkänning, SETUP-PI-guide | ~150 000 [osäkert] | Uppskattat: sessionens längd (antal verktygsanrop och textmängd in/ut), exakt siffra går inte att läsa av inifrån sessionen. Kan ersättas med avläst värde från claude.ai-användning. | 0 | Ingen lokal modell användes |
+| 2026-10-27 – 2026-11-15 | Chatten om Lennarts matstation i claude.ai: idé, krav, 3D-modell i kod (version 1–7 med ändringar), förhandsgranskning med demo, inköpslista, utskrift, besöksliggare-demo. Se [HANDOFF](docs/historik/HANDOFF-lennarts-matstation-projekt.md). | ca 60–120 miljoner in, ca 1–2 miljoner ut [osäkert] | Uppskattat, se HANDOFF avsnitt 7: ca 860 modellanrop × 70 000–140 000 tokens kontext per anrop. Unikt innehåll ca 0,8 miljoner tokens, räknat ur transkriptens teckenantal (ca 3,5 tecken per token) och 1 500 tokens per bild. Ut: ca 300 000 tokens synlig kod och text, plus 0,5–1,5 miljoner dolt resonemang. | 0 | Ingen lokal modell användes |
+| 2026-11-15 | Claude Code-session: repo-uppsättning, CLAUDE.md, deploy-workflows (Coolify och Pi), förslag på bildigenkänning, SETUP-PI-guide, flytt av kod och dokument från HANDOFF | ca 3–6 miljoner in, ca 0,1 miljon ut [osäkert] | Uppskattat med samma metod: ca 60 modellanrop × 50 000–100 000 tokens kontext. Ut uppskattat ur mängden skriven text och kod. Exakt siffra går inte att läsa av inifrån sessionen. | 0 | Ingen lokal modell användes |
+
+## Utanför tokenräkningen
+
+- **Higgsfield 2026-10-27:** 12 bilder med GPT Image 2.5. Räknas i krediter, inte tokens. Antal krediter [osäkert].
+- **Konceptbilderna 2026-10-27:** Marcus egen generering i ett externt verktyg [osäkert vilket].
+
+## Underlag
+
+Topp 3 ska kunna visa underlag för tokens och AI-historik senast 15 december kl. 23.59. Spara:
+
+- daterad historik från claude.ai, alltså chatten och dess publicerade artefakter;
+- skärmdumpar av förbrukning där den visas;
+- HANDOFF-filerna i [docs/historik/](docs/historik/).
