@@ -62,8 +62,8 @@ def validate(changes: dict, current: dict) -> dict:
 class Settings:
     """Inställningarna sparas i DATA_DIR/settings.json, så att de överlever en deploy.
 
-    Finns ingen skrivbar DATA_DIR (ingen volym i Coolify) hålls de bara i minnet,
-    och adminvyn säger det.
+    Är DATA_DIR ingen monterad volym försvinner filen vid nästa deploy, och
+    adminvyn varnar för det.
     """
 
     def __init__(self, data_dir: str) -> None:
@@ -75,7 +75,11 @@ class Settings:
             self.values = validate({k: v for k, v in saved.items() if k in DEFAULTS}, DEFAULTS)
         except (OSError, ValueError):
             pass
-        self.persisted = self._writable()
+        self.persisted = self._durable()
+
+    def _durable(self) -> bool:
+        """Sparas inställningarna mellan deployer? Kräver en monterad volym, inte bara en mapp."""
+        return self._writable() and os.path.ismount(self.path.parent)
 
     def _writable(self) -> bool:
         try:
@@ -95,9 +99,7 @@ class Settings:
             with os.fdopen(fd, "w") as f:
                 json.dump(self.values, f)
             os.replace(tmp, self.path)
-            self.persisted = True
-        else:
-            self.persisted = False
+        self.persisted = self._durable()
         return self.values
 
     def for_pi(self) -> dict:

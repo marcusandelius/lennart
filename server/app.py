@@ -378,7 +378,7 @@ def main() -> None:
     if not admin.enabled():
         print("Obs: ADMIN_PASSWORD saknas – adminvyn är avstängd.", flush=True)
     if not settings.persisted:
-        print(f"Obs: {DATA_DIR} går inte att skriva till – inställningar sparas bara i minnet.", flush=True)
+        print(f"Obs: {DATA_DIR} är ingen volym – inställningar försvinner vid nästa deploy.", flush=True)
     httpd = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     httpd.daemon_threads = True  # öppna livebilder ska inte hindra omstart
     print(f"Lennart-servern lyssnar på port {PORT} (version {SERVER_VERSION})", flush=True)
