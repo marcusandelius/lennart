@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lennarts matstation</title>
+<style>
+  :root { --bg:#f6f1ea; --card:#fffaf3; --ink:#2b2420; --ink-2:#6b5f57; --red:#9b2a1f; --ok:#2f7d32; --bad:#b3261e; --line:#e3d8cb; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1d1916; --card:#27211d; --ink:#f2ebe3; --ink-2:#b5a89c; --red:#e0705f; --ok:#6cc070; --bad:#ef7a70; --line:#3a312b; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:40rem; margin:0 auto; padding:2.5rem 1rem 3rem; }
+  h1 { color:var(--red); font-size:1.9rem; margin:0 0 .25rem; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0 0 2rem; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:1.25rem 1.25rem 1rem; }
+  .state { display:flex; align-items:center; gap:.6rem; font-size:1.25rem; font-weight:600; margin-bottom:1rem; }
+  .dot { width:.85rem; height:.85rem; border-radius:50%; background:var(--ink-2); flex:none; }
+  .online .dot { background:var(--ok); box-shadow:0 0 0 4px color-mix(in srgb, var(--ok) 25%, transparent); }
+  .offline .dot { background:var(--bad); }
+  dl { display:grid; grid-template-columns:auto 1fr; gap:.35rem 1rem; margin:0; }
+  dt { color:var(--ink-2); }
+  dd { margin:0; font-variant-numeric:tabular-nums; }
+  footer { color:var(--ink-2); font-size:.85rem; margin-top:1.5rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Lennarts matstation</h1>
+  <p class="sub">En matstation för ekorren Lennart. Här syns om stationen hörs av.</p>
+
+  <section class="card" id="card" aria-live="polite">
+    <div class="state"><span class="dot"></span><span id="state">Hämtar status…</span></div>
+    <dl>
+      <dt>Senast hörd av</dt><dd id="seen">–</dd>
+      <dt>Kamera</dt><dd id="camera">–</dd>
+      <dt>Display</dt><dd id="display">–</dd>
+      <dt>Bilder per sekund</dt><dd id="fps">–</dd>
+      <dt>Temperatur</dt><dd id="temp">–</dd>
+      <dt>Uppkoppling</dt><dd id="net">–</dd>
+      <dt>Igång sedan</dt><dd id="uptime">–</dd>
+      <dt>Version på stationen</dt><dd id="version">–</dd>
+    </dl>
+  </section>
+
+  <footer>Version på servern: <span id="sversion">–</span> · Bidrag till SweClockers/ASUS-tävlingen "Gick inte. Nu går det."</footer>
+</main>
+<script>
+  const $ = id => document.getElementById(id);
+  const yesNo = v => v === true ? "fungerar" : v === false ? "fel" : "–";
+  function ago(s) {
+    if (s == null) return "aldrig";
+    if (s < 60) return `${s} s sedan`;
+    if (s < 3600) return `${Math.round(s / 60)} min sedan`;
+    return `${Math.round(s / 3600)} h sedan`;
+  }
+  function duration(s) {
+    if (s == null) return "–";
+    const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    return d ? `${d} d ${h} h` : h ? `${h} h ${m} min` : `${m} min`;
+  }
+  async function refresh() {
+    try {
+      const r = await fetch("/api/status", { cache: "no-store" });
+      const s = await r.json();
+      const rep = s.report || {};
+      $("card").className = "card " + (s.online ? "online" : "offline");
+      $("state").textContent = s.online ? "Stationen är igång" : (s.report ? "Stationen hörs inte av" : "Ingen kontakt än");
+      $("seen").textContent = ago(s.seen_ago_s);
+      $("camera").textContent = yesNo(rep.camera_ok);
+      $("display").textContent = yesNo(rep.display_ok);
+      $("fps").textContent = rep.fps != null ? rep.fps.toFixed(1) : "–";
+      $("temp").textContent = rep.cpu_temp_c != null ? `${rep.cpu_temp_c.toFixed(1)} °C` : "–";
+      $("net").textContent = rep.network || "–";
+      $("uptime").textContent = duration(rep.uptime_s);
+      $("version").textContent = rep.version || "–";
+      $("sversion").textContent = s.server_version;
+    } catch (e) {
+      $("state").textContent = "Kunde inte hämta status";
+    }
+  }
+  refresh();
+  setInterval(refresh, 10000);
+</script>
+</body>
+</html>
