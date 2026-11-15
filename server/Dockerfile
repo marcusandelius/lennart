@@ -7,13 +7,15 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Kör inte som root i containern.
-RUN useradd --create-home --uid 10001 lennart
+RUN useradd --create-home --uid 10001 lennart \
+ && mkdir /data && chown lennart /data
 WORKDIR /app
-COPY app.py index.html demo.html ./
+COPY app.py admin.py live.py index.html demo.html admin.html login.html ./
 COPY static ./static
 USER lennart
 
-ENV PORT=8000 PYTHONUNBUFFERED=1
+# Inställningarna sparas i /data. Montera en volym där i Coolify, så att de överlever en deploy.
+ENV PORT=8000 PYTHONUNBUFFERED=1 DATA_DIR=/data
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
