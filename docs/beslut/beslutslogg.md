@@ -64,3 +64,7 @@ Konstaterat i chatten, inte beslutat:
 | Datum | Beslut | Skäl |
 |---|---|---|
 | 2026-11-15 | Repot sätts upp med deploy via GitHub Actions: Coolify för webbdelen, self-hosted runner på Pi:n | Marcus önskemål: allt deployas automatiskt vid push till main |
+| 2026-11-15 | Domänen lennart.cam köps. DNS hanteras i Cloudflare och pekar på Coolify. | Marcus val |
+| 2026-11-15 | Första programvaran: kamerabilden live på 2"-skärmen och en statussida på lennart.cam som visar att Pi:n hörs av | Marcus vill se att kamera, skärm, uppkoppling och automatisk deploy fungerar innan resten byggs |
+| 2026-11-15 | Pi:n uppdateras via GitHub-runnern (hämtar jobb utåt) i stället för en timer med `git pull` | Ger logg i GitHub och uppdaterar direkt vid push |
+| 2026-11-15 | Testservern skrivs med bara Pythons standardbibliotek, och skärmens drivrutin skrivs själv med spidev och gpiozero | Få beroenden och lätt att förklara. Vanliga skärmbibliotek bygger på RPi.GPIO, som inte fungerar på Pi 5. Servern byts ut när bildigenkänningen är beslutad. |

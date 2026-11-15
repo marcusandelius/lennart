@@ -76,7 +76,8 @@ model/               – 3D-modellen i Python (ordagrant ur HANDOFF)
 web/                 – förhandsgranskning, besöksliggare-demo, minihus
 trailer/             – underlag för trailern i Blender
 tools/               – hjälpskript, t.ex. extract_from_html.py
-pi/                  – programvaran på Raspberry Pi:n (än så länge en testapp)
+pi/                  – programvaran på Raspberry Pi:n (kamera → skärm, heartbeat)
+server/              – webbdelen på lennart.cam (Coolify bygger server/Dockerfile)
 deploy/pi/           – systemd-tjänst och mallar för Pi:n
 scripts/             – skript som körs av deploy
 .github/workflows/   – deploy till Coolify och Pi

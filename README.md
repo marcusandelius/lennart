@@ -2,7 +2,7 @@
 
 **Ett smart matställe för ekorren Lennart, som bara släpper in rätt gäst.**
 
-Bidrag till SweClockers/ASUS-tävlingen **"Gick inte. Nu går det."** (2026)
+Bidrag till SweClockers/ASUS-tävlingen **"Gick inte. Nu går det."** (2026) · **https://lennart.cam**
 
 > **Gick inte:** Ekorren Lennart har besökt uteplatsen nästan varje dag sedan sommaren, men fåglarna stjäl hans mat. Att bygga något som skiljer en ekorre från en skata, utan CAD-vana och utan modelleringsprogram, gick inte.
 > **Nu går det:** Med AI har ett litet falurött hus konstruerats helt i kod, skrivits ut i 3D och fått en kamera som känner igen Lennart.
@@ -32,7 +32,7 @@ Ett litet falurött hus med vita knutar, cirka 31 cm högt med skorsten, som st�
  │ Huset (Raspberry Pi 5)        │   4G, bara         │ Webbdelen på Coolify     │
  │  kamera → bild vid rörelse    │   utgående trafik  │  besökslogg              │
  │  servo → doseringshjul, lucka │ ─────────────────▶ │  publik besöksliggare    │
- │  2" skärm → GRANTED / DENIED  │                    │                          │
+ │  2" skärm → GRANTED / DENIED  │                    │  lennart.cam             │
  └───────────────────────────────┘                    └──────────────────────────┘
 ```
 
@@ -60,7 +60,14 @@ Raspberry Pi 5 (8 GB), Camera Module 3 Wide, Waveshare 2" skärm, servon via PCA
 1. **Webbdelen:** GitHub Actions ber Coolify bygga om och starta appen via Coolifys API.
 2. **Raspberry Pi:** en GitHub-runner på Pi:n hämtar koden, installerar den och startar om systemd-tjänsten `lennart`. Runnern tar bara kontakt utåt, så inga portar öppnas och det fungerar likadant på wifi och 4G.
 
-Sätta upp Pi:n från början: [docs/SETUP-PI.md](docs/SETUP-PI.md). Det som återstår: [docs/att-gora.md](docs/att-gora.md).
+**Läget just nu:** Pi:n visar kamerabilden live på skärmen och rapporterar till statussidan på lennart.cam var 30:e sekund. Igenkänning, servon och lucka kommer härnäst.
+
+| Guide | Innehåll |
+|---|---|
+| [docs/SETUP-PI.md](docs/SETUP-PI.md) | Sätta upp Raspberry Pi:n från början |
+| [docs/koppling-display.md](docs/koppling-display.md) | Koppla skärmen och kameran |
+| [docs/SETUP-COOLIFY.md](docs/SETUP-COOLIFY.md) | Webbdelen i Coolify och lennart.cam i Cloudflare |
+| [docs/att-gora.md](docs/att-gora.md) | Det som återstår |
 
 ## Öppenhet enligt tävlingens villkor
 
