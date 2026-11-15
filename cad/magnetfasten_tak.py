@@ -3,7 +3,7 @@ Byter magnethålen i takhalvorna (06_tak_vanster_gra.stl, 06b_tak_hoger_gra.stl)
 
 Version 7: två hål Ø9,9 x 3,3 mm per halva, på takets undersida vid y = -45 och +45
 (mittemot kroppens klackar). Taket skrivs ut med undersidan mot plattan.
-Version 8: gamla hålen fylls, tre hål Ø5,9 x 4,0 mm med 0,3 mm infasning vid y = -45, 0, +45,
+Version 8: gamla hålen fylls, tre hål Ø6,0 x 4,0 mm med 0,3 mm infasning vid y = -45, 0, +45,
 samma mått som i kroppen. Godset ovanför hålet blir minst 2,0 mm.
 
 Kör:  python3 magnetfasten_tak.py <in.stl> <ut.stl> [hålets diameter]
@@ -14,7 +14,7 @@ import trimesh
 from trimesh.creation import cylinder, cone
 
 SRC, DST = sys.argv[1], sys.argv[2]
-HOLE_D = float(sys.argv[3]) if len(sys.argv) > 3 else 5.9
+HOLE_D = float(sys.argv[3]) if len(sys.argv) > 3 else 6.0   # provstycket: 6,0 ger tät presspassning
 HOLE_DEPTH, CHAMFER = 4.0, 0.3
 OLD_R, OLD_DEPTH = 9.9 / 2, 3.3
 Y_HOLES_OLD = [-45.0, 45.0]

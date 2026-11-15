@@ -7,7 +7,7 @@ med Ø9,9 x 3,3 mm hål vinkelräta mot takfallet (för 10 x 2 mm magneter).
 Ändring:
   * de gamla klackarna tas bort och byggs om med exakt samma profil
   * en tredje klack läggs till mitt på varje långsida (y = 75 mm i husets koordinater)
-  * hålen blir Ø HOLE_D x HOLE_DEPTH med 0,3 mm infasning, samma centrum som förut
+  * hålen blir Ø6,0 x 4,0 mm med 0,3 mm infasning, samma centrum som förut
     (så att takets befintliga hålpositioner fortfarande stämmer för de yttre paren)
 
 Kör:  python3 magnetfasten_kropp.py <in.stl> <ut.stl> [hålets diameter]
@@ -19,7 +19,7 @@ from trimesh.creation import cylinder, cone, extrude_polygon
 from shapely.geometry import Polygon
 
 SRC, DST = sys.argv[1], sys.argv[2]
-HOLE_D = float(sys.argv[3]) if len(sys.argv) > 3 else 5.9   # magnet Ø6, samma -0,1 som Ø9,9 för Ø10
+HOLE_D = float(sys.argv[3]) if len(sys.argv) > 3 else 6.0   # magnet Ø6; provstycket visade att 6,0 ger tät presspassning
 HOLE_DEPTH = 4.0      # magnet 3 mm + 1 mm att trycka djupare (justerar hur hårt taket sitter)
 CHAMFER = 0.3         # infasning i hålets mynning
 CUP_WALL = 1.2        # gods runt hålets botten där det sticker ut bakom klacken
