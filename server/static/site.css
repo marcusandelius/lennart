@@ -1,0 +1,84 @@
+/* Gemensamt för statussidan och demosidan på lennart.cam.
+   Typsnitten ligger på servern i stället för hos Google Fonts, så att besökarnas
+   IP-adresser inte skickas till Google. */
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url(/static/fonts/bricolage-grotesque-latin.woff2) format("woff2");
+}
+@font-face {
+  font-family: "Special Elite";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/static/fonts/special-elite-latin.woff2) format("woff2");
+}
+
+:root {
+  --paper:#E9EEE4; --surface:#F5F7F1; --ink:#1E2E25; --ink-2:#4F6155; --line:#C7D1C3;
+  --granted:#2B7546; --denied:#B02A22; --focus:#1F5FBF; --brand:#1F8A2B;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#131C17; --surface:#1A251F; --ink:#E3EADF; --ink-2:#A3B3A7; --line:#2C3B32;
+    --granted:#62C487; --denied:#F07A6E; --focus:#8DB8FF; --brand:#62C487; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#131C17; --surface:#1A251F; --ink:#E3EADF; --ink-2:#A3B3A7; --line:#2C3B32;
+  --granted:#62C487; --denied:#F07A6E; --focus:#8DB8FF; --brand:#62C487; color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing:border-box; }
+body {
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:1.0625rem; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+img { max-width:100%; display:block; }
+a { color:inherit; }
+:focus-visible { outline:3px solid var(--focus); outline-offset:3px; border-radius:4px; }
+.wrap { max-width:72rem; margin:0 auto; padding:0 clamp(1rem,4vw,2.5rem); }
+
+/* Header med logotyp och växling mellan sidorna */
+.site-head {
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+  gap:1rem 1.5rem; padding:1.25rem 0 1rem; border-bottom:2px solid var(--ink);
+}
+.brand { display:block; line-height:0; border-radius:12px; }
+.brand img { height:clamp(5.5rem, 14vw, 8.5rem); width:auto; }
+/* Ordet "Lennart" i logotypen är mörkbrunt. I mörkt läge får logotypen en ljus platta. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) :is(.brand, .logo-plate) { background:#F5F7F1; padding:.5rem .75rem; border-radius:12px; }
+}
+:root[data-theme="dark"] :is(.brand, .logo-plate) { background:#F5F7F1; padding:.5rem .75rem; border-radius:12px; }
+
+.nav { display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:3px; background:var(--surface); }
+.nav a {
+  text-decoration:none; font-weight:600; font-size:.98rem; color:var(--ink-2);
+  padding:.45rem 1.05rem; border-radius:999px;
+}
+.nav a:hover { color:var(--ink); }
+.nav a[aria-current="page"] { background:var(--ink); color:var(--paper); }
+
+.site-foot { border-top:1px solid var(--line); color:var(--ink-2); font-size:.9rem; padding:1.5rem 0 2.5rem; margin-top:2.5rem; }
+.site-foot p { margin:.2rem 0; }
+
+/* Stämplar: det enda som får skrika på sidorna */
+.stamp {
+  position:absolute; font-family:"Special Elite", "Courier New", monospace; line-height:1;
+  color:var(--c); border:3px solid var(--c); border-radius:6px; padding:.35em .55em .25em;
+  transform:rotate(var(--r,-8deg)); background:color-mix(in srgb, var(--surface) 78%, transparent);
+  letter-spacing:.04em; pointer-events:none;
+  -webkit-mask-image:radial-gradient(circle at 30% 40%, #000 62%, rgba(0,0,0,.72) 100%);
+          mask-image:radial-gradient(circle at 30% 40%, #000 62%, rgba(0,0,0,.72) 100%);
+}
+.stamp.ok { --c:var(--granted); } .stamp.no { --c:var(--denied); }
+
+/* Dialoger */
+dialog { border:0; padding:0; border-radius:16px; width:min(46rem, calc(100vw - 2rem)); max-height:calc(100dvh - 2rem); background:var(--surface); color:var(--ink); overflow:auto; }
+dialog::backdrop { background:rgba(10,18,14,.6); }

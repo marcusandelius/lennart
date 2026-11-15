@@ -43,8 +43,8 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 
 | Namn | Licens | Används till | Länk |
 |---|---|---|---|
-| Bricolage Grotesque | SIL OFL 1.1 [verifiera] | Webbsidorna | https://fonts.google.com |
-| Special Elite | Apache-2.0 [verifiera] | Webbsidorna | https://fonts.google.com |
+| Bricolage Grotesque | SIL OFL 1.1 (licenstexten ligger i `server/static/fonts/`) | Webbsidorna. På lennart.cam ligger typsnittsfilen (latin) på servern, hämtad från Google Fonts 2026-11-15. | https://github.com/ateliertriay/bricolage |
+| Special Elite (Astigmatic) | Apache-2.0 (licenstexten ligger i `server/static/fonts/`) | Stämplarna på webbsidorna. På lennart.cam ligger typsnittsfilen (latin) på servern, hämtad från Google Fonts 2026-11-15. | https://fonts.google.com/specimen/Special+Elite |
 | DejaVu Sans | Bitstream Vera-licens / fri [verifiera] | Text i 3D-modellen och på skärmen i huset | https://dejavu-fonts.github.io |
 
 ## Verktyg och tjänster för drift
@@ -76,7 +76,14 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 
 ## Lånade resurser (bilder, ljud, typsnitt, 3D-modeller, kodsnuttar)
 
-**Inga.** Ekorr- och skatdekalerna, handen, huset och allt annat i 3D är ritat i kod av Claude. Inga bilder eller modeller från andra har använts i dem (HANDOFF, avsnitt 8).
+**I 3D-modellen: inga.** Ekorr- och skatdekalerna, handen, huset och allt annat i 3D är ritat i kod av Claude. Inga bilder eller modeller från andra har använts i dem (HANDOFF, avsnitt 8).
+
+**På webbsidan lennart.cam:**
+
+| Resurs | Var | Ursprung |
+|---|---|---|
+| Logotypen "Lennart.cam" (pixelhus med ekorre och ACCESS GRANTED) | `server/static/logo.webp` | Från Marcus 2026-11-15. Hur den skapades [verifiera]. Bakgrunden gjordes genomskinlig och bilden beskars med `tools/logo_transparent.py`. |
+| 12 demobilder till besöksliggaren | `server/static/demo/` | AI-genererade med Higgsfield (se ovan), tagna ur artefakten https://claude.ai/artifact/3Pf1zaveQGaKdFKwVuLrTc. Inga personer syns. |
 
 ## Hjälp från personer och AI-sessioner
 
@@ -84,6 +91,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 |---|---|---|
 | Claude, chatten om Lennarts matstation i claude.ai | Konstruktion, 3D-modell, förhandsgranskning, inköpslista, utskriftsråd. Se [HANDOFF](docs/historik/HANDOFF-lennarts-matstation-projekt.md). | 2026-10-27–11-15 |
 | Claude Code, molnsession | Repo-struktur, deploy-uppsättning, Pi-guide, flytt av kod och dokument, beslutsunderlag för bildigenkänning | 2026-11-15 |
+| Claude Code, molnsession | Valruta, demosida och grönt tema på lennart.cam, ny text på demosidan | 2026-11-15 |
 | Behörig elektriker | *Planerat: elsäkerheten för utomhusström ska kontrolleras av en behörig person* | [osäkert] |
 
 ## Samtycke för bilder med personer
