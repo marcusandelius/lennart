@@ -1,75 +1,96 @@
 # Beslut: var ska bildigenkänningen köras?
 
 **Status:** Förslag, väntar på Marcus beslut. Inget byggs innan dess.
-**Datum:** 2026-11-15
+**Datum:** 2026-11-15 (reviderat samma dag efter att HANDOFF-filen lästs)
 
-> **Förbehåll:** Underlaget är skrivet innan HANDOFF-filerna fanns i repot. Vad som ska kännas igen (och hur svårt det är) styr valet. Förslaget ses över när HANDOFF-filerna har lästs.
 > Siffror märkta [verifiera] är typiska storleksordningar, inte mätningar. De ska mätas på riktigt innan beslutet blir slutgiltigt.
 
-## Krav
+## Uppgiften
 
-- Svar inom **ca 5 sekunder** från att bilden tas.
-- Ska fungera över **4G** (ojämn täckning, data kostar pengar, uppkopplingen kan försvinna).
-- Inga öppna portar på Pi:n.
+Ur HANDOFF-filen och projektdokumentet:
+
+- Avgöra **ekorre eller annat djur** (främst skator och andra fåglar) på 2–3 bilder per besök. Hög tröskel, och läget **VERIFIERAR** vid osäkert svar.
+- Svar inom **ca 5 sekunder** från landning.
+- Pi:n går över **4G** (USB-modem, data-SIM). Under bygget används wifi.
+- **Utan svar blir det ingen nöt.** Det säkra läget är att neka.
+- Besöksliggaren ska ha **en bild per besök** på webben. Bara bilder som klassats som djur får publiceras, så att inga människor hamnar på den publika sidan.
+- Kameran är köpt: **Camera Module 3 Wide**, och fästet är ritat för den.
+- **Tidigare beslut** (troligen 2026-10-27): igenkänningen ska göras i molnet, eftersom det är enklast. HANDOFF-filen säger att det är [osäkert] om beslutet fortfarande gäller.
+- **Tidsram:** 15 dagar kvar till inlämningen 30 november.
 
 ## Alternativen
 
-### A. På Pi:n (Pi 5 med CPU, eventuellt AI-kamera)
+### A. På Pi:n (Pi 5:s processor, eventuellt AI-kamera)
 
-En liten bildmodell (t.ex. klassificering eller objektdetektering i storleken "nano/mobile") körs direkt på Pi:n. Bara *resultatet* skickas till webbdelen, och vid behov en liten miniatyrbild.
+En färdig, liten bildmodell körs på Pi:n, till exempel en klassificerare tränad på ImageNet, som har klasser för ekorre och skata [verifiera].
 
-- **Svarstid:** ungefär 0,1–1 s per bild på Pi 5:s CPU för små modeller [verifiera]. Med AI-kamera (Sony IMX500) körs modellen i själva kamerasensorn, vilket blir snabbare och nästan inte belastar Pi:n [verifiera]. Ingen nätverksfördröjning.
-- **Kostnad:** ingen löpande kostnad. AI-kameran kostar en engångssumma [verifiera pris].
-- **4G:** fungerar även utan täckning, eftersom resultat kan köas och skickas när nätet är tillbaka.
-- **Data:** ca 1 KB per resultat, eller ca 20–50 KB med miniatyrbild.
-- **Nackdel:** begränsat till små modeller. AI-kameran kräver att modellen konverteras till kamerans format, vilket är extra arbete.
+- **Svarstid:** under 1 s per bild på Pi 5:s processor för små modeller [verifiera]. Ingen nätverksfördröjning.
+- **Träffsäkerhet:** osäker. Färdiga modeller är tränade på tydliga bilder, och verkliga bilder från matplatsen visar ofta halva djur, motljus och morgonmörker. Bra säkerhet kräver troligen egen träning på bilder från platsen, och sådana bilder finns inte än.
+- **Kostnad:** 0 kr löpande. AI-kameran (Sony IMX500) skulle ersätta den redan köpta Camera Module 3 Wide, och då måste fästet kontrolleras [verifiera mått och pris].
+- **4G:** fungerar även utan täckning.
+- **Data:** bilden till besöksliggaren måste ändå skickas, men det kan ske i efterhand och påverkar inte svarstiden.
 
-### B. På servern i Coolify
+### B. Egen modell på servern i Coolify
 
-Pi:n skickar varje bild till webbdelen, som kör modellen.
+Pi:n skickar bilden till webbdelen, som kör en modell.
 
-- **Svarstid:** uppladdning plus beräkning plus svar. En bild på 100–200 KB tar ca 0,2–1 s att ladda upp över 4G [verifiera], och beräkningen på en vanlig VPS utan GPU tar ca 0,2–2 s [verifiera]. Totalt ofta 1–3 s, men det varierar med täckningen.
-- **Kostnad:** servern finns redan. En större modell kan kräva mer CPU och minne, alltså en dyrare VPS.
-- **4G:** kräver uppkoppling för varje bild. Utan täckning blir det inget svar.
-- **Data:** ca 100–200 KB per bild. 100 bilder per dag blir ca 10–20 MB per dag, eller 0,3–0,6 GB per månad [räkneexempel].
-- **Fördel:** modellen kan bytas utan att röra Pi:n, och servern har mer kraft än Pi:n.
+- **Svarstid:** uppladdning ca 0,2–0,5 s för en nedskalad bild på 50–80 KB över 4G, plus beräkning på en vanlig VPS ca 0,2–2 s [verifiera]. Totalt ca 1–3 s.
+- **Träffsäkerhet:** samma problem som A, eftersom det är samma typ av modell. Det enda som vinns är mer beräkningskraft.
+- **Kostnad:** servern finns redan, men en tyngre modell kan kräva en större VPS.
+- **4G:** kräver uppkoppling.
 
-### C. Moln-API (t.ex. en AI-tjänst med bildförståelse)
+### C. Moln-API med bildförståelse, anropat via servern
 
-Pi:n eller servern skickar bilden till ett externt API.
+Pi:n skickar bilden till webbdelen på Coolify. Servern frågar ett moln-API med bildförståelse, till exempel en AI-modell som kan beskriva bilder, och får tillbaka art och säkerhet. API-nyckeln ligger bara på servern.
 
-- **Svarstid:** ca 1–5 s inklusive uppladdning [verifiera], vilket ligger nära gränsen på 5 s när 4G-täckningen är dålig.
-- **Kostnad:** betalas per bild. Liten för en demo, men den växer med publiken under röstningen [verifiera prislista].
-- **4G:** kräver uppkoppling. Samma datamängd som B.
-- **Integritet:** bilderna lämnar din kontroll. Om personer kan synas i bilden är det en GDPR-fråga som behöver granskas [kräver granskning].
-- **Fördel:** förstår *vad som helst* (fri text, ovanliga saker) utan egen träning.
-- **Hemlighet:** API-nyckeln måste skyddas, alltså ligga på servern som GitHub Secret och aldrig på Pi:n i klartext i repot.
+- **Svarstid:** uppladdning ca 0,2–0,5 s plus API-svar ca 1–3 s [verifiera]. Totalt ca 2–4 s, vilket ryms inom 5 s med normal 4G-täckning.
+- **Träffsäkerhet:** hög utan egen träning. Sådana modeller skiljer ekorre från skata även på dåliga bilder, och kan dessutom svara "människa" så att den bilden aldrig publiceras.
+- **Kostnad:** betalas per bild. Med 2–3 bilder per besök och några tiotal besök per dag blir det några tusen bilder per månad [verifiera prislista för vald tjänst].
+- **4G:** kräver uppkoppling. Utan svar blir det ingen nöt, vilket redan är projektets regel.
+- **Data:** 3 bilder × 60 KB × 50 besök ≈ 9 MB per dag, eller ca 0,3 GB per månad [räkneexempel]. Bilden ska ändå till servern för besöksliggaren, så samma uppladdning gör båda sakerna.
+- **Integritet:** bilderna skickas till en tredje part. Bilder där människor syns ska raderas och aldrig publiceras. GDPR behöver stämmas av med någon som kan reglerna [kräver granskning].
 
 ## Jämförelse
 
-| | A. Pi:n | B. Coolify | C. Moln-API |
+| | A. Pi:n | B. Egen modell, Coolify | C. Moln-API via Coolify |
 |---|---|---|---|
-| Svarstid (typiskt) | **< 1 s** | 1–3 s | 1–5 s |
-| Klarar 5 s även med dålig 4G | **Ja** | Oftast | Tveksamt |
-| Fungerar utan nät | **Ja** (köar resultat) | Nej | Nej |
-| Data per bild över 4G | **~1–50 KB** | ~100–200 KB | ~100–200 KB |
-| Löpande kostnad | **0 kr** | VPS (finns redan) | Per bild |
-| Modellens förmåga | Liten, specifik | Mellan | **Störst, generell** |
-| Bilder lämnar enheten | **Nej** | Till din egen server | Till tredje part |
-| Berättelse i tävlingen | "Allt sker i lådan" | Klassisk klient/server | "AI i molnet" |
+| Svarstid (typiskt) | **< 1 s** | 1–3 s | 2–4 s |
+| Klarar 5 s med dålig 4G | **Ja** | Oftast | Oftast |
+| Fungerar utan nät | **Ja** | Nej | Nej (ger ingen nöt) |
+| Ekorre eller skata utan egen träning | Osäkert | Osäkert | **Ja** |
+| Känner igen människor och stoppar publicering | Med extra modell | Med extra modell | **Ja, i samma svar** |
+| Data per besök över 4G | Liten, bilden kan skickas senare | ~150–250 KB | ~150–250 KB (samma som besöksliggaren behöver) |
+| Löpande kostnad | **0 kr** | VPS | Per bild |
+| Arbete att bygga | Mest (välja, testa, kanske träna) | Mycket | **Minst** |
+| Stämmer med tidigare beslut | Nej | Nej | **Ja** |
 
-## Rekommendation (preliminär)
+## Rekommendation
 
-**A: kör igenkänningen på Pi:n**, med en liten modell på CPU:n först. Det är det enda alternativet som säkert klarar 5 s även när 4G-täckningen är dålig, och det skickar minst data. Bilderna stannar dessutom i lådan, vilket förenklar integritetsfrågan. AI-kameran köps bara om CPU:n visar sig vara för långsam när vi mäter.
+**C: moln-API via servern i Coolify.** Pi:n sköter rörelsedetektering, tar 2–3 bilder, skalar ner dem och skickar dem till webbdelen. Servern frågar API:et, sparar besöket och svarar Pi:n med GRANTED, DENIED eller VERIFIERAR.
 
-Webbdelen på Coolify tar emot resultat och miniatyrer och visar dem.
+Skälen:
 
-**Undantag:** om det som ska kännas igen kräver "förståelse" (fri beskrivning, många olika saker, text i bild) räcker inte en liten modell. Då blir **C via servern** det realistiska valet: Pi:n skickar bilden till webbdelen, som anropar API:et med nyckeln som hemlighet. Detta avgörs när HANDOFF-filerna är lästa.
+1. **Träffsäkerhet är viktigast.** Varje fel ger en skata en nöt, eller nekar Lennart. C är det enda alternativet som skiljer ekorre från skata på riktiga bilder utan egen träning.
+2. **Tiden.** 15 dagar till inlämning räcker inte för att samla in bilder och träna en egen modell.
+3. **Bilden ska till servern ändå** för besöksliggaren, så C kostar nästan ingen extra data.
+4. **API-nyckeln stannar på servern** som hemlighet. Pi:n har bara en enhetsnyckel som går att byta.
+5. **Det stämmer med det tidiga beslutet** om igenkänning i molnet.
+
+**Ändring mot förra versionen av underlaget:** innan HANDOFF-filen fanns rekommenderade jag A, eftersom jag inte visste vad som skulle kännas igen eller att bilderna ändå ska till servern.
+
+**Plan B:** om svarstiden över 4G visar sig vara för lång, kan Pi:n få en liten lokal modell som förfilter. Den släpper igenom tydliga fall direkt och skickar bara de osäkra vidare. Det tar vi i så fall som ett eget beslut efter mätning.
+
+**Bara Lennart eller alla ekorrar?** Ingen av lösningarna kan säkert känna igen en *enskild* ekorre. Det är en öppen fråga i projektdokumentet, och rekommendationen ovan förutsätter "alla ekorrar".
+
+## Att bestämma om du väljer C
+
+- **Vilken tjänst och modell.** Jag tar fram ett förslag med pris och svarstid när du valt väg.
+- **Var bilderna sparas** och hur länge.
 
 ## Nästa steg efter beslut
 
-1. Mät svarstiden på riktigt, både på Pi:n och över 4G när modemet finns.
-2. Lägg in vald modell eller tjänst i KALLOR.md med licens.
+1. Mät svarstiden: först på wifi, sedan över 4G när modemet finns.
+2. Lägg in vald modell eller tjänst i KALLOR.md och beslutet i beslutsloggen.
 3. Skriv in beslutet här, med datum.
 
 ## Beslut
