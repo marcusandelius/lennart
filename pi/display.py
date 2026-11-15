@@ -84,8 +84,9 @@ class Display:
         self.rst = OutputPin(chip, rst_pin, initial=True)
         self.bl = OutputPin(chip, bl_pin)
 
+        bus, device = find_spi_device()
         self.spi = spidev.SpiDev()
-        self.spi.open(0, 0)  # SPI0, chip select CE0 (GPIO 8)
+        self.spi.open(bus, device)  # SPI0 på stiftlisten, chip select CE0 (GPIO 8)
         self.spi.mode = 0
         self.spi.max_speed_hz = _env_int("LCD_SPI_HZ", 32_000_000)
 
@@ -131,6 +132,27 @@ class Display:
             self.spi.close()
         except Exception:
             pass
+
+
+def find_spi_device() -> tuple[int, int]:
+    """Hitta SPI-enheten för stiftlistens SPI0 med chip select CE0.
+
+    Den heter /dev/spidev0.0 med äldre kärnor, men kan heta t.ex. /dev/spidev10.0
+    på Pi 5 med nyare. Kan styras med LCD_SPI_DEV, t.ex. LCD_SPI_DEV=10.0.
+    """
+    import glob
+
+    if "LCD_SPI_DEV" in os.environ:
+        bus, device = os.environ["LCD_SPI_DEV"].split(".")
+        return int(bus), int(device)
+    found = sorted(glob.glob("/dev/spidev*"))
+    for candidate in ("/dev/spidev0.0", "/dev/spidev10.0"):
+        if candidate in found:
+            bus, device = candidate.removeprefix("/dev/spidev").split(".")
+            return int(bus), int(device)
+    if not found:
+        raise RuntimeError("Ingen /dev/spidev* finns. Är SPI påslaget (raspi-config) och Pi:n omstartad?")
+    raise RuntimeError(f"Hittar inte SPI0 (CE0). Finns: {', '.join(found)}. Sätt LCD_SPI_DEV.")
 
 
 def find_header_gpiochip() -> int:
