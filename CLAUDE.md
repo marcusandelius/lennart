@@ -8,11 +8,21 @@ Repot är **publikt**. Läs hela filen innan du gör något.
 | Vad | Datum |
 |---|---|
 | Tävlingsstart (gräns för "före tävlingen") | 16 okt 2026 |
-| Sista inlämning | 30 nov 2026 |
+| Sista inlämning (bidraget kan ändras fram till att röstningen öppnar) | 30 nov 2026 |
 | Röstning | 1–13 dec 2026 |
-| Juryunderlag | 15 dec 2026 |
+| Underlag för tokens och AI-historik om bidraget är topp 3 | senast 15 dec 2026 kl. 23.59 |
+| Vinnaren presenteras | 17 dec 2026 |
 
 Villkoren finns på https://projekt.sweclockers.com/asus/villkor. Om något här verkar strida mot villkoren gäller villkoren. Säg i så fall till.
+
+Enligt villkoren, som de återges i HANDOFF-filen (inte kontrollerat direkt mot sidan) [verifiera], ska bidraget:
+- visa vad som fanns före och vad som gjorts med AI från 16 oktober;
+- ange använda modeller, verktyg och bibliotek;
+- redovisa tokens, uppdelat på lokalt och i molnet, med en kort förklaring av hur de räknats.
+
+## Projektet i korthet
+
+**Lennarts matstation:** ett 3D-utskrivet falurött hus på uteplatsen i vilket en kamera känner igen ekorren Lennart. Raspberry Pi 5 släpper då ut en hasselnöt via ett servostyrt doseringshjul. Andra djur nekas, och skärmen visar ACCESS GRANTED eller ACCESS DENIED. Webbdelen på Coolify blir besökslogg och publik besöksliggare. Detaljer finns i `docs/` och i `docs/historik/`.
 
 ## Regler
 
@@ -58,6 +68,12 @@ FORE-TAVLINGEN.md    – allt som fanns före 16 okt 2026
 KALLOR.md            – källor, licenser, hjälp, samtycken
 docs/                – beslut, research, guider
 docs/historik/       – HANDOFF-filer från tidigare chattar, orörda
+docs/beslut/         – beslutslogg och beslutsunderlag
+model/               – 3D-modellen i Python (ordagrant ur HANDOFF)
+web/                 – förhandsgranskning, besöksliggare-demo, minihus
+trailer/             – underlag för trailern i Blender
+tools/               – hjälpskript, t.ex. extract_from_html.py
+pi/                  – programvaran på Raspberry Pi:n (än så länge en testapp)
 deploy/pi/           – systemd-tjänst och mallar för Pi:n
 scripts/             – skript som körs av deploy
 .github/workflows/   – deploy till Coolify och Pi
@@ -66,3 +82,10 @@ scripts/             – skript som körs av deploy
 ## Öppna beslut
 
 - Var bildigenkänningen körs: se `docs/beslut/bildigenkanning.md`. **Inget byggs förrän Marcus beslutat.**
+- Övriga öppna frågor: `docs/att-gora.md`.
+
+## Bra att veta
+
+- Filerna i `model/` och `web/` är ordagranna ur HANDOFF-filen. Ändra dem bara med ett tydligt commit-meddelande, så att det syns vad som gjorts i chatten och vad som gjorts här.
+- Geometridatan (`parts_v*.json`) och STL-filerna finns inte i repot. De återskapas med `tools/extract_from_html.py` ur den publicerade förhandsgranskningen.
+- Nya beslut läggs till i `docs/beslut/beslutslogg.md` med datum och skäl.
