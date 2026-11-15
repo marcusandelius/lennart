@@ -89,3 +89,9 @@ Svaret ska bli `{"ok": true}`, och sidan ska visa "Stationen är igång" i två 
 3. Pusha en ändring till `main` och följ **Actions → Deploy → Webbdelen → Coolify**. Jobbet ska bli grönt, och Coolify ska visa en ny deploy.
 
 > Kommandot i punkt 2 innehåller nyckeln. Kör det i din egen terminal, och klistra inte in det med nyckeln i en chatt.
+
+## Bra att veta
+
+- **Precis efter en deploy** kan Coolify under en kort stund köra både den gamla och den nya containern. En inloggning i adminvyn kan då hamna i den gamla och försvinna. Vänta en minut och logga in igen. Adminsessioner och livebildens tittare finns bara i minnet och nollställs vid varje deploy, medan inställningarna sparas i `/data`.
+- **Cloudflare-proxy (orange moln):** servern läser besökarens adress från `CF-Connecting-IP`, så att spärren efter felaktiga inloggningar gäller per besökare och inte per Cloudflare-nod.
+
