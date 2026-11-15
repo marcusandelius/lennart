@@ -9,7 +9,8 @@ RUN apt-get update \
 # Kör inte som root i containern.
 RUN useradd --create-home --uid 10001 lennart
 WORKDIR /app
-COPY app.py index.html ./
+COPY app.py index.html demo.html ./
+COPY static ./static
 USER lennart
 
 ENV PORT=8000 PYTHONUNBUFFERED=1

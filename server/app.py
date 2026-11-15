@@ -1,9 +1,12 @@
 """Webbdelen för Lennarts matstation – första testversion.
 
-Gör tre saker:
+Gör det här:
   POST /api/heartbeat  Pi:n rapporterar att den lever (kräver enhetsnyckel).
   GET  /api/status     Senaste rapporten som JSON.
-  GET  /               Statussida på svenska som visar om Pi:n hörs av.
+  GET  /               Statussidan med en valruta: Status eller Demo.
+  GET  /status         Statussidan utan valruta: visar om Pi:n hörs av.
+  GET  /demo           Demo av besöksliggaren med AI-genererade bilder.
+  GET  /static/...     Logotyp, typsnitt, stilmall och demobilder.
   GET  /healthz        För Coolifys hälsokontroll.
 
 Bara Pythons standardbibliotek, så att varje rad går att förstå och inget
@@ -44,7 +47,25 @@ ALLOWED_FIELDS = {
     "message": str,
 }
 
-INDEX_HTML = (Path(__file__).parent / "index.html").read_text(encoding="utf-8")
+HERE = Path(__file__).parent
+INDEX_HTML = (HERE / "index.html").read_bytes()
+DEMO_HTML = (HERE / "demo.html").read_bytes()
+
+# Statiska filer läses in en gång vid start. Bara filer som finns här kan hämtas,
+# så en adress som /static/../app.py ger 404 i stället för att läsa utanför mappen.
+CONTENT_TYPES = {
+    ".css": "text/css; charset=utf-8",
+    ".jpg": "image/jpeg",
+    ".webp": "image/webp",
+    ".woff2": "font/woff2",
+    ".txt": "text/plain; charset=utf-8",
+}
+STATIC_DIR = HERE / "static"
+STATIC_FILES = {
+    "/static/" + f.relative_to(STATIC_DIR).as_posix(): (f.read_bytes(), CONTENT_TYPES[f.suffix])
+    for f in sorted(STATIC_DIR.rglob("*"))
+    if f.is_file() and f.suffix in CONTENT_TYPES
+}
 
 _lock = threading.Lock()
 _history: deque = deque(maxlen=50)  # i minnet: nollställs vid omstart, räcker för test
@@ -81,11 +102,11 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "lennart"
     sys_version = ""
 
-    def _send(self, status: int, body: bytes, content_type: str) -> None:
+    def _send(self, status: int, body: bytes, content_type: str, cache: str = "no-store") -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", cache)
         self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         self.wfile.write(body)
@@ -95,8 +116,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         path = self.path.split("?", 1)[0]
-        if path == "/":
-            self._send(200, INDEX_HTML.encode(), "text/html; charset=utf-8")
+        if path in ("/", "/status"):
+            self._send(200, INDEX_HTML, "text/html; charset=utf-8", "no-cache")
+        elif path == "/demo":
+            self._send(200, DEMO_HTML, "text/html; charset=utf-8", "no-cache")
+        elif path in STATIC_FILES:
+            body, content_type = STATIC_FILES[path]
+            # En timme i webbläsarens cache räcker, och ändringar syns snart efter en deploy.
+            self._send(200, body, content_type, "public, max-age=3600")
         elif path == "/api/status":
             self._json(200, status_payload())
         elif path == "/healthz":

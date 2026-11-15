@@ -3,50 +3,119 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lennarts matstation</title>
+<title>Lennart.cam – status</title>
+<meta name="description" content="Följ ekorren Lennarts matstation: är kameran, skärmen och uppkopplingen igång just nu?">
+<link rel="icon" href="/static/logo.webp">
+<link rel="stylesheet" href="/static/site.css">
 <style>
-  :root { --bg:#f6f1ea; --card:#fffaf3; --ink:#2b2420; --ink-2:#6b5f57; --red:#9b2a1f; --ok:#2f7d32; --bad:#b3261e; --line:#e3d8cb; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#1d1916; --card:#27211d; --ink:#f2ebe3; --ink-2:#b5a89c; --red:#e0705f; --ok:#6cc070; --bad:#ef7a70; --line:#3a312b; }
-  }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width:40rem; margin:0 auto; padding:2.5rem 1rem 3rem; }
-  h1 { color:var(--red); font-size:1.9rem; margin:0 0 .25rem; letter-spacing:-.01em; }
-  .sub { color:var(--ink-2); margin:0 0 2rem; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:1.25rem 1.25rem 1rem; }
-  .state { display:flex; align-items:center; gap:.6rem; font-size:1.25rem; font-weight:600; margin-bottom:1rem; }
+  .intro { padding:clamp(1.75rem,5vw,3rem) 0 1.5rem; }
+  .intro h1 { font-size:clamp(2.4rem,6.5vw,4rem); line-height:.98; font-weight:800; letter-spacing:-.025em; margin:0; }
+  .intro .sig { font-family:"Special Elite", "Courier New", monospace; color:var(--brand); font-size:clamp(1.15rem,2.4vw,1.45rem); margin:.5rem 0 0; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:1.25rem 1.25rem 1rem; max-width:40rem; }
+  .state { display:flex; align-items:center; gap:.6rem; font-size:1.3rem; font-weight:700; margin-bottom:1rem; }
   .dot { width:.85rem; height:.85rem; border-radius:50%; background:var(--ink-2); flex:none; }
-  .online .dot { background:var(--ok); box-shadow:0 0 0 4px color-mix(in srgb, var(--ok) 25%, transparent); }
-  .offline .dot { background:var(--bad); }
+  .online .dot { background:var(--granted); box-shadow:0 0 0 4px color-mix(in srgb, var(--granted) 25%, transparent); }
+  .offline .dot { background:var(--denied); }
   dl { display:grid; grid-template-columns:auto 1fr; gap:.35rem 1rem; margin:0; }
   dt { color:var(--ink-2); }
   dd { margin:0; font-variant-numeric:tabular-nums; }
-  footer { color:var(--ink-2); font-size:.85rem; margin-top:1.5rem; }
+
+  /* Valrutan som möter besökaren på lennart.cam */
+  #valj { width:min(40rem, calc(100vw - 2rem)); }
+  .val { padding:1.5rem clamp(1.1rem,4vw,1.75rem) 1.6rem; }
+  .val img { width:min(15rem, 70%); height:auto; margin:0 auto .75rem; }
+  .val h2 { font-size:1.6rem; font-weight:800; letter-spacing:-.01em; text-align:center; margin:0 0 .25rem; }
+  .val > p { text-align:center; color:var(--ink-2); margin:0 0 1.25rem; }
+  .choices { display:grid; gap:.85rem; grid-template-columns:1fr; }
+  @media (min-width:34rem) { .choices { grid-template-columns:1fr 1fr; } }
+  .choice {
+    display:block; text-align:left; font:inherit; color:inherit; text-decoration:none; cursor:pointer;
+    background:var(--paper); border:2px solid var(--line); border-radius:14px; padding:1rem 1.1rem 1.05rem;
+  }
+  .choice:hover { border-color:var(--ink); }
+  .choice b { display:block; font-size:1.3rem; font-weight:800; margin-bottom:.2rem; }
+  .choice span { display:block; color:var(--ink-2); font-size:.97rem; line-height:1.45; }
+  .choice .go { font-family:"Special Elite", "Courier New", monospace; color:var(--brand); margin-top:.6rem; font-size:.95rem; }
+  /* Smala skärmar: mindre logotyp och text, så att båda valen syns utan att man scrollar. */
+  @media (max-width:33.99rem) {
+    .val { padding:1.1rem 1rem 1.15rem; }
+    .val img { width:9.5rem; margin-bottom:.5rem; }
+    .val h2 { font-size:1.3rem; }
+    .val > p { font-size:.97rem; margin-bottom:.9rem; }
+    .choice { padding:.8rem .95rem .85rem; }
+    .choice b { font-size:1.15rem; }
+    .choice span { font-size:.92rem; }
+    .choice .go { margin-top:.4rem; }
+  }
+  .val:focus { outline:none; }
 </style>
 </head>
 <body>
-<main>
-  <h1>Lennarts matstation</h1>
-  <p class="sub">En matstation för ekorren Lennart. Här syns om stationen hörs av.</p>
+<div class="wrap">
+  <header class="site-head">
+    <a class="brand" href="/status" aria-label="Lennart.cam, till statussidan"><img src="/static/logo.webp" alt="Lennart.cam: ett rött hus med kamera, en skärm som visar ACCESS GRANTED och en ekorre" width="720" height="490"></a>
+    <nav class="nav" aria-label="Sidor">
+      <a href="/status" aria-current="page">Status</a>
+      <a href="/demo">Demo</a>
+    </nav>
+  </header>
 
-  <section class="card" id="card" aria-live="polite">
-    <div class="state"><span class="dot"></span><span id="state">Hämtar status…</span></div>
-    <dl>
-      <dt>Senast hörd av</dt><dd id="seen">–</dd>
-      <dt>Kamera</dt><dd id="camera">–</dd>
-      <dt>Display</dt><dd id="display">–</dd>
-      <dt>Bilder per sekund</dt><dd id="fps">–</dd>
-      <dt>Temperatur</dt><dd id="temp">–</dd>
-      <dt>Uppkoppling</dt><dd id="net">–</dd>
-      <dt>Igång sedan</dt><dd id="uptime">–</dd>
-      <dt>Version på stationen</dt><dd id="version">–</dd>
-    </dl>
-  </section>
+  <main>
+    <section class="intro">
+      <h1>Följ min matresa</h1>
+      <p class="sig">/ Lennart</p>
+    </section>
 
-  <footer>Version på servern: <span id="sversion">–</span> · Bidrag till SweClockers/ASUS-tävlingen "Gick inte. Nu går det."</footer>
-</main>
+    <section class="card" id="card" aria-live="polite">
+      <div class="state"><span class="dot"></span><span id="state">Hämtar status…</span></div>
+      <dl>
+        <dt>Senast hörd av</dt><dd id="seen">–</dd>
+        <dt>Kamera</dt><dd id="camera">–</dd>
+        <dt>Skärm</dt><dd id="display">–</dd>
+        <dt>Bilder per sekund</dt><dd id="fps">–</dd>
+        <dt>Temperatur</dt><dd id="temp">–</dd>
+        <dt>Uppkoppling</dt><dd id="net">–</dd>
+        <dt>Igång sedan</dt><dd id="uptime">–</dd>
+        <dt>Version på stationen</dt><dd id="version">–</dd>
+      </dl>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <p>Version på servern: <span id="sversion">–</span></p>
+    <p>Bidrag till SweClockers/ASUS-tävlingen "Gick inte. Nu går det."</p>
+  </footer>
+</div>
+
+<dialog id="valj" aria-labelledby="valjRubrik">
+  <div class="val" tabindex="-1" autofocus>
+    <img class="logo-plate" src="/static/logo.webp" alt="" width="720" height="490">
+    <h2 id="valjRubrik">Välkommen till Lennarts matstation</h2>
+    <p>Ett falurött hus, en kamera och en ekorre på gästlistan. Vad vill du se?</p>
+    <div class="choices">
+      <button type="button" class="choice" id="valjStatus">
+        <b>Status</b>
+        <span>Är stationen vaken just nu? Kamera, skärm och uppkoppling, direkt från uteplatsen.</span>
+        <span class="go">Visa status →</span>
+      </button>
+      <a class="choice" href="/demo">
+        <b>Demo</b>
+        <span>Så blir besöksliggaren: varje besök med bild, stämpel och, för obehöriga, en incidentrapport.</span>
+        <span class="go">Öppna demon →</span>
+      </a>
+    </div>
+  </div>
+</dialog>
+
 <script>
+  // Valrutan visas bara på startsidan (/). Länkar till /status går direkt till statusen.
+  const valj = document.getElementById("valj");
+  if (location.pathname === "/" && typeof valj.showModal === "function") {
+    valj.showModal();
+    document.getElementById("valjStatus").addEventListener("click", () => valj.close());
+    valj.addEventListener("close", () => history.replaceState(null, "", "/status"));
+  }
+
   const $ = id => document.getElementById(id);
   const yesNo = v => v === true ? "fungerar" : v === false ? "fel" : "–";
   function ago(s) {

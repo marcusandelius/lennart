@@ -68,3 +68,6 @@ Konstaterat i chatten, inte beslutat:
 | 2026-11-15 | Första programvaran: kamerabilden live på 2"-skärmen och en statussida på lennart.cam som visar att Pi:n hörs av | Marcus vill se att kamera, skärm, uppkoppling och automatisk deploy fungerar innan resten byggs |
 | 2026-11-15 | Pi:n uppdateras via GitHub-runnern (hämtar jobb utåt) i stället för en timer med `git pull` | Ger logg i GitHub och uppdaterar direkt vid push |
 | 2026-11-15 | Testservern skrivs med bara Pythons standardbibliotek, och skärmens drivrutin skrivs själv med spidev och gpiozero | Få beroenden och lätt att förklara. Vanliga skärmbibliotek bygger på RPi.GPIO, som inte fungerar på Pi 5. Servern byts ut när bildigenkänningen är beslutad. |
+| 2026-11-15 | lennart.cam öppnar med en valruta: Status eller Demo. Demon (/demo) bygger på besöksliggar-artefakten, statussidan (/status) får samma gröna tema och Marcus logotyp i headern. | Marcus önskemål: besökare ska kunna se hur besöksliggaren blir innan stationen är igång |
+| 2026-11-15 | Typsnitten ligger på servern i stället för att hämtas från Google Fonts | Besökarnas IP-adresser skickas då inte till Google. Om det räcker för GDPR bör stämmas av med någon som kan reglerna. |
+| 2026-11-15 | Vikten togs bort ur demosidan | Projektdokumentet säger att stationen inte har någon våg, så "vikt på vågen" stämde inte |

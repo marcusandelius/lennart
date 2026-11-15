@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lennart.cam – demo av besöksliggaren</title>
+<meta name="description" content="Demo av besöksliggaren vid Lennarts matstation: ekorren släpps in, alla andra får en incidentrapport.">
+<link rel="icon" href="/static/logo.webp">
+<link rel="stylesheet" href="/static/site.css">
+<style>
+/* Utgår från besöksliggar-demon i web/lennarts-besoksliggare.html */
+.hero { display:grid; gap:clamp(1.5rem,4vw,3.5rem); grid-template-columns:1fr; align-items:center; padding:clamp(1.75rem,5vw,3.5rem) 0 clamp(1.5rem,4vw,2.5rem); }
+@media (min-width:52rem) { .hero { grid-template-columns:1.05fr 1fr; } }
+h1 { font-size:clamp(2.5rem,6.5vw,4.4rem); line-height:.97; font-weight:800; letter-spacing:-.025em; margin:0 0 1.1rem; }
+.lead { font-size:clamp(1.15rem,2vw,1.35rem); max-width:36ch; margin:0 0 1.1rem; }
+.week { color:var(--ink-2); max-width:44ch; margin:0; }
+.demo { display:inline-block; margin-top:1.4rem; font-size:.9rem; color:var(--ink-2); border:1px dashed var(--line); border-radius:6px; padding:.45rem .75rem; max-width:44ch; }
+.hero-photo { position:relative; border-radius:14px; overflow:hidden; aspect-ratio:4/3; background:var(--surface); margin:0; }
+.hero-photo img { width:100%; height:100%; object-fit:cover; }
+.hero-photo .stamp { right:1.1rem; bottom:1.1rem; font-size:clamp(1.3rem,3vw,1.9rem); --r:-9deg; }
+@media (prefers-reduced-motion:no-preference) {
+  .hero-photo .stamp { animation:thump .5s cubic-bezier(.2,1.6,.4,1) .35s both; }
+  @keyframes thump { from { transform:rotate(-9deg) scale(1.9); opacity:0; } to { transform:rotate(-9deg) scale(1); opacity:1; } }
+}
+
+/* Så går det till */
+.steps { list-style:none; margin:0 0 2.5rem; padding:0; display:grid; gap:1rem; grid-template-columns:1fr; counter-reset:steg; }
+@media (min-width:44rem) { .steps { grid-template-columns:repeat(3,1fr); } }
+.steps li { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:1rem 1.1rem; counter-increment:steg; }
+.steps li::before { content:counter(steg); display:inline-grid; place-items:center; width:1.8rem; height:1.8rem; border-radius:50%; background:var(--ink); color:var(--paper); font-weight:800; font-size:.95rem; margin-bottom:.5rem; }
+.steps b { display:block; font-size:1.08rem; }
+.steps span { color:var(--ink-2); font-size:.97rem; }
+
+/* Filter */
+.bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; border-top:2px solid var(--ink); padding:1rem 0 .5rem; }
+.bar h2 { font-size:1.5rem; margin:0; font-weight:800; letter-spacing:-.01em; }
+.seg { display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:3px; background:var(--surface); }
+.seg button { font:inherit; font-size:.95rem; border:0; background:transparent; color:var(--ink-2); padding:.4rem .9rem; border-radius:999px; cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--ink); color:var(--paper); }
+
+/* Dagar och besök */
+.day { margin:1.75rem 0 2.5rem; }
+.day h3 { font-size:1.05rem; font-weight:600; color:var(--ink-2); margin:0 0 .9rem; }
+.grid { display:grid; gap:1.25rem; grid-template-columns:repeat(auto-fill,minmax(min(100%,15.5rem),1fr)); }
+.visit { all:unset; display:block; cursor:pointer; border-radius:12px; }
+.visit .ph { position:relative; border-radius:12px; overflow:hidden; aspect-ratio:4/3; background:var(--surface); }
+.visit .ph img { width:100%; height:100%; object-fit:cover; transition:transform .25s ease; }
+.visit:hover .ph img { transform:scale(1.03); }
+.visit .stamp { left:.6rem; top:.6rem; font-size:.95rem; --r:-6deg; }
+.visit .stamp.no { --r:5deg; }
+.cap { display:flex; justify-content:space-between; gap:.75rem; align-items:baseline; padding:.55rem .15rem 0; }
+.cap b { font-weight:600; }
+.cap time { color:var(--ink-2); font-size:.95rem; white-space:nowrap; }
+.sub { color:var(--ink-2); font-size:.9rem; padding:0 .15rem; }
+.visit:focus-visible { outline:3px solid var(--focus); outline-offset:4px; }
+.empty { color:var(--ink-2); }
+
+/* Besöket i en dialog */
+.d-ph { position:relative; }
+.d-ph img { width:100%; aspect-ratio:4/3; object-fit:cover; }
+.d-ph .stamp { right:1rem; bottom:1rem; font-size:1.6rem; --r:-8deg; }
+.d-body { padding:1.25rem 1.5rem 1.5rem; }
+.d-body h4 { font-size:1.6rem; font-weight:800; margin:0 0 .25rem; letter-spacing:-.01em; }
+.d-when { color:var(--ink-2); margin:0 0 1rem; }
+.d-body dl { display:grid; grid-template-columns:auto 1fr; gap:.3rem 1.25rem; margin:0 0 1.25rem; }
+.d-body dt { color:var(--ink-2); } .d-body dd { margin:0; }
+.report { border-left:3px solid var(--c); padding:.1rem 0 .1rem 1rem; margin:0; }
+.report.ok { --c:var(--granted); } .report.no { --c:var(--denied); }
+.report small { display:block; color:var(--ink-2); font-size:.85rem; margin-bottom:.3rem; }
+.close { position:absolute; top:.75rem; right:.75rem; font:inherit; font-size:.95rem; border:0; border-radius:999px; padding:.45rem .9rem; background:var(--surface); color:var(--ink); cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-head">
+    <a class="brand" href="/status" aria-label="Lennart.cam, till statussidan"><img src="/static/logo.webp" alt="Lennart.cam: ett rött hus med kamera, en skärm som visar ACCESS GRANTED och en ekorre" width="720" height="490"></a>
+    <nav class="nav" aria-label="Sidor">
+      <a href="/status">Status</a>
+      <a href="/demo" aria-current="page">Demo</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1>Gästlistan har ett enda namn</h1>
+        <p class="lead">Ekorren Lennart. Han kliver in, får sin hasselnöt och skärmen säger ACCESS GRANTED. Alla andra möts av en stängd lucka och en artig incidentrapport.</p>
+        <p class="week" id="week"></p>
+        <span class="demo">Det här är en demo. Bilderna är AI-genererade och besöken påhittade. När stationen står på plats fylls sidan med riktiga besök.</span>
+      </div>
+      <figure class="hero-photo">
+        <img src="/static/demo/01.jpg" alt="Lennart tittar nyfiket rakt in i kameran" width="717" height="540">
+        <span class="stamp ok" aria-hidden="true">INSLÄPPT</span>
+      </figure>
+    </section>
+
+    <ol class="steps" aria-label="Så går det till">
+      <li><b>Kameran ser vem som kommer</b><span>Ett 3D-utskrivet falurött hus på uteplatsen har en kamera ovanför dörren.</span></li>
+      <li><b>AI:n tar ställning</b><span>Är det Lennart? Är AI:n osäker tittar den en gång till innan den bestämmer sig.</span></li>
+      <li><b>Nöt eller nej</b><span>Lennart får en hasselnöt via doseringshjulet. Alla andra får ACCESS DENIED.</span></li>
+    </ol>
+
+    <div class="bar">
+      <h2>Besöksloggen</h2>
+      <div class="seg" role="group" aria-label="Visa besök">
+        <button type="button" data-f="all" aria-pressed="true"></button>
+        <button type="button" data-f="ok" aria-pressed="false"></button>
+        <button type="button" data-f="no" aria-pressed="false"></button>
+      </div>
+    </div>
+    <div id="log"></div>
+  </main>
+
+  <footer class="site-foot">
+    <p>Tanken är att bara bilder där AI:n har sett ett djur ska publiceras här, så att inga människor hamnar på sidan.</p>
+    <p>Bidrag till SweClockers/ASUS-tävlingen "Gick inte. Nu går det."</p>
+  </footer>
+</div>
+
+<dialog id="dlg" aria-labelledby="dName">
+  <div class="d-ph"><img id="dImg" alt="" width="717" height="540"><span class="stamp" id="dStamp" aria-hidden="true"></span>
+    <button class="close" type="button" id="dClose">Stäng</button></div>
+  <div class="d-body">
+    <h4 id="dName"></h4>
+    <p class="d-when" id="dWhen"></p>
+    <dl id="dFacts"></dl>
+    <p class="report" id="dReport"></p>
+  </div>
+</dialog>
+
+<script>
+// Påhittade besök för demon. Bilderna ligger i /static/demo/ och är AI-genererade (se KALLOR.md).
+const VISITS = [
+  {id:"v12", img:"00", when:"2026-10-27T08:14", who:"Lennart", kind:"Ekorre", ok:true, conf:97, nuts:2,
+   note:"Åt båda nötterna på plats, i lugn och ro. Ingen kö, ingen stress."},
+  {id:"v11", img:"03", when:"2026-10-27T07:58", who:"Okänd skata", kind:"Skata", ok:false, conf:99, case:14,
+   report:"Kl. 07.58 påträffades en obehörig individ (skata) vid stationens yttre perimeter. Individen granskade den stängda luckan från flera vinklar och verkade leta efter ett kryphål. Tillträde nekades. Individen lämnade platsen efter 41 sekunder. Hotnivå: förhöjd."},
+  {id:"v10", img:"11", when:"2026-10-26T16:47", who:"Lennart", kind:"Ekorre", ok:true, conf:94, nuts:1,
+   note:"Tog nöten med sig. Vinterförrådet växer."},
+  {id:"v09", img:"05", when:"2026-10-26T13:20", who:"Grannkatten", kind:"Katt", ok:false, conf:99, case:13,
+   report:"Kl. 13.20 genomförde en grå tabbykatt en närgången inspektion av kameran. Nosen täckte större delen av bilden i 11 sekunder. Individen saknar behörighet och har dessutom egen matskål hemma. Tillträde nekades. Hotnivå: hög, men sällskaplig."},
+  {id:"v08", img:"02", when:"2026-10-26T09:05", who:"Lennart", kind:"Ekorre", ok:true, conf:91, nuts:2,
+   note:"Kom i full fart och blev godkänd redan i luften."},
+  {id:"v07", img:"07", when:"2026-10-25T17:32", who:"Okänd igelkott", kind:"Igelkott", ok:false, conf:88, case:12,
+   report:"Kl. 17.32 registrerades en igelkott på uteplatsen nedanför stationen. Individen står inte på gästlistan men bedöms som uppenbart trevlig. Ingen åtgärd vidtogs. Ärendet avskrivs."},
+  {id:"v06", img:"09", when:"2026-10-25T10:41", who:"Okänd ringduva", kind:"Ringduva", ok:false, conf:98, case:11,
+   report:"Kl. 10.41 ockuperade en ringduva hela plattformen och skymde kameran. Individen visade stort intresse för matskålen men saknade behörighet. Tillträde nekades. Individen stannade kvar i 3 minuter av ren princip. Hotnivå: måttlig."},
+  {id:"v05", img:"08", when:"2026-10-24T11:12", who:"Lennart", kind:"Ekorre", ok:true, conf:93, nuts:2,
+   note:"Kom trots regnet. Blöt päls, opåverkad aptit."},
+  {id:"v04", img:"04", when:"2026-10-24T08:03", who:"Okänd kaja", kind:"Kaja", ok:false, conf:97, case:10,
+   report:"Kl. 08.03 tog en kaja ögonkontakt med kameran. Blicken tolkades som ett förhandlingsförsök. Stationen förhandlar inte. Tillträde nekades. Hotnivå: förhöjd."},
+  {id:"v03", img:"10", when:"2026-10-23T14:26", who:"Okänd koltrast", kind:"Koltrast", ok:false, conf:96, case:9,
+   report:"Kl. 14.26 rörde sig en koltrast över plattformen i riktning mot matskålen. Luckan förblev stängd. Individen avvek söderut utan vidare diskussion. Hotnivå: låg."},
+  {id:"v02", img:"06", when:"2026-10-23T09:37", who:"Okänd talgoxe", kind:"Talgoxe", ok:false, conf:95, case:8,
+   report:"Kl. 09.37 landade en talgoxe på matskålens kant. Individen var liten nog att nästan slinka under radarn, men kameran såg den. Tillträde nekades. Hotnivå: försumbar."},
+  {id:"v01", img:"01", when:"2026-10-22T08:51", who:"Lennart", kind:"Ekorre", ok:true, conf:98, nuts:1,
+   note:"Inspekterade kameran personligen innan han åt. Allt i sin ordning."}
+];
+const img = k => `/static/demo/${k}.jpg`;
+
+const days = ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"];
+const months = ["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december"];
+const parse = s => { const [d,t] = s.split("T"); const [y,m,da] = d.split("-").map(Number); return {y,m,da,t:t.replace(":", "."),date:new Date(y,m-1,da)}; };
+const dayLabel = s => { const p = parse(s); const w = days[p.date.getDay()]; return w.charAt(0).toUpperCase()+w.slice(1)+" "+p.da+" "+months[p.m-1]; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nutText = n => `${n} ${n===1?"hasselnöt":"hasselnötter"}`;
+
+const okN = VISITS.filter(v=>v.ok).length, noN = VISITS.length-okN;
+const nuts = VISITS.reduce((a,v)=>a+(v.nuts||0),0);
+document.getElementById("week").textContent =
+  `Senaste veckan kom Lennart förbi ${okN} gånger och gick därifrån med ${nutText(nuts)}. ${noN} obehöriga stoppades vid dörren, bland dem grannkatten.`;
+
+const btns = document.querySelectorAll(".seg button");
+const labels = {all:`Alla (${VISITS.length})`, ok:`Insläppta (${okN})`, no:`Nekade (${noN})`};
+btns.forEach(b => { b.textContent = labels[b.dataset.f]; b.addEventListener("click", () => setFilter(b.dataset.f)); });
+
+function setFilter(f){
+  btns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f===f)));
+  try { sessionStorage.setItem("lennart-filter", f); } catch(e) {}
+  render(f);
+}
+function render(f){
+  const list = VISITS.filter(v => f==="all" || (f==="ok") === v.ok);
+  const log = document.getElementById("log");
+  if (!list.length) { log.innerHTML = '<p class="empty">Inga besök att visa.</p>'; return; }
+  const groups = [];
+  list.forEach(v => { const k = v.when.slice(0,10); let g = groups.find(x=>x.k===k); if(!g){ g={k, items:[]}; groups.push(g); } g.items.push(v); });
+  log.innerHTML = groups.map(g => `
+    <section class="day"><h3>${dayLabel(g.items[0].when)}</h3><div class="grid">
+    ${g.items.map(v => `
+      <button class="visit" type="button" data-id="${v.id}" aria-label="${esc(v.who)}, kl. ${parse(v.when).t}, ${v.ok?"insläppt":"nekad"}">
+        <div class="ph"><img src="${img(v.img)}" alt="" loading="lazy" width="717" height="540"><span class="stamp ${v.ok?"ok":"no"}">${v.ok?"INSLÄPPT":"NEKAD"}</span></div>
+        <div class="cap"><b>${esc(v.who)}</b><time datetime="${v.when}">${parse(v.when).t}</time></div>
+        <div class="sub">${v.ok ? `Fick ${nutText(v.nuts)}` : `Incidentrapport nr ${v.case}`}</div>
+      </button>`).join("")}
+    </div></section>`).join("");
+  log.querySelectorAll(".visit").forEach(el => el.addEventListener("click", () => openVisit(el.dataset.id)));
+}
+
+const dlg = document.getElementById("dlg");
+function openVisit(id){
+  const v = VISITS.find(x=>x.id===id); if (!v) return;
+  const dImg = document.getElementById("dImg");
+  dImg.src = img(v.img);
+  dImg.alt = `Kamerabild av ${v.kind.toLowerCase()} vid matstationen`;
+  const st = document.getElementById("dStamp"); st.className = "stamp "+(v.ok?"ok":"no"); st.textContent = v.ok?"INSLÄPPT":"NEKAD";
+  document.getElementById("dName").textContent = v.who;
+  document.getElementById("dWhen").textContent = `${dayLabel(v.when)}, kl. ${parse(v.when).t}`;
+  const facts = [["Art", v.kind], ["AI:ns säkerhet", v.conf+" %"]];
+  facts.push(v.ok ? ["Utdelat", nutText(v.nuts)] : ["Ärende", "Incidentrapport nr "+v.case]);
+  document.getElementById("dFacts").innerHTML = facts.map(([k,val]) => `<dt>${k}</dt><dd>${esc(val)}</dd>`).join("");
+  const r = document.getElementById("dReport"); r.className = "report "+(v.ok?"ok":"no");
+  r.innerHTML = v.ok ? `<small>Anteckning</small>${esc(v.note)}` : `<small>Incidentrapport nr ${v.case}</small>${esc(v.report)}`;
+  dlg.showModal();
+}
+document.getElementById("dClose").addEventListener("click", () => dlg.close());
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
+let start = "all";
+try { start = sessionStorage.getItem("lennart-filter") || "all"; } catch(e) {}
+setFilter(["all","ok","no"].includes(start) ? start : "all");
+</script>
+</body>
+</html>
