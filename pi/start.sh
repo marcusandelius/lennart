@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
-# Tillfällig testapp: visar att deploy-kedjan fungerar (push → runner → systemd).
-# Ersätts av den riktiga Pi-appen när koden flyttats in.
+# Startar Pi-appen. Körs av systemd-tjänsten lennart.service.
+# Systemets Python används, eftersom kamerabiblioteket picamera2 installeras med apt.
 set -euo pipefail
-
-echo "Lennart startar på $(hostname)"
-if [ -n "${LENNART_SERVER_URL:-}" ]; then
-  echo "Server-adress är satt i .env"
-else
-  echo "Server-adress saknas i .env (ok under test)"
-fi
-
-while true; do
-  echo "Lennart lever $(date '+%Y-%m-%d %H:%M:%S')"
-  sleep 60
-done
+cd "$(dirname "$0")"
+exec /usr/bin/python3 -u main.py
