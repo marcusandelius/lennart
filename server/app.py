@@ -377,6 +377,9 @@ def main() -> None:
         print("Varning: LENNART_DEVICE_TOKEN saknas – Pi:n kommer att nekas.", flush=True)
     if not admin.enabled():
         print("Obs: ADMIN_PASSWORD saknas – adminvyn är avstängd.", flush=True)
+    else:
+        # Bara längden, aldrig lösenordet, så att det går att jämföra med det man skriver in.
+        print(f"Adminvyn är på. Lösenordet har {len(admin.ADMIN_PASSWORD)} tecken.", flush=True)
     if not settings.persisted:
         print(f"Obs: {DATA_DIR} är ingen volym – inställningar försvinner vid nästa deploy.", flush=True)
     httpd = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)

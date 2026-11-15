@@ -13,7 +13,15 @@ import secrets
 import threading
 import time
 
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+def _clean(value: str) -> str:
+    """Ta bort mellanslag, radbrytningar och omslutande citattecken som lätt följer med vid inklistring."""
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        value = value[1:-1].strip()
+    return value
+
+
+ADMIN_PASSWORD = _clean(os.environ.get("ADMIN_PASSWORD", ""))
 COOKIE_NAME = "lennart_admin"
 SESSION_S = 12 * 3600
 COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "1") != "0"  # 0 bara vid test utan https
@@ -47,7 +55,7 @@ def locked_out(ip: str) -> bool:
 
 
 def check_password(ip: str, password: str) -> bool:
-    ok = enabled() and hmac.compare_digest(password.encode(), ADMIN_PASSWORD.encode())
+    ok = enabled() and hmac.compare_digest(password.strip().encode(), ADMIN_PASSWORD.encode())
     if not ok:
         with _lock:
             _fails.setdefault(ip, []).append(time.time())
