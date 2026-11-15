@@ -47,7 +47,7 @@ Lägg in dem i GitHub under **Settings → Secrets and variables → Actions →
 | `COOLIFY_TOKEN` | API-token | **Keys & Tokens → API Tokens → Create**, med rätten "deploy" [verifiera] |
 | `COOLIFY_APP_UUID` | Appens id | I adressfältet när du står på appen i Coolify (`…/application/<uuid>`), eller i appens inställningar |
 
-- **API-åtkomst** kan behöva slås på i Coolifys inställningar innan token fungerar [verifiera var].
+- **API-åtkomst** måste slås på i Coolifys inställningar, och om "Allowed IPs for API" är ifyllt måste GitHub Actions släppas in. Annars svarar Coolify `403 {"message":"You are not allowed to access the API."}` och jobbet blir rött. Det hände 2026-11-15. GitHubs servrar har många olika adresser, så lämna fältet tomt eller öppet. Token skyddar fortfarande API:et.
 - **Coolify-panelen måste gå att nå från internet**, eftersom GitHubs servrar anropar den. Ligger panelen bakom IP-spärr eller Cloudflare Access fungerar deploy-anropet inte.
 - Om en token någon gång hamnar i chatten, i en logg eller i repot: skapa en ny och ta bort den gamla.
 
