@@ -65,11 +65,13 @@ systemctl --user enable lennart.service >/dev/null
 systemctl --user restart lennart.service
 
 # Ge tjänsten några sekunder och kontrollera att den lever.
-sleep 5
+# Loggraderna skrivs alltid ut, så att de kan läsas i GitHub utan att logga in på Pi:n.
+sleep 15
+echo "→ Appens senaste loggrader:"
+journalctl --user -u lennart.service --since "-30s" -n 40 --no-pager || true
 if systemctl --user is-active --quiet lennart.service; then
   echo "✓ lennart.service är igång"
 else
-  echo "::error::lennart.service startade inte. Senaste loggraderna:"
-  journalctl --user -u lennart.service -n 30 --no-pager || true
+  echo "::error::lennart.service körs inte. Se loggraderna ovan."
   exit 1
 fi
