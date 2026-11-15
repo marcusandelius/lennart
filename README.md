@@ -60,12 +60,13 @@ Raspberry Pi 5 (8 GB), Camera Module 3 Wide, Waveshare 2" skärm, servon via PCA
 1. **Webbdelen:** GitHub Actions ber Coolify bygga om och starta appen via Coolifys API.
 2. **Raspberry Pi:** en GitHub-runner på Pi:n hämtar koden, installerar den och startar om systemd-tjänsten `lennart`. Runnern tar bara kontakt utåt, så inga portar öppnas och det fungerar likadant på wifi och 4G.
 
-**Läget just nu:** Pi:n visar kamerabilden live på skärmen, rapporterar till statussidan på lennart.cam var 30:e sekund, och skickar livebild till lennart.cam när en besökare trycker på "Se live". Livebilden ställs in och stängs av i adminvyn. Igenkänning, servon och lucka kommer härnäst. lennart.cam öppnar med ett val mellan statussidan och en demo av besöksliggaren, med AI-genererade bilder och påhittade besök.
+**Läget just nu:** Pi:n visar kamerabilden live på skärmen, rapporterar till statussidan på lennart.cam var 30:e sekund, och skickar livebild till lennart.cam när en besökare trycker på "Se live". Livebilden, kamerans rotation och servona styrs från adminvyn. Igenkänningen kommer härnäst. lennart.cam öppnar med ett val mellan statussidan och en demo av besöksliggaren, med AI-genererade bilder och påhittade besök.
 
 | Guide | Innehåll |
 |---|---|
 | [docs/SETUP-PI.md](docs/SETUP-PI.md) | Sätta upp Raspberry Pi:n från början |
 | [docs/koppling-display.md](docs/koppling-display.md) | Koppla skärmen och kameran |
+| [docs/koppling-servon.md](docs/koppling-servon.md) | Koppla servona via PCA9685 och testa dem från adminvyn |
 | [docs/SETUP-COOLIFY.md](docs/SETUP-COOLIFY.md) | Webbdelen i Coolify och lennart.cam i Cloudflare |
 | [docs/att-gora.md](docs/att-gora.md) | Det som återstår |
 

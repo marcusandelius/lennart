@@ -38,7 +38,7 @@ Inställningarna läggs i `~/.config/lennart/.env` och börjar gälla när tjän
 |---|---|
 | Bilden står upp och ner | `LCD_ROTATION=270` (standard är 90) |
 | Rött och blått byter plats | `LCD_BGR=1` |
-| Kamerabilden är upp och ner | `CAMERA_FLIP=1` |
+| Kamerabilden är vriden eller upp och ner | Välj rotation under **Kamera** i adminvyn på lennart.cam (0°, 90°, 180° eller 270°). |
 | Randig eller trasig bild | Kortare kablar, eller sänk `LCD_SPI_HZ=16000000` |
 | Annan pinne för DC, RST eller BL | `LCD_DC=`, `LCD_RST=`, `LCD_BL=` (GPIO-nummer) |
 | Fel GPIO-krets eller SPI-enhet hittas | `LCD_GPIOCHIP=` (t.ex. `13`) eller `LCD_SPI_DEV=` (t.ex. `10.0`). Normalt hittas de automatiskt: numren skiljer sig mellan kärnversioner, och på Marcus Pi heter kretsarna `gpiochip11`–`15`. |

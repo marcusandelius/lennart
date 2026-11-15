@@ -298,6 +298,40 @@ På skärmen ska kamerabilden synas live, med en statusrad överst: en grön pri
 
 ---
 
+## Steg 9 – Servokortet (när PCA9685 har kommit)
+
+**Varför:** Servokortet tar emot kommandon över I2C, en tvåtrådsbuss på stiften 3 och 5. I2C är avstängt från början, precis som SPI var. Python behöver paketet `smbus` för att prata I2C, och `i2c-tools` ger kommandot `i2cdetect`, som visar om kortet svarar.
+
+**9a. Slå på I2C och installera paketen:**
+
+```bash
+sudo raspi-config nonint do_i2c 0
+```
+
+```bash
+sudo apt install -y python3-smbus i2c-tools
+```
+
+**9b. Stäng av och koppla in** enligt [koppling-servon.md](koppling-servon.md):
+
+```bash
+sudo poweroff
+```
+
+**9c. Starta igen och kontrollera att kortet svarar:**
+
+```bash
+i2cdetect -y 1
+```
+
+Talet `40` ska synas i tabellen. Det är kortets adress.
+
+Appen behöver inte startas om: den letar efter kortet varje gång ett servokommando kommer.
+
+✅ **Klart när:** `40` syns, och adminvyn på lennart.cam visar `✓ PCA9685 på I2C-buss 1` under Servon efter att du tryckt på **Flytta**.
+
+---
+
 ## Senare: över till 4G
 
 Runnern och appen behöver ingen ändring, eftersom båda tar bara kontakt utåt. SSH från din dator når däremot inte Pi:n över 4G, eftersom operatören normalt delar IP-adresser bakom NAT. Vill du kunna logga in på distans tar vi det som ett eget beslut.
