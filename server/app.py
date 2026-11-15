@@ -154,7 +154,13 @@ class Handler(BaseHTTPRequestHandler):
         self._send(303, b"", "text/plain; charset=utf-8", headers=headers)
 
     def _client_ip(self) -> str:
-        # Bakom Coolifys proxy (Traefik) är sista adressen i X-Forwarded-For den som proxyn såg.
+        # lennart.cam går via Cloudflare, som skickar besökarens adress i CF-Connecting-IP.
+        # Utan den skulle alla besökare se ut att komma från Cloudflares adresser och dela
+        # samma spärr efter felaktiga inloggningar.
+        cloudflare = self.headers.get("CF-Connecting-IP", "").strip()
+        if cloudflare:
+            return cloudflare
+        # Annars: bakom Coolifys proxy (Traefik) är sista adressen i X-Forwarded-For den som proxyn såg.
         forwarded = self.headers.get("X-Forwarded-For", "")
         return forwarded.split(",")[-1].strip() if forwarded else self.client_address[0]
 
