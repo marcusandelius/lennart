@@ -16,17 +16,17 @@ on:
 permissions:
   contents: read
 
-# Två pushar tätt efter varandra: vänta in den första i stället för att köra parallellt.
-concurrency:
-  group: deploy-main
-  cancel-in-progress: false
-
 jobs:
   coolify:
     name: Webbdelen → Coolify
     if: github.repository == 'marcusandelius/lennart'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Spärren gäller per jobb, så att webbdelen aldrig väntar på Pi:n.
+    # Två pushar tätt efter varandra: den andra väntar in den första.
+    concurrency:
+      group: deploy-coolify
+      cancel-in-progress: false
     steps:
       - name: Be Coolify bygga och starta om appen
         env:
@@ -54,6 +54,11 @@ jobs:
     # Etiketten "pi" sätts när runnern registreras på Pi:n (docs/SETUP-PI.md).
     runs-on: [self-hosted, pi]
     timeout-minutes: 20
+    # Om Pi:n är offline ligger högst ett jobb i kö. En nyare push ersätter
+    # det väntande jobbet, så Pi:n alltid får senaste versionen när den kommer tillbaka.
+    concurrency:
+      group: deploy-pi
+      cancel-in-progress: false
     steps:
       - name: Hämta koden
         uses: actions/checkout@v4
