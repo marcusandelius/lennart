@@ -11,6 +11,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Claude Code (Anthropic), molnsession | Repo-uppsättning, deploy, Pi-guide, flytt av koden från HANDOFF, beslutsunderlag | 2026-11-15– | https://claude.ai/code |
 | Higgsfield, via koppling i claude.ai | 12 demobilder till besöksliggaren med bildmodellen GPT Image 2.5 (`gpt_image_2_5`) | 2026-10-27 | https://higgsfield.ai |
 | Externt bildverktyg för konceptskisserna | Marcus genererade konceptbilder av huset. Claude skrev promptarna. Verktyg [osäkert vilket]. | 2026-10-27 | [osäkert] |
+| ChatGPT (OpenAI) | Marcus genererade logotypen "Lennart.cam". Vilken bildmodell [osäkert]. | 2026-11-15 [verifiera] | https://chatgpt.com |
 | Kopplingar i claude.ai: Notion och Gmail | Notion: tillfällig sida för att föra över demobilderna | 2026-10-27 | – |
 | Bildigenkänning | *Beslutas, se [docs/beslut/bildigenkanning.md](docs/beslut/bildigenkanning.md)* | – | – |
 
@@ -82,7 +83,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 
 | Resurs | Var | Ursprung |
 |---|---|---|
-| Logotypen "Lennart.cam" (pixelhus med ekorre och ACCESS GRANTED) | `server/static/logo.webp` | Från Marcus 2026-11-15. Hur den skapades [verifiera]. Bakgrunden gjordes genomskinlig och bilden beskars med `tools/logo_transparent.py`. |
+| Logotypen "Lennart.cam" (pixelhus med ekorre och ACCESS GRANTED) | `server/static/logo.webp` | Genererad av Marcus med ChatGPT (OpenAI), 2026-11-15 [verifiera datum]. Bakgrunden gjordes genomskinlig och bilden beskars med `tools/logo_transparent.py`. |
 | 12 demobilder till besöksliggaren | `server/static/demo/` | AI-genererade med Higgsfield (se ovan), tagna ur artefakten https://claude.ai/artifact/3Pf1zaveQGaKdFKwVuLrTc. Inga personer syns. |
 
 ## Hjälp från personer och AI-sessioner

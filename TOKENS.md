@@ -17,6 +17,7 @@ Metoden anger hur siffran togs fram: *exakt* (avläst i verktyget) eller *uppska
 ## Utanför tokenräkningen
 
 - **Higgsfield 2026-10-27:** 12 bilder med GPT Image 2.5. Räknas i krediter, inte tokens. Antal krediter [osäkert].
+- **Logotypen [verifiera datum]:** Marcus genererade den med ChatGPT. Bildgenerering räknas inte i tokens på samma sätt, och förbrukningen syns inte här [osäkert].
 - **Konceptbilderna 2026-10-27:** Marcus egen generering i ett externt verktyg [osäkert vilket].
 
 ## Underlag
