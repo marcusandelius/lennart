@@ -63,7 +63,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Hämta koden
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Spara inte GITHUB_TOKEN i .git/config på Pi:n.
           persist-credentials: false
