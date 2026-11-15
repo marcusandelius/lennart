@@ -28,6 +28,12 @@
   dt { color:var(--ink-2); } dd { margin:0; font-variant-numeric:tabular-nums; }
   .preview img { width:100%; aspect-ratio:16/9; object-fit:cover; background:#000; border-radius:10px; margin:.75rem 0; }
   .head-actions { display:flex; gap:.6rem; align-items:center; }
+  .servo { border-top:1px solid var(--line); padding-top:.9rem; margin-top:.9rem; }
+  .servo h3 { font-size:1.05rem; margin:0 0 .5rem; }
+  .servo input[type=range] { width:100%; accent-color:var(--ink); }
+  .angle { font-variant-numeric:tabular-nums; font-weight:700; min-width:3.5rem; display:inline-block; }
+  .buttons { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.5rem; align-items:center; }
+  details { margin-top:1rem; } summary { cursor:pointer; font-weight:600; }
 </style>
 </head>
 <body>
@@ -74,6 +80,65 @@
     </section>
 
     <section class="card">
+      <h2>Kamera</h2>
+      <form id="camera">
+        <div class="row">
+          <label for="camera_rotation">Rotation</label>
+          <div><select id="camera_rotation"></select><p class="hint">Vrider bilden medsols, både på skärmen och i livebilden.</p></div>
+        </div>
+        <button type="submit">Spara</button>
+        <p class="msg" id="cameramsg" role="status"></p>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Servon</h2>
+      <p id="servostatus">–</p>
+      <p class="hint">Signalen släpps automatiskt efter varje rörelse, så att servona inte står och surrar. Kommandon som inte når stationen inom 20 sekunder kastas.</p>
+
+      <div class="servo">
+        <h3>Doseringshjulet</h3>
+        <label for="doser_angle">Vinkel: <span class="angle" id="doser_val">0°</span></label>
+        <input type="range" id="doser_angle" min="0" max="180" step="1" value="0">
+        <div class="buttons">
+          <button type="button" data-move="doser">Flytta</button>
+          <button type="button" class="secondary" data-release="doser">Släpp</button>
+          <button type="button" id="testdispense">Testa utmatning</button>
+        </div>
+        <p class="hint" id="dispensehint">Ett litet vick, sedan till utmatningsvinkeln och tillbaka till 0°.</p>
+      </div>
+
+      <div class="servo">
+        <h3>Luckan</h3>
+        <label for="lucka_angle">Vinkel: <span class="angle" id="lucka_val">0°</span></label>
+        <input type="range" id="lucka_angle" min="0" max="180" step="1" value="0">
+        <div class="buttons">
+          <button type="button" data-move="lucka">Flytta</button>
+          <button type="button" class="secondary" data-release="lucka">Släpp</button>
+          <label><input type="checkbox" id="lucka_slow" checked> Långsamt</label>
+        </div>
+        <p class="hint">Luckan ska stängas långsamt, så att ingen kläms.</p>
+      </div>
+
+      <div class="buttons"><button type="button" class="secondary" data-release="alla">Släpp alla</button></div>
+      <p class="msg" id="servomsg" role="status"></p>
+
+      <details>
+        <summary>Inställningar för servona</summary>
+        <form id="servosettings">
+          <div class="row"><label for="servo_doser_channel">Kanal för doseraren</label><input type="number" id="servo_doser_channel" step="1"></div>
+          <div class="row"><label for="servo_lucka_channel">Kanal för luckan</label><input type="number" id="servo_lucka_channel" step="1"></div>
+          <div class="row"><label for="servo_min_us">Pulsbredd vid 0° (µs)</label><input type="number" id="servo_min_us" step="10"></div>
+          <div class="row"><label for="servo_max_us">Pulsbredd vid 180° (µs)</label><input type="number" id="servo_max_us" step="10"></div>
+          <div class="row"><label for="dispense_angle">Utmatningsvinkel (°)</label><input type="number" id="dispense_angle" step="1"></div>
+          <p class="hint">Kanal = numret på PCA9685-kortet där servot sitter. Står servot och brummar i ändläget, minska intervallet för pulsbredden.</p>
+          <button type="submit">Spara</button>
+          <p class="msg" id="servosettingsmsg" role="status"></p>
+        </form>
+      </details>
+    </section>
+
+    <section class="card">
       <h2>Just nu</h2>
       <dl>
         <dt>Stationen</dt><dd id="online">–</dd>
@@ -96,6 +161,28 @@
 <script>
   const $ = id => document.getElementById(id);
   const fields = ["fps", "quality", "max_view_min"];
+  const servoFields = ["servo_doser_channel", "servo_lucka_channel", "servo_min_us", "servo_max_us", "dispense_angle"];
+
+  async function saveSettings(body, msgId) {
+    const r = await fetch("/api/admin/settings", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    const s = await r.json();
+    $(msgId).className = "msg " + (r.ok ? "ok" : "no");
+    $(msgId).textContent = r.ok ? "Sparat. Stationen får ändringen inom någon sekund." : (s.fel || "Kunde inte spara.");
+    return r.ok ? s : null;
+  }
+
+  async function servo(cmd) {
+    $("servomsg").className = "msg"; $("servomsg").textContent = "Skickar …";
+    const r = await fetch("/api/admin/servo", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cmd),
+    });
+    const s = await r.json();
+    $("servomsg").className = "msg " + (r.ok && !s.varning ? "ok" : "no");
+    $("servomsg").textContent = !r.ok ? (s.fel || "Kunde inte skicka.") : (s.varning || "Skickat till stationen.");
+    setTimeout(load, 1500);  // stationen skickar en rapport direkt efter kommandot
+  }
   let loaded = false;
 
   async function load() {
@@ -107,6 +194,10 @@
       for (const f of fields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
       $("resolution").value = s.settings.resolution;
       $("live_enabled").checked = s.settings.live_enabled;
+      $("camera_rotation").innerHTML = s.rotations.map(v => `<option value="${v}">${v}°</option>`).join("");
+      $("camera_rotation").value = s.settings.camera_rotation;
+      for (const f of servoFields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
+      $("dispensehint").textContent = `Ett litet vick, sedan till ${s.settings.dispense_angle}° och tillbaka till 0°.`;
       loaded = true;
     }
     $("notpersisted").hidden = s.persisted;
@@ -117,6 +208,8 @@
     $("temp").textContent = rep.cpu_temp_c != null ? `${rep.cpu_temp_c.toFixed(1)} °C` : "–";
     $("net").textContent = rep.network || "–";
     $("version").textContent = rep.version || "–";
+    $("servostatus").textContent = !st.online ? "Stationen hörs inte av."
+      : rep.servo_info ? `${rep.servo_ok ? "✓" : "✗"} ${rep.servo_info}` : "Ingen uppgift från stationen än.";
   }
 
   $("settings").addEventListener("submit", async e => {
@@ -131,6 +224,27 @@
     $("msg").textContent = r.ok ? "Sparat. Ändringen gäller direkt." : (s.fel || "Kunde inte spara.");
     if (r.ok) $("notpersisted").hidden = s.persisted;
   });
+
+  $("camera").addEventListener("submit", e => {
+    e.preventDefault();
+    saveSettings({ camera_rotation: parseInt($("camera_rotation").value, 10) }, "cameramsg");
+  });
+  $("servosettings").addEventListener("submit", async e => {
+    e.preventDefault();
+    const body = {};
+    for (const f of servoFields) body[f] = parseInt($(f).value, 10);
+    const s = await saveSettings(body, "servosettingsmsg");
+    if (s) $("dispensehint").textContent = `Ett litet vick, sedan till ${s.settings.dispense_angle}° och tillbaka till 0°.`;
+  });
+  for (const name of ["doser", "lucka"]) {
+    $(`${name}_angle`).addEventListener("input", e => { $(`${name}_val`).textContent = `${e.target.value}°`; });
+  }
+  document.querySelectorAll("[data-move]").forEach(b => b.addEventListener("click", () => {
+    const name = b.dataset.move;
+    servo({ action: "move", servo: name, angle: parseInt($(`${name}_angle`).value, 10), slow: name === "lucka" && $("lucka_slow").checked });
+  }));
+  document.querySelectorAll("[data-release]").forEach(b => b.addEventListener("click", () => servo({ action: "release", servo: b.dataset.release })));
+  $("testdispense").addEventListener("click", () => servo({ action: "test_dispense" }));
 
   $("previewbtn").addEventListener("click", () => {
     const img = $("previewimg");
