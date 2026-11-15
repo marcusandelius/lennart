@@ -76,7 +76,7 @@ def clean_report(raw: dict) -> dict:
     for key, kind in ALLOWED_FIELDS.items():
         value = raw.get(key)
         if isinstance(value, kind) and not (kind is not bool and isinstance(value, bool)):
-            report[key] = value[:80] if isinstance(value, str) else value
+            report[key] = value[:(200 if key == "message" else 80)] if isinstance(value, str) else value
     return report
 
 

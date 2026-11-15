@@ -71,12 +71,13 @@
       <dl>
         <dt>Senast hörd av</dt><dd id="seen">–</dd>
         <dt>Kamera</dt><dd id="camera">–</dd>
-        <dt>Skärm</dt><dd id="display">–</dd>
+        <dt>Skärmdrivrutin</dt><dd id="display">–</dd>
         <dt>Bilder per sekund</dt><dd id="fps">–</dd>
         <dt>Temperatur</dt><dd id="temp">–</dd>
         <dt>Uppkoppling</dt><dd id="net">–</dd>
         <dt>Igång sedan</dt><dd id="uptime">–</dd>
         <dt>Version på stationen</dt><dd id="version">–</dd>
+        <dt id="msg-label" hidden>Meddelande</dt><dd id="msg" hidden></dd>
       </dl>
     </section>
   </main>
@@ -144,6 +145,8 @@
       $("net").textContent = rep.network || "–";
       $("uptime").textContent = duration(rep.uptime_s);
       $("version").textContent = rep.version || "–";
+      $("msg").textContent = rep.message || "";
+      $("msg").hidden = $("msg-label").hidden = !rep.message;
       $("sversion").textContent = s.server_version;
     } catch (e) {
       $("state").textContent = "Kunde inte hämta status";
