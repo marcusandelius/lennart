@@ -1,40 +1,80 @@
 # Källor, verktyg och hjälp
 
-Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en rad i samma commit som du börjar använda något nytt.
+Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en rad i samma commit som du börjar använda något nytt. Grundinnehållet kommer från [HANDOFF-filen](docs/historik/HANDOFF-lennarts-matstation-projekt.md), avsnitt 8.
 
-## Bibliotek och ramverk
+## AI-modeller och tjänster
 
-| Namn | Version | Licens | Används till | Länk |
-|---|---|---|---|---|
-| *Fylls i när koden flyttats in* | | | | |
+| Namn | Används till | När | Länk |
+|---|---|---|---|
+| Claude (Anthropic) i claude.ai | All konstruktion av 3D-modellen, kod, analys och text i chatten om matstationen. 11–15 nov var modellen Claude Opus 5.5. Modell 27 okt–11 nov [osäkert]. | 2026-10-27–11-15 | https://claude.ai |
+| Funktioner i claude.ai | Artifacts (publicerade sidor), Claude Docs (projektdokumentet), webbsökning och webbhämtning, minne, kodkörning i Linux-miljö, visning av bilder | 2026-10-27–11-15 | https://claude.ai |
+| Claude Code (Anthropic), molnsession | Repo-uppsättning, deploy, Pi-guide, flytt av koden från HANDOFF, beslutsunderlag | 2026-11-15– | https://claude.ai/code |
+| Higgsfield, via koppling i claude.ai | 12 demobilder till besöksliggaren med bildmodellen GPT Image 2.5 (`gpt_image_2_5`) | 2026-10-27 | https://higgsfield.ai |
+| Externt bildverktyg för konceptskisserna | Marcus genererade konceptbilder av huset. Claude skrev promptarna. Verktyg [osäkert vilket]. | 2026-10-27 | [osäkert] |
+| Kopplingar i claude.ai: Notion och Gmail | Notion: tillfällig sida för att föra över demobilderna | 2026-10-27 | – |
+| Bildigenkänning | *Beslutas, se [docs/beslut/bildigenkanning.md](docs/beslut/bildigenkanning.md)* | – | – |
 
-## Modeller (AI/ML)
+## Bibliotek och program
 
 | Namn | Licens | Används till | Länk |
 |---|---|---|---|
-| *Beslutas – se `docs/beslut/bildigenkanning.md`* | | | |
+| manifold3d | Apache-2.0 [verifiera] | Solidgeometri för 3D-modellen | https://github.com/elalish/manifold |
+| trimesh | MIT [verifiera] | Nät, STL och GLB | https://github.com/mikedh/trimesh |
+| numpy | BSD-3-Clause [verifiera] | Beräkningar | https://numpy.org |
+| shapely | BSD-3-Clause [verifiera] | Analys av lager och överhäng | https://github.com/shapely/shapely |
+| rectpack | Apache-2.0 [verifiera] | Packa delar på byggplattor | https://github.com/secnot/rectpack |
+| matplotlib | Matplotlib-licens (PSF-baserad) [verifiera] | TextPath för text i 3D, t.ex. "LENNART" och toleranstestets etiketter | https://matplotlib.org |
+| Pillow | MIT-CMU (HPND) [verifiera] | Bilder | https://python-pillow.org |
+| playwright med Chromium och SwiftShader | Apache-2.0 [verifiera] | Skärmdumpar och test av sidorna | https://playwright.dev |
+| markdown (Python) | BSD-3-Clause [verifiera] | Projektdokumentet i förhandsgranskningen | https://github.com/Python-Markdown/markdown |
+| pymeshfix | MIT [verifiera] | Provades 2026-11-13, förstörde geometrin och **användes inte** | https://github.com/pyvista/pymeshfix |
+| three.js r128 | MIT | 3D i förhandsgranskningen och minihusen, från cdnjs.cloudflare.com | https://threejs.org |
+| Bambu Studio | AGPL-3.0 [verifiera] | Skivning, gjord av Marcus | https://bambulab.com/en/download/studio |
+| Blender | GPL | Planerat för trailern | https://www.blender.org |
 
-## Verktyg och tjänster
+## Typsnitt
+
+| Namn | Licens | Används till | Länk |
+|---|---|---|---|
+| Bricolage Grotesque | SIL OFL 1.1 [verifiera] | Webbsidorna | https://fonts.google.com |
+| Special Elite | Apache-2.0 [verifiera] | Webbsidorna | https://fonts.google.com |
+| DejaVu Sans | Bitstream Vera-licens / fri [verifiera] | Text i 3D-modellen | https://dejavu-fonts.github.io |
+
+## Verktyg och tjänster för drift
 
 | Namn | Används till | Länk |
 |---|---|---|
-| GitHub + GitHub Actions | Kod, versionshistorik, automatisk deploy | https://github.com |
+| GitHub och GitHub Actions | Kod, versionshistorik, automatisk deploy | https://github.com |
+| GitHub Actions: `actions/checkout` | Hämtar koden i deploy-jobbet på Pi:n | https://github.com/actions/checkout |
 | Coolify | Hosting av webbdelen | https://coolify.io |
 | Raspberry Pi OS (Bookworm) | Operativsystem på Pi:n | https://www.raspberrypi.com/software/ |
-| Claude (Anthropic) | AI-assistans för planering, kod och dokumentation (se TOKENS.md) | https://claude.ai |
+
+## Hårdvara
+
+| Namn | Används till |
+|---|---|
+| Bambu Lab X2D Combo med AMS 2 Pro | 3D-utskrift av huset |
+| Raspberry Pi 5, Camera Module 3 Wide, Waveshare 2" skärm m.m. | Se [docs/hardvara.md](docs/hardvara.md) |
+
+## Mått och webbkällor
+
+- **Mått från standarder och datablad:** Raspberry Pi 5 och Camera Module 3 (hålmönster 21 × 12,5 mm), Waveshare 2" skärm för Pico (varianten med knappar) samt servomått för MG996R och MG90S. Alla ska kontrolleras mot de riktiga delarna.
+- **Bambu Lab wiki:** filamentgrupper för munstyckena ("H2D filament config limit") och munstyckenas räckvidd.
+- **Recensioner och specifikationer:** X2D:s byggvolym, 256 × 256 mm, och 235,5 mm med båda munstyckena.
+- **Electrokits produktsidor.**
+- **SweClockers tävlingsvillkor:** https://projekt.sweclockers.com/asus/villkor
 
 ## Lånade resurser (bilder, ljud, typsnitt, 3D-modeller, kodsnuttar)
 
-| Resurs | Upphov | Licens | Var den används | Länk |
-|---|---|---|---|---|
-| *Fylls i* | | | | |
+**Inga.** Ekorr- och skatdekalerna, handen, huset och allt annat i 3D är ritat i kod av Claude. Inga bilder eller modeller från andra har använts i dem (HANDOFF, avsnitt 8).
 
 ## Hjälp från personer och AI-sessioner
 
 | Vem/vad | Vilken hjälp | Datum |
 |---|---|---|
-| Claude, tidigare chattar | *Fylls i från HANDOFF-filerna i `docs/historik/`* | [osäkert] |
-| Claude Code, session 2026-11-15 | Repo-struktur, deploy-uppsättning, Pi-guide, beslutsunderlag för bildigenkänning | 2026-11-15 |
+| Claude, chatten om Lennarts matstation i claude.ai | Konstruktion, 3D-modell, förhandsgranskning, inköpslista, utskriftsråd. Se [HANDOFF](docs/historik/HANDOFF-lennarts-matstation-projekt.md). | 2026-10-27–11-15 |
+| Claude Code, molnsession | Repo-struktur, deploy-uppsättning, Pi-guide, flytt av kod och dokument, beslutsunderlag för bildigenkänning | 2026-11-15 |
+| Behörig elektriker | *Planerat: elsäkerheten för utomhusström ska kontrolleras av en behörig person* | [osäkert] |
 
 ## Samtycke för bilder med personer
 
