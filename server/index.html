@@ -76,6 +76,7 @@
         <dt>Temperatur</dt><dd id="temp">–</dd>
         <dt>Uppkoppling</dt><dd id="net">–</dd>
         <dt>Igång sedan</dt><dd id="uptime">–</dd>
+        <dt>Strypning</dt><dd id="throttle">–</dd>
         <dt>Version på stationen</dt><dd id="version">–</dd>
         <dt id="msg-label" hidden>Meddelande</dt><dd id="msg" hidden></dd>
       </dl>
@@ -130,6 +131,23 @@
     const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
     return d ? `${d} d ${h} h` : h ? `${h} h ${m} min` : `${m} min`;
   }
+  // vcgencmd get_throttled: låga bitar = just nu, höga bitar = har hänt sedan start.
+  function throttleText(hex) {
+    if (hex == null) return "–";
+    const v = parseInt(hex, 16);
+    if (Number.isNaN(v)) return "–";
+    if (v === 0) return "nej";
+    const parts = [];
+    if (v & 0x1) parts.push("för låg spänning nu");
+    if (v & 0x4) parts.push("strypt nu");
+    else if (v & 0x8) parts.push("nära temperaturgränsen nu");
+    if (!(v & 0xF)) {
+      if (v & 0x10000) parts.push("spänningen har varit för låg");
+      if (v & 0x40000) parts.push("har strypts sedan start");
+      else if (v & 0x80000) parts.push("har nått temperaturgränsen sedan start");
+    }
+    return parts.length ? parts.join(", ") : `kod ${hex}`;
+  }
   async function refresh() {
     try {
       const r = await fetch("/api/status", { cache: "no-store" });
@@ -145,6 +163,7 @@
       $("net").textContent = rep.network || "–";
       $("uptime").textContent = duration(rep.uptime_s);
       $("version").textContent = rep.version || "–";
+      $("throttle").textContent = throttleText(rep.throttled);
       $("msg").textContent = rep.message || "";
       $("msg").hidden = $("msg-label").hidden = !rep.message;
       $("sversion").textContent = s.server_version;

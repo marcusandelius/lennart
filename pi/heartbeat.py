@@ -8,6 +8,7 @@ servern vet att rapporten kommer från just den här Pi:n.
 import json
 import os
 import socket
+import subprocess
 import threading
 import time
 import urllib.error
@@ -28,6 +29,19 @@ def uptime_s() -> float | None:
     try:
         return float(Path("/proc/uptime").read_text().split()[0])
     except (OSError, ValueError, IndexError):
+        return None
+
+
+def throttled() -> str | None:
+    """Pi:ns strypningsstatus från vcgencmd, t.ex. "0x0" (aldrig strypt) eller "0x80008".
+
+    Bitarna betyder bland annat: för låg spänning, sänkt klockfrekvens och
+    temperaturgräns, både "just nu" och "har hänt sedan start".
+    """
+    try:
+        out = subprocess.run(["vcgencmd", "get_throttled"], capture_output=True, text=True, timeout=3).stdout
+        return out.strip().split("=", 1)[1] if "=" in out else None
+    except (OSError, subprocess.SubprocessError):
         return None
 
 
@@ -71,6 +85,7 @@ class Heartbeat:
             "uptime_s": uptime_s(),
             "cpu_temp_c": cpu_temp_c(),
             "network": default_interface(),
+            "throttled": throttled(),
         }
         data.update(self.status_fn())
         return {k: v for k, v in data.items() if v is not None}

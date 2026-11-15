@@ -45,6 +45,7 @@ ALLOWED_FIELDS = {
     "display_ok": bool,
     "fps": (int, float),
     "message": str,
+    "throttled": str,
 }
 
 HERE = Path(__file__).parent
