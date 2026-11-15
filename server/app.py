@@ -13,8 +13,9 @@ Adresser:
   POST /admin/logout     Logga ut.
   GET  /api/admin/state  Inställningar och läge för adminvyn (kräver inloggning).
   POST /api/admin/settings  Ändra inställningar (kräver inloggning).
+  POST /api/admin/servo  Skicka ett servokommando till Pi:n (kräver inloggning).
   POST /api/heartbeat    Pi:n rapporterar att den lever (kräver enhetsnyckel).
-  GET  /api/live/wait    Pi:n väntar på att någon ska titta (kräver enhetsnyckel).
+  GET  /api/live/wait    Pi:n väntar på tittare, kommandon eller nya inställningar (kräver enhetsnyckel).
   POST /api/live/frame   Pi:n skickar en bild till livebilden (kräver enhetsnyckel).
   GET  /static/...       Logotyp, typsnitt, stilmall och demobilder.
   GET  /healthz          För Coolifys hälsokontroll.
@@ -41,7 +42,8 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import admin
-from live import LIMITS, NO_FRAME_GIVE_UP_S, RESOLUTIONS, LiveRelay, Settings
+from live import (CAMERA_ROTATIONS, LIMITS, NO_FRAME_GIVE_UP_S, RESOLUTIONS, LiveRelay, Settings,
+                  validate_command)
 
 PORT = int(os.environ.get("PORT", "8000"))
 DEVICE_TOKEN = os.environ.get("LENNART_DEVICE_TOKEN", "")
@@ -65,6 +67,9 @@ ALLOWED_FIELDS = {
     "fps": (int, float),
     "message": str,
     "throttled": str,
+    "camera_rotation": int,
+    "servo_ok": bool,
+    "servo_info": str,
 }
 
 HERE = Path(__file__).parent
@@ -98,7 +103,7 @@ def clean_report(raw: dict) -> dict:
     for key, kind in ALLOWED_FIELDS.items():
         value = raw.get(key)
         if isinstance(value, kind) and not (kind is not bool and isinstance(value, bool)):
-            report[key] = value[:(200 if key == "message" else 80)] if isinstance(value, str) else value
+            report[key] = value[:(200 if key in ("message", "servo_info") else 80)] if isinstance(value, str) else value
     return report
 
 
@@ -225,8 +230,13 @@ class Handler(BaseHTTPRequestHandler):
             self._stream_live()
         elif path == "/api/live/wait":
             if self._device_ok():
-                wanted = relay.wait_until_wanted(timeout=LIVE_WAIT_S)
-                self._json(200, {"live": wanted, **(settings.for_pi() if wanted else {})})
+                query = parse_qs(urlparse(self.path).query)
+                try:
+                    known = int(query.get("v", ["0"])[0])
+                except ValueError:
+                    known = 0
+                relay.wait_for_device(known, timeout=LIVE_WAIT_S)
+                self._json(200, relay.device_reply())
         elif path == "/admin":
             if not admin.enabled():
                 self._html("login", 503, fel="Adminvyn är inte påslagen. Sätt ADMIN_PASSWORD i Coolify.")
@@ -244,6 +254,7 @@ class Handler(BaseHTTPRequestHandler):
                 "settings": settings.values,
                 "persisted": settings.persisted,
                 "resolutions": list(RESOLUTIONS),
+                "rotations": list(CAMERA_ROTATIONS),
                 "limits": LIMITS,
                 "live": relay.info(),
                 "status": status_payload(),
@@ -319,7 +330,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(400, {"fel": "Inte en JPEG-bild"})
                 return
             relay.put_frame(jpeg)
-            self._json(200, {"continue": relay.wanted, **settings.for_pi()})
+            self._json(200, {"continue": relay.wanted, **relay.device_reply()})
         elif path == "/admin/login":
             self._login()
         elif path == "/admin/logout":
@@ -346,6 +357,27 @@ class Handler(BaseHTTPRequestHandler):
             relay.notify()  # väck strömmar och Pi:ns väntande anrop, så att ändringen gäller direkt
             print(f"Admin ändrade inställningar: {changes}", flush=True)
             self._json(200, {"settings": settings.values, "persisted": settings.persisted})
+        elif path == "/api/admin/servo":
+            if not self._admin_ok():
+                self._json(401, {"fel": "Inte inloggad"})
+                return
+            if not self._same_origin():
+                self._json(403, {"fel": "Fel ursprung"})
+                return
+            raw = self._read_json(1024)
+            if raw is None:
+                return
+            try:
+                cmd = validate_command(raw, settings.values)
+            except ValueError as e:
+                self._json(400, {"fel": str(e)})
+                return
+            command_id = relay.add_command(cmd)
+            print(f"Admin skickade servokommando {command_id}: {cmd}", flush=True)
+            reply = {"ok": True, "id": command_id}
+            if not status_payload()["online"]:
+                reply["varning"] = "Stationen hörs inte av. Kommandot kastas om det inte hämtas inom 20 sekunder."
+            self._json(200, reply)
         else:
             self._json(404, {"fel": "Finns inte"})
 
