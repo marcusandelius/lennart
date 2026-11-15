@@ -39,6 +39,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | spidev (py-spidev) | MIT [verifiera] | SPI till skärmen | https://github.com/doceme/py-spidev |
 | gpiozero | BSD-3-Clause [verifiera] | Installerad. Provades för skärmens styrpinnar men valde fel GPIO-krets på Pi 5, så den används inte för skärmen. | https://gpiozero.readthedocs.io |
 | lgpio | Unlicense [verifiera] | Styrpinnarna till skärmen (DC, RST, BL) på Pi 5 | https://abyz.me.uk/lg/py_lgpio.html |
+| smbus (python3-smbus, från i2c-tools) eller smbus2 | GPL-2.0 resp. MIT [verifiera] | I2C till servokortet PCA9685 | https://i2c.wiki.kernel.org/index.php/I2C_Tools |
 
 ## Typsnitt
 
@@ -67,6 +68,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 
 ## Mått och webbkällor
 
+- **PCA9685-register** i `pi/servo.py` (MODE1, PRESCALE, LED0_ON_L, frekvens 50 Hz): från NXP:s datablad för PCA9685 [verifiera länk].
 - **ST7789-kommandon** i `pi/display.py`: från Sitronix datablad för ST7789 och Waveshares beskrivning av Pico-LCD-2 [verifiera länk].
 
 - **Mått från standarder och datablad:** Raspberry Pi 5 och Camera Module 3 (hålmönster 21 × 12,5 mm), Waveshare 2" skärm för Pico (varianten med knappar) samt servomått för MG996R och MG90S. Alla ska kontrolleras mot de riktiga delarna.
