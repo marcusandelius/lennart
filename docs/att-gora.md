@@ -36,3 +36,8 @@ Hämtad ur [HANDOFF-filen](historik/HANDOFF-lennarts-matstation-projekt.md), avs
 - Projektdokumentet i Claude Docs behöver uppdateras med PETG, de nya plattnumren, Electrokit-köpet och den nya kroppen.
 - Vid flerfärgsutskrifter: gör rensningstornet bredare så att det inte välter.
 - Tävlingen: bidraget ska vara inlämnat senast 30 november 2026. Underlag för tokens och AI-historik ska kunna visas om bidraget hamnar bland de tre med flest röster, senast 15 december kl. 23.59.
+
+## Tillagt i Claude Code-sessionerna
+
+- **Livebilden är publik:** låt någon som kan reglerna bedöma om en publik livebild från uteplatsen är förenlig med GDPR, och vad som gäller om personer kommer i bild [kräver granskning]. Fram till dess: stäng av livebilden i adminvyn när någon som inte vill synas är vid uteplatsen.
+- **Coolify:** lägg till `ADMIN_PASSWORD` och en volym på `/data` (se docs/SETUP-COOLIFY.md).

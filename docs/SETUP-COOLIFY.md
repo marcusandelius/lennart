@@ -27,7 +27,20 @@ Under **Environment Variables**, lägg till:
 |---|---|---|
 | `LENNART_DEVICE_TOKEN` | Nyckeln från `openssl rand -hex 32` | Samma värde som i `.env` på Pi:n. **Inte** "Build Variable", den behövs bara när appen körs [verifiera namn på rutan]. |
 
+| `ADMIN_PASSWORD` | Ett långt, slumpmässigt lösenord, till exempel från `openssl rand -base64 24` | Lösenordet till adminvyn på https://lennart.cam/admin. Saknas det är adminvyn avstängd. Spara det i din lösenordshanterare. |
+
 **Varför här och inte i GitHub:** nyckeln används av appen när den körs, inte av GitHub Actions. Den ska bara finnas på två ställen: i Coolify och i `.env` på Pi:n.
+
+## 2b. Volym för inställningarna
+
+Under **Storages** (eller **Persistent Storage**) [verifiera namn], lägg till en volym:
+
+| Fält | Värde |
+|---|---|
+| Typ | Volume |
+| Destination Path (i containern) | `/data` |
+
+**Varför:** adminvyns inställningar för livebilden sparas i `/data/settings.json`. Utan volym återställs de vid varje deploy, och adminvyn visar en varning om det.
 
 ## 3. Hälsokontroll och deploy
 
