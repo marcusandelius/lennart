@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lennarts minihus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#E9EEE4;--surface:#F5F7F1;--ink:#1E2E25;--ink-2:#4F6155;--line:#C7D1C3;--accent:#A23A2C;--focus:#1F5FBF;--stage:#DCE3D7;
+  color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#131C17;--surface:#1A251F;--ink:#E3EADF;--ink-2:#A3B3A7;--line:#2C3B32;--accent:#E07A6B;--focus:#8DB8FF;--stage:#1E2A23;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#131C17;--surface:#1A251F;--ink:#E3EADF;--ink-2:#A3B3A7;--line:#2C3B32;--accent:#E07A6B;--focus:#8DB8FF;--stage:#1E2A23;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+.wrap{max-width:72rem;margin:0 auto;padding:clamp(1rem,3vw,2rem)}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);line-height:1;font-weight:800;letter-spacing:-.02em;margin:.5rem 0 .5rem}
+.lead{color:var(--ink-2);max-width:62ch;margin:0 0 1.25rem}
+.tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
+.tabs button{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:.5rem 1rem;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.layout{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media (min-width:58rem){.layout{grid-template-columns:1fr 20rem}}
+.stage{position:relative;background:var(--stage);border-radius:14px;overflow:hidden;aspect-ratio:4/3;min-height:20rem;touch-action:none}
+.stage canvas{display:block;width:100%;height:100%;cursor:grab}
+.hint{position:absolute;left:.8rem;bottom:.6rem;font-size:.85rem;color:var(--ink-2);pointer-events:none}
+.coinlabel{position:absolute;right:.8rem;top:.7rem;font-size:.85rem;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:.25rem .7rem;pointer-events:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.1rem 1.2rem}
+.card h2{font-size:1.4rem;font-weight:800;margin:0 0 .2rem}
+.time{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;margin:.6rem 0 0}
+.time small{display:block;font-size:.9rem;font-weight:400;color:var(--ink-2);letter-spacing:0}
+dl{display:grid;grid-template-columns:auto 1fr;gap:.3rem 1rem;margin:1rem 0 0}
+dt{color:var(--ink-2)} dd{margin:0}
+.sw{display:inline-block;width:.85rem;height:.85rem;border-radius:3px;border:1px solid var(--line);vertical-align:-.1rem;margin-right:.25rem}
+.desc{color:var(--ink-2);margin:.6rem 0 0}
+.files{font-size:.85rem;color:var(--ink-2);margin:.8rem 0 0;word-break:break-all}
+.note{color:var(--ink-2);font-size:.9rem;margin:1.25rem 0 0;max-width:70ch}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Lennarts minihus</h1>
+  <p class="lead">Tre miniatyrer av matstationen, cirka 5 cm höga, för en första provutskrift på X2D:n. Bredvid huset ligger en vanlig blyertspenna, så du ser storleken.</p>
+  <div class="tabs" role="group" aria-label="Välj version" id="tabs"></div>
+  <div class="layout">
+    <div class="stage" id="stage"><span class="hint">Dra för att rotera · högerklick eller scrollknapp och dra för att flytta · scrolla för att zooma</span>
+      <span class="coinlabel">Bredvid ligger en vanlig blyertspenna, ca 18 cm, för skala</span></div>
+    <aside class="card" aria-live="polite" id="info"></aside>
+  </div>
+  <p class="note">Tiderna är uppskattningar för PLA med 0,20 mm lagerhöjd, med ASA som jämförelse. Flerfärgsutskrifter tar lång tid i liten skala eftersom skrivaren byter färg på nästan varje lager. Bambu Studio visar den exakta tiden när du laddar filerna.</p>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const DATA = {"1": {"name": "Detaljerad", "meshes": [{"color": "#EEEBE3", "file": "mini_1_detaljerad_hus_vit.stl", "job": "hus", "pos": "[BASE64 UTELÄMNAD: 8386 tecken]", "idx": "[BASE64 UTELÄMNAD: 15874 tecken]", "vol": 918.4, "wt": true}, {"color": "#5A5E62", "file": "mini_1_detaljerad_tak_gra.stl", "job": "tak", "pos": "[BASE64 UTELÄMNAD: 28082 tecken]", "idx": "[BASE64 UTELÄMNAD: 56162 tecken]", "vol": 3124.7, "wt": true}, {"color": "#A23A2C", "file": "mini_1_detaljerad_hus_rod.stl", "job": "hus", "pos": "[BASE64 UTELÄMNAD: 24050 tecken]", "idx": "[BASE64 UTELÄMNAD: 48098 tecken]", "vol": 22130.9, "wt": true}, {"color": "#3B6A2B", "file": "mini_1_detaljerad_hus_gron.stl", "job": "hus", "pos": "[BASE64 UTELÄMNAD: 7186 tecken]", "idx": "[BASE64 UTELÄMNAD: 14178 tecken]", "vol": 10315.7, "wt": true}, {"color": "#EEEBE3", "file": "mini_1_detaljerad_tak_vit.stl", "job": "tak", "pos": "DRSXwXG0h8DqNNNBDRSXwXwCacDqNNNBDRSXwXG0h8Chj+tBDRSXwXwCacChj+tBDRSXQXG0h8DqNNNBDRSXQXwCacDqNNNBDRSXQXG0h8Chj+tBDRSXQXwCacChj+tBAAAAAHG0h8D0sjBCAAAAAHwCacD0sjBCAAAAAHG0h8DzUD5CAAAAAHwCacDzUD5CDRSXwQLG5UHqNNNBDRSXwc6S6kHqNNNBDRSXwQLG5UGhj+tBDRSXwc6S6kGhj+tBDRSXQQLG5UHqNNNBDRSXQc6S6kHqNNNBDRSXQQLG5UGhj+tBDRSXQc6S6kGhj+tBAAAAAALG5UH0sjBCAAAAAM6S6kH0sjBCAAAAAALG5UHzUD5CAAAAAM6S6kHzUD5C", "idx": "AAAAAAIAAAABAAAAAQAAAAIAAAADAAAAAAAAAAEAAAAJAAAAAAAAAAgAAAACAAAAAQAAAAMAAAAJAAAAAgAAAAoAAAADAAAAAAAAAAkAAAAIAAAAAgAAAAgAAAAKAAAAAwAAAAsAAAAJAAAAAwAAAAoAAAALAAAABAAAAAUAAAAHAAAABAAAAAcAAAAGAAAABAAAAAgAAAAFAAAABAAAAAYAAAAIAAAABQAAAAkAAAAHAAAABgAAAAcAAAALAAAABQAAAAgAAAAJAAAABgAAAAoAAAAIAAAABwAAAAkAAAALAAAABgAAAAsAAAAKAAAADAAAAA4AAAANAAAADQAAAA4AAAAPAAAADAAAAA0AAAAVAAAADAAAABQAAAAOAAAADQAAAA8AAAAVAAAADgAAABYAAAAPAAAADAAAABUAAAAUAAAADgAAABQAAAAWAAAADwAAABcAAAAVAAAADwAAABYAAAAXAAAAEAAAABEAAAATAAAAEAAAABMAAAASAAAAEAAAABQAAAARAAAAEAAAABIAAAAUAAAAEQAAABUAAAATAAAAEgAAABMAAAAXAAAAEQAAABQAAAAVAAAAEgAAABYAAAAUAAAAEwAAABUAAAAXAAAAEgAAABcAAAAWAAAA", "vol": 146.1, "wt": true}], "size": [37.8, 56.4, 50.0], "hours": 3.5, "hours_pla": 3.03, "jobs": {"hus": 2.22, "tak": 0.82}, "colors": 4, "files": ["mini_1_detaljerad_hus_gron.stl", "mini_1_detaljerad_hus_rod.stl", "mini_1_detaljerad_hus_vit.stl", "mini_1_detaljerad_tak_h_gra.stl", "mini_1_detaljerad_tak_h_vit.stl", "mini_1_detaljerad_tak_v_gra.stl", "mini_1_detaljerad_tak_v_vit.stl"]}, "2": {"name": "Vinter", "meshes": [{"color": "#EEEBE3", "file": "mini_2_vinter_vit.stl", "job": "hus", "pos": "[BASE64 UTELÄMNAD: 32802 tecken]", "idx": "[BASE64 UTELÄMNAD: 65154 tecken]", "vol": 14445.3, "wt": true}, {"color": "#A23A2C", "file": "mini_2_vinter_rod.stl", "job": "hus", "pos": "[BASE64 UTELÄMNAD: 14786 tecken]", "idx": "[BASE64 UTELÄMNAD: 29762 tecken]", "vol": 21977.9, "wt": true}], "size": [37.8, 56.4, 50.0], "hours": 2.97, "hours_pla": 2.56, "jobs": {"hus": 2.56}, "colors": 2, "files": ["mini_2_vinter_rod.stl", "mini_2_vinter_vit.stl"]}, "3": {"name": "Enf\u00e4rgad", "meshes": [{"color": "#E9E4D8", "file": "mini_3_enfargad.stl", "job": "hus", "pos": "[BASE64 UTELÄMNAD: 38802 tecken]", "idx": "[BASE64 UTELÄMNAD: 80610 tecken]", "vol": 36433.4, "wt": true}], "size": [37.8, 56.4, 50.0], "hours": 1.04, "hours_pla": 0.69, "jobs": {"hus": 0.69}, "colors": 1, "files": ["mini_3_enfargad.stl"]}};
+const DESC = {
+  1:"Nära originalet: panel, takpannor, blomlådor med blommor, stenplattor och grästuvor. Taket skrivs ut separat i två platta halvor och sätts på med fyra styrtappar, så huset bara behöver rött, vitt och grönt.",
+  2:"Snötäckt tak med pannor och snötäckt tomt i vitt, huset i rött. Fönster och skärm som fördjupningar. Två färger, en i varje munstycke, så inga AMS-byten.",
+  3:"Samma former, med panel och takpannor, i en enda färg. Snabbast och bäst som första test av skrivaren."};
+const CNAME = {"#A23A2C":"röd","#EEEBE3":"vit","#5A5E62":"grå","#3B6A2B":"grön","#E9E4D8":"valfri"};
+const stage = document.getElementById("stage");
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(30,1,0.5,2000);
+scene.add(new THREE.HemisphereLight(0xEEF3FF, 0x6E6A60, 0.5));
+const sun = new THREE.DirectionalLight(0xFFF1DC, 1.0); sun.position.set(-60,110,80); sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048); const sc = sun.shadow.camera; sc.left=-120; sc.right=120; sc.top=120; sc.bottom=-120; sc.near=1; sc.far=400; sun.shadow.bias=-0.0005;
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0xDDE6FF, 0.3); fill.position.set(80,40,-60); scene.add(fill);
+const root = new THREE.Group(); root.rotation.x = -Math.PI/2; scene.add(root);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(600,600), new THREE.ShadowMaterial({opacity:.2})); ground.receiveShadow = true; root.add(ground);
+// vanlig blyertspenna för skala (ca 18 cm, sexkantig Ø 7 mm) – bara i förhandsgranskningen
+const pencil = new THREE.Group(); root.add(pencil);
+const R6 = 3.6;                                                       // sexkantens yttre radie
+const paint = (()=>{ const c=document.createElement("canvas"); c.width=1024; c.height=96; const g=c.getContext("2d");
+  g.fillStyle="#F2BE22"; g.fillRect(0,0,1024,96);
+  for(let i=0;i<6;i++){ g.fillStyle = i%2 ? "rgba(255,255,255,.10)" : "rgba(120,80,0,.10)"; g.fillRect(i*1024/6,0,1024/6,96); }   // lätt olika ton per sida
+  g.fillStyle="#1F3B2D"; g.font="bold 40px Arial, sans-serif"; g.textBaseline="middle";
+  g.save(); g.translate(0,48); g.fillText("LENNART  ·  HB  ·  2", 30, 0); g.restore();
+  return new THREE.CanvasTexture(c); })();
+paint.wrapS = paint.wrapT = THREE.ClampToEdgeWrapping;
+function part(geo, mat, y){ const m=new THREE.Mesh(geo, mat); m.position.y=y; m.castShadow=true; m.receiveShadow=true; pencil.add(m); return m; }
+const BODY = 145;
+// målad kropp: texten ligger längs pennan på en av de sex sidorna
+const bodyGeo = new THREE.CylinderGeometry(R6, R6, BODY, 6, 1, true);
+const uv = bodyGeo.attributes.uv; for(let i=0;i<uv.count;i++){ const u=uv.getX(i), v=uv.getY(i); uv.setXY(i, v, u); } // texten längs pennan
+part(bodyGeo, new THREE.MeshStandardMaterial({map:paint, roughness:.35, metalness:.05, flatShading:true}), 0);
+part(new THREE.CircleGeometry(R6, 6).rotateX(-Math.PI/2), new THREE.MeshStandardMaterial({color:"#E8C493"}), -BODY/2).rotation.y = 0;
+// vässad ände: trä, sedan grafit
+part(new THREE.CylinderGeometry(1.05, R6*0.96, 19, 24), new THREE.MeshStandardMaterial({color:"#E3BF8E", roughness:.85}), -BODY/2 - 9.5).rotation.x = Math.PI;
+part(new THREE.ConeGeometry(1.05, 4.2, 20), new THREE.MeshStandardMaterial({color:"#2E2F33", roughness:.35, metalness:.45}), -BODY/2 - 19 - 2.1).rotation.x = Math.PI;
+// vågig målarkant där vässningen börjar
+for(let k=0;k<6;k++){ const sc=new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 8), new THREE.MeshStandardMaterial({color:"#F2BE22", roughness:.35}));
+  const a=k*Math.PI/3; sc.scale.set(1,1.4,.35); sc.position.set(Math.cos(a)*R6*0.86, -BODY/2-0.6, Math.sin(a)*R6*0.86); sc.lookAt(0, -BODY/2-0.6, 0); pencil.add(sc); }
+// metallhylsa med räfflor och radiergummi
+const metal = new THREE.MeshStandardMaterial({color:"#D9D7D0", metalness:.45, roughness:.32});
+part(new THREE.CylinderGeometry(3.75, 3.75, 9, 40), metal, BODY/2 + 4.5);
+for(const y of [1.4, 3.2, 5.8, 7.6]){ const r=new THREE.Mesh(new THREE.TorusGeometry(3.78, 0.32, 8, 40), metal); r.rotation.x=Math.PI/2; r.position.y=BODY/2+y; pencil.add(r); }
+part(new THREE.CylinderGeometry(3.45, 3.5, 6, 40), new THREE.MeshStandardMaterial({color:"#E8919A", roughness:.9}), BODY/2 + 12);
+const cap = part(new THREE.SphereGeometry(3.45, 32, 16, 0, Math.PI*2, 0, Math.PI/2), new THREE.MeshStandardMaterial({color:"#E8919A", roughness:.9}), BODY/2 + 15); cap.scale.y = .35;
+pencil.rotation.order = 'ZYX'; pencil.rotation.y = Math.PI/6;                                         // vilar på en platt sida
+pencil.position.set(30, -48, R6*Math.cos(Math.PI/6));
+pencil.rotation.z = -0.9;                                              // ligger snett framför huset
+function b64(s,T){ const bin=atob(s); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new T(u.buffer); }
+const groups = {};
+Object.entries(DATA).forEach(([lvl,d]) => {
+  const g = new THREE.Group(); g.visible = false; root.add(g); groups[lvl] = g;
+  d.meshes.forEach(m => {
+    let geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(b64(m.pos, Float32Array),3));
+    geo.setIndex(new THREE.BufferAttribute(b64(m.idx, Uint32Array),1));
+    geo = geo.toNonIndexed(); geo.computeVertexNormals();
+    const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:m.color, roughness:.8}));
+    mesh.castShadow = true; mesh.receiveShadow = true; g.add(mesh);
+  });
+});
+const TARGET = new THREE.Vector3(24, 10, 42); const view = {th:-0.45, ph:1.05, r:360};
+function place(){ cam.position.set(TARGET.x+view.r*Math.sin(view.ph)*Math.sin(view.th), TARGET.y+view.r*Math.cos(view.ph), TARGET.z+view.r*Math.sin(view.ph)*Math.cos(view.th)); cam.lookAt(TARGET); }
+function draw(){ place(); renderer.render(scene, cam); }
+const ptrs = new Map(); let pinch0 = 0, mid0 = null, panMode = false;
+function pan(dx, dy){                                   // flytta vyn i skärmens plan
+  const right = new THREE.Vector3(), upv = new THREE.Vector3();
+  cam.updateMatrixWorld(); right.setFromMatrixColumn(cam.matrixWorld, 0); upv.setFromMatrixColumn(cam.matrixWorld, 1);
+  const k = view.r * 0.0011; TARGET.addScaledVector(right, -dx * k).addScaledVector(upv, dy * k);
+}
+renderer.domElement.addEventListener("contextmenu", e => e.preventDefault());
+renderer.domElement.addEventListener("mousedown", e => { if(e.button === 1) e.preventDefault(); });   // stoppa webbläsarens autoskroll på scrollknappen
+renderer.domElement.addEventListener("pointerdown", e => {
+  renderer.domElement.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  panMode = e.button === 2 || e.button === 1 || e.shiftKey;
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch0=Math.hypot(a.x-b.x,a.y-b.y); mid0={x:(a.x+b.x)/2,y:(a.y+b.y)/2}; }
+});
+renderer.domElement.addEventListener("pointermove", e => {
+  if(!ptrs.has(e.pointerId)) return; const p = ptrs.get(e.pointerId); const dx=e.clientX-p.x, dy=e.clientY-p.y; ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1){ if(panMode) pan(dx, dy); else { view.th -= dx*0.008; view.ph = Math.min(Math.PI/2-0.03, Math.max(0.15, view.ph - dy*0.008)); } }
+  else if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y), mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    if(pinch0) view.r=Math.min(500,Math.max(30,view.r*pinch0/d)); if(mid0) pan(mid.x-mid0.x, mid.y-mid0.y); pinch0=d; mid0=mid; }
+  draw(); });
+const up = e => { ptrs.delete(e.pointerId); pinch0=0; mid0=null; };
+renderer.domElement.addEventListener("pointerup", up); renderer.domElement.addEventListener("pointercancel", up);
+renderer.domElement.addEventListener("wheel", e => { e.preventDefault(); view.r = Math.min(500, Math.max(30, view.r*(1+e.deltaY*0.001))); draw(); }, {passive:false});
+const fmt = h => h < 0.95 ? `ca ${Math.round(h*6)*10} min` : `ca ${String(Math.round(h*2)/2).replace(".",",")} h`;
+const tabs = document.getElementById("tabs"), info = document.getElementById("info");
+function show(lvl){
+  Object.entries(groups).forEach(([k,g]) => g.visible = (k===String(lvl)));
+  tabs.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.l===String(lvl))));
+  const d = DATA[lvl];
+  const sw = [...new Set(d.meshes.map(m=>m.color))].map(c => `<span class="sw" style="background:${c}"></span>${CNAME[c]||""}`).join(" &nbsp;");
+  info.innerHTML = `<h2>${d.name}</h2><p class="desc">${DESC[lvl]}</p>
+    <p class="time">${fmt(d.hours_pla)}<small>uppskattad tid i PLA${d.jobs.tak ? ` (huset ${fmt(d.jobs.hus)} + taket ${fmt(d.jobs.tak)})` : ""}, i ASA ${fmt(d.hours)}</small></p>
+    <dl><dt>Mått</dt><dd>${d.size.map(v=>String(v).replace(".",",")).join(" × ")} mm</dd><dt>Färger</dt><dd>${sw}</dd><dt>Filer</dt><dd>${d.files.length}</dd></dl>
+    <p class="files">${d.files.join("<br>")}</p>`;
+  draw();
+}
+Object.entries(DATA).forEach(([lvl,d]) => { const b=document.createElement("button"); b.type="button"; b.dataset.l=lvl; b.textContent=`${lvl}. ${d.name}`; b.addEventListener("click",()=>show(lvl)); tabs.appendChild(b); });
+function resize(){ const w=stage.clientWidth,h=stage.clientHeight; renderer.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); draw(); }
+new ResizeObserver(resize).observe(stage); resize(); show(1);
+</script>
+</body>
+</html>

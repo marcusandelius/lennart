@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lennarts matstation – 3D-modell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#E9EEE4;--surface:#F5F7F1;--ink:#1E2E25;--ink-2:#4F6155;--line:#C7D1C3;--accent:#A23A2C;--focus:#1F5FBF;--stage:#DCE3D7;
+  color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#131C17;--surface:#1A251F;--ink:#E3EADF;--ink-2:#A3B3A7;--line:#2C3B32;--accent:#E07A6B;--focus:#8DB8FF;--stage:#1E2A23;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#131C17;--surface:#1A251F;--ink:#E3EADF;--ink-2:#A3B3A7;--line:#2C3B32;--accent:#E07A6B;--focus:#8DB8FF;--stage:#1E2A23;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:1rem;line-height:1.5}
+.wrap{max-width:76rem;margin:0 auto;padding:clamp(1rem,3vw,2rem)}
+h1{font-size:clamp(1.7rem,3.5vw,2.3rem);line-height:1;font-weight:800;letter-spacing:-.02em;margin:0 0 .3rem}
+.lead{color:var(--ink-2);max-width:90ch;margin:0 0 .8rem}
+.layout{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media (min-width:60rem){.layout{grid-template-columns:1fr 21rem;align-items:start}}
+.stage{position:relative;background:var(--stage);border-radius:18px;overflow:hidden;height:clamp(26rem,calc(100vh - 12.5rem),64rem);touch-action:none;border:1px solid var(--line)}
+#pstage{height:clamp(22rem,64vh,46rem)}
+.stage canvas{display:block;width:100%;height:100%;cursor:grab}
+.stage canvas:active{cursor:grabbing}
+.hint{position:absolute;left:.8rem;bottom:.6rem;font-size:.85rem;color:var(--ink-2);pointer-events:none}
+.views{position:absolute;left:.7rem;top:.7rem;right:.7rem;display:flex;gap:.4rem;flex-wrap:wrap}
+.views button{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:.35rem .8rem;cursor:pointer}
+.reset{position:absolute;right:.7rem;top:.7rem;font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:.35rem .8rem;cursor:pointer}
+aside{display:flex;flex-direction:column;gap:.9rem}
+fieldset{border:0;margin:0;padding:0}
+legend{font-weight:600;margin-bottom:.4rem}
+label.row{display:flex;align-items:center;gap:.6rem;padding:.3rem 0;cursor:pointer}
+.sw{width:.9rem;height:.9rem;border-radius:3px;border:1px solid var(--line);flex:none}
+input[type=checkbox]{width:1.05rem;height:1.05rem;accent-color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.facts{border-top:1px solid var(--line);padding-top:1rem;color:var(--ink-2);font-size:.95rem}
+.facts p{margin:.2rem 0}
+button.act{font:inherit;font-size:.95rem;display:flex;align-items:center;gap:.5rem;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:.55rem .8rem;cursor:pointer;margin-bottom:.45rem}
+button.act:hover{border-color:var(--ink-2)}
+button.act:disabled{opacity:.5;cursor:default}
+button.act .ic{width:1.6rem;height:1.6rem;border-radius:50%;display:grid;place-items:center;flex:none;font-size:.8rem;color:#fff}
+.status{font-size:.9rem;color:var(--ink-2);margin:.2rem 0 0}
+h2{font-size:1.35rem;font-weight:800;margin:2rem 0 .6rem}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.95rem;min-width:44rem}
+th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--ink-2)}
+td code{font-size:.88rem}
+tr.sel{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+tbody tr{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+.tabs{display:flex;gap:.25rem;border-bottom:1px solid var(--line);margin:0 0 1rem;overflow-x:auto}
+.tabs button{font:inherit;font-size:1rem;border:0;background:none;color:var(--ink-2);padding:.6rem .9rem;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+[role="tabpanel"][hidden]{display:none}
+.doc{max-width:52rem}
+.doc h2{margin:2rem 0 .6rem}
+.doc h3{font-size:1.1rem;margin:1.4rem 0 .5rem}
+.doc table{min-width:40rem}
+.doc ul,.doc ol{padding-left:1.3rem}
+.doc li{margin:.25rem 0}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.8rem 1rem;margin:0 0 1.2rem;color:var(--ink-2);max-width:52rem}
+.note a,.doc a{color:var(--ink)}
+.files-head{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between;margin:0 0 1rem;max-width:60rem}
+button.dl{font:inherit;border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:999px;padding:.55rem 1.1rem;cursor:pointer}
+button.dl.small{white-space:nowrap;background:var(--surface);color:var(--ink);border-color:var(--line);padding:.3rem .8rem;font-size:.9rem}
+button.dl:disabled{opacity:.5;cursor:default}
+#filemsg{color:var(--ink-2);font-size:.95rem;min-height:1.4em;margin:.3rem 0 0}
+.plates{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1rem}
+.plates .ph{width:100%;font-weight:600;font-size:.95rem;margin:.6rem 0 .1rem;color:var(--ink-2)}
+.plates .ph:first-child{margin-top:0}
+.plates button{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:.35rem .8rem;cursor:pointer}
+.plates button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.plates button.done{text-decoration:line-through;color:var(--ink-2);background:transparent}
+.plates button.done[aria-pressed="true"]{background:var(--ink-2);color:var(--paper);border-color:var(--ink-2)}
+.pinfo .pdone{display:inline-block;vertical-align:middle;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:#2B7546;color:#fff;border-radius:999px;padding:.15rem .55rem;margin-left:.4rem}
+.pinfo.done li b{text-decoration:line-through;color:var(--ink-2)}
+.pinfo .pmark{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:.4rem .9rem;cursor:pointer;margin:0 0 .8rem}
+.pinfo h3{font-size:1.3rem;font-weight:800;margin:0 0 .2rem}
+.pinfo .ptime{font-size:1.8rem;font-weight:800;margin:.4rem 0 .8rem}
+.pinfo .ptime small{display:block;font-size:.85rem;font-weight:400;color:var(--ink-2)}
+.pinfo ul{list-style:none;padding:0;margin:0;font-size:.92rem}
+.pinfo li{display:flex;gap:.5rem;align-items:flex-start;padding:.3rem 0;border-bottom:1px solid var(--line)}
+.pinfo li .sw{margin-top:.3rem}
+.pinfo code{font-size:.85rem}
+.asmt{font-weight:700;margin:.2rem 0 .2rem}
+.asmx{margin:0 0 .6rem;color:var(--ink-2);font-size:.95rem}
+.asmnav{display:flex;gap:.4rem;flex-wrap:wrap}
+.asmnav button{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:.35rem .8rem;cursor:pointer}
+.asmnav button:disabled{opacity:.45;cursor:default}
+.plabel{position:absolute;transform:translate(-50%,-110%);font-size:.78rem;line-height:1.2;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:.1rem .45rem;pointer-events:none;white-space:nowrap}
+.plabel.dim{background:none;border:0;color:var(--ink-2);transform:translate(-50%,-50%)}
+.pinfo li{cursor:pointer;border-radius:6px;padding:.4rem .3rem}
+.pinfo li[aria-pressed="true"]{background:var(--surface);outline:1px solid var(--line)}
+.pinfo li b{display:block}
+.pinfo li small{color:var(--ink-2);display:block}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1rem}
+.card h3{margin:0 0 .7rem;font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.card button.act{background:var(--paper)}
+button.act.big{padding:.7rem .8rem;border-radius:12px;gap:.7rem}
+button.act.big .ic{width:2.1rem;height:2.1rem;font-size:.95rem}
+button.act.big b{display:block;line-height:1.25}
+button.act.big small{display:block;color:var(--ink-2);font-size:.85rem;line-height:1.3}
+button.act{transition:transform .12s,border-color .12s}
+button.act:not(:disabled):active{transform:scale(.985)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+.pair button.act{margin-bottom:0;font-size:.9rem;padding:.5rem .6rem}
+.card .status{margin:.7rem 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.5rem}
+.chips label.row{border:1px solid var(--line);border-radius:999px;padding:.2rem .65rem .2rem .5rem;font-size:.9rem;gap:.4rem;background:var(--paper)}
+.chips input{width:.95rem;height:.95rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.cap{position:absolute;left:50%;bottom:1rem;transform:translateX(-50%);width:min(34rem,calc(100% - 1.6rem));background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem .9rem;box-shadow:0 8px 28px rgba(0,0,0,.16);display:grid;grid-template-columns:1fr auto;gap:.3rem .8rem;align-items:center;overflow:hidden;animation:capin .25s ease-out}
+.cap[hidden]{display:none}
+@keyframes capin{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.capbody b{display:block;font-size:1.05rem;line-height:1.25}
+.capbody span{display:block;color:var(--ink-2);font-size:.95rem;line-height:1.35}
+.capctl{display:flex;gap:.3rem}
+.capctl[hidden]{display:none}
+.capctl button{font:inherit;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;min-width:2.2rem;height:2.2rem;cursor:pointer;font-size:.8rem}
+.capctl button.txt{padding:0 .8rem;font-size:.9rem}
+.capctl button:disabled{opacity:.4;cursor:default}
+.capbar{position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--line)}
+.capbar i{display:block;height:100%;width:0;background:var(--accent);transition:width .35s}
+.stage:has(.cap:not([hidden])) .hint{display:none}
+@media (prefers-reduced-motion:reduce){.cap{animation:none}.capbar i{transition:none}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Lennarts matstation</h1>
+  <p class="lead">3D-modellen av huset, version 7. Låt Lennart komma på besök, titta på mekanismen inifrån eller spela upp monteringen.</p>
+  <div class="tabs" role="tablist" aria-label="Innehåll">
+    <button role="tab" id="t-modell" aria-controls="p-modell" aria-selected="true" data-tab="modell">Förhandsgranskning 3D</button>
+    <button role="tab" id="t-dokument" aria-controls="p-dokument" aria-selected="false" data-tab="dokument" tabindex="-1">Projektdokument</button>
+    <button role="tab" id="t-filer" aria-controls="p-filer" aria-selected="false" data-tab="filer" tabindex="-1">3D-filer</button>
+    <button role="tab" id="t-utskrift" aria-controls="p-utskrift" aria-selected="false" data-tab="utskrift" tabindex="-1">Utskrift</button>
+  </div>
+  <section role="tabpanel" id="p-modell" aria-labelledby="t-modell">
+  <div class="layout">
+    <div class="stage" id="stage">
+      <div class="views"><button type="button" id="reset">Återställ vy</button><button type="button" data-v="close">Närbild</button><button type="button" data-v="front">Framifrån</button><button type="button" data-v="side">Från sidan</button><button type="button" data-v="inside">Inuti</button></div>
+      <span class="hint">Dra för att rotera · högerklick eller scrollknapp och dra för att flytta · scrolla för att zooma</span>
+      <div class="cap" id="cap" hidden>
+        <div class="capbody"><b id="capT"></b><span id="capX" aria-live="polite"></span></div>
+        <div class="capctl" id="capCtl" hidden>
+          <button type="button" id="asmPrev" aria-label="Föregående steg">&#9664;</button>
+          <button type="button" id="asmPlay" aria-label="Pausa">&#10074;&#10074;</button>
+          <button type="button" id="asmNext" aria-label="Nästa steg">&#9654;</button>
+          <button type="button" id="asmEnd" class="txt">Stäng</button>
+        </div>
+        <div class="capbar"><i id="capBar"></i></div>
+      </div>
+    </div>
+    <aside>
+      <section class="card">
+        <h3>Demo</h3>
+        <button class="act big" id="visit" type="button"><span class="ic" style="background:#2B7546">&#9654;</span><span><b>Lennart kommer på besök</b><small>Kameran känner igen honom och en nöt rullar ut</small></span></button>
+        <button class="act big" id="mech" type="button"><span class="ic" style="background:#8A5A2E">&#9881;</span><span><b>Se mekanismen inifrån</b><small>Samma besök, men med genomskinligt hus</small></span></button>
+        <button class="act big" id="deny" type="button"><span class="ic" style="background:#B02A22">&#10005;</span><span><b>Objuden gäst</b><small>En skata försöker och får ACCESS DENIED</small></span></button>
+        <div class="pair">
+          <button class="act" id="fill" type="button"><span class="ic" style="background:#8A5A2E">&#8681;</span>Fyll på nötter</button>
+          <button class="act" id="roofbtn" type="button"><span class="ic" style="background:#5A5E62">&#8679;</span>Lyft av taket</button>
+        </div>
+        <p class="status" id="status" aria-live="polite"></p>
+      </section>
+      <section class="card">
+        <h3>Montering</h3>
+        <button class="act big" id="asmStart" type="button"><span class="ic" style="background:#3B6A2B">&#9654;</span><span><b>Spela upp monteringen</b><small>Tio steg, från bas till blomlådor</small></span></button>
+      </section>
+      <section class="card">
+        <h3>Visa</h3>
+        <fieldset id="groups" class="chips"><legend class="sr">Delgrupper</legend></fieldset>
+        <label class="row"><input type="checkbox" id="patio"> Uteplatsen</label>
+        <label class="row"><input type="checkbox" id="ghost"> Genomskinliga väggar och tak</label>
+        <label class="row"><input type="checkbox" id="xray"> Röntgen: allt genomskinligt</label>
+        <label for="explode" style="display:block;margin-top:.5rem">Plocka isär</label>
+        <input type="range" id="explode" min="0" max="100" value="0">
+      </section>
+      <div class="facts" id="facts"></div>
+    </aside>
+  </div>
+  <h2>Delar att skriva ut</h2>
+  <p class="lead" style="margin:0 0 .8rem">Tiderna är uppskattningar för ASA med 0,20 mm lagerhöjd. Bambu Studio ger exakt tid när du laddar filerna, och den kan skilja sig med ungefär 30 procent åt båda hållen.</p>
+  <div class="tw"><table><thead><tr><th>Del</th><th>Fil</th><th>Material</th><th>Mått (mm)</th><th>Utskriftstid</th></tr></thead><tbody id="tbl"></tbody></table></div>
+  </section>
+  <section role="tabpanel" id="p-dokument" aria-labelledby="t-dokument" hidden>
+    <p class="note">Ögonblicksbild av projektdokumentet från 11 november 2026. Den levande versionen, där man kan kommentera och redigera, finns i <a href="https://claude.ai/artifact/DsUhQhTLndz1BhiCxTa6bE" target="_blank" rel="noopener">projektdokumentet</a>.</p>
+    <div class="doc">[PROJEKTDOKUMENTETS ÖGONBLICKSBILD UTELÄMNAD: 13846 tecken HTML]</div>
+  </section>
+  <section role="tabpanel" id="p-filer" aria-labelledby="t-filer" hidden>
+    <div class="files-head">
+      <p style="margin:0;max-width:40rem">Alla utskriftsfiler för matstationen. Filer med samma nummer skrivs ut tillsammans: ladda dem samtidigt i Bambu Studio och svara ja på att de ska bli ett objekt.</p>
+      <button class="dl" id="dlall" type="button">Ladda ner alla (zip)</button>
+    </div>
+    <p id="filemsg" aria-live="polite"></p>
+    <div class="tw"><table><thead><tr><th>Fil</th><th>Del</th><th>Material</th><th>Storlek</th><th></th></tr></thead><tbody id="ftbl"></tbody></table></div>
+  </section>
+  <section role="tabpanel" id="p-utskrift" aria-labelledby="t-utskrift" hidden>
+    <p style="margin:0 0 1rem;max-width:60rem">Varje platta är en utskrift. Den ljusa ytan är X2D:ns byggplatta, 256 × 256 mm. Den röda remsan till vänster, 20,5 mm, når bara det vänstra munstycket, så delarna ligger utanför den. Varje del har en etikett. Flera delar skrivs ut upp och ner eller liggande för att slippa stöd, så de ser inte ut som i huset. Det står vid varje del hur den ligger. Plattorna är sorterade i den ordning de bör skrivas ut, och TPU ligger på egna plattor. Bambu Studio kan placera om delarna automatiskt, så se placeringen som ett förslag.</p>
+    <div class="plates" id="plates" role="group" aria-label="Välj platta"></div>
+    <div class="layout">
+      <div class="stage" id="pstage"><span class="hint">Dra för att rotera · högerklick eller scrollknapp och dra för att flytta · scrolla för att zooma</span></div>
+      <aside class="pinfo" id="pinfo"></aside>
+    </div>
+  </section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script id="platedata" type="application/json">[DATA UTELÄMNAD: 2001190 tecken, se avsnitt 4.6]</script>
+<script id="zipdata" type="application/octet-stream">[DATA UTELÄMNAD: 3165488 tecken, se avsnitt 4.6]</script>
+<script>
+const PARTS = /* DATA UTELÄMNAD: 4442274 tecken delar (JSON), se avsnitt 4.6 */ [];
+const TIMES = {"00": 0.59, "01": 5.31, "01b": 3.31, "02": 2.98, "02b": 1.93, "03": 3.28, "03b": 1.85, "04": 0.2, "05": 16.49, "05b": 0.33, "05c": 0.15, "05d": 0.17, "06": 3.43, "06b": 3.43, "06c": 0.73, "06d": 0.08, "06e": 0.11, "07": 2.09, "08": 0.52, "09": 0.15, "09b": 0.01, "10": 2.46, "11": 0.9, "14": 2.53, "15": 0.19, "16": 1.89, "16b": 0.41, "17": 0.02, "18": 0.01, "19": 0.22, "21": 1.03, "21b": 0.14, "22": 0.37, "23": 0.88, "24": 0.84, "25": 0.06};   // uppskattade timmar per utskrift, 0,20 mm lager i ASA
+const fmt = h => h < 0.95 ? `ca ${Math.max(10, Math.round(h*6)*10)} min` : `ca ${String(Math.round(h*2)/2).replace(".", ",")} h`;
+
+const LABEL = {doserhus:"Doserhus med ränna",doserhjul:"Doserhjul",kropp_sockel:"Stengrund",ellock:"Lock till elektroniklådan",nockkilar:"Nockkilar",servopackning:"Packning under stolphatten",takpackning:"Takpackning (TPU-lister)",genomforingar:"Kabelgenomföringar (TPU)",monteringsplatta:"Monteringsplatta för elektroniken",blomlador:"Blomlådor",blomlador_vaxter:"Blomlådor, växter",blomlador_blommor_rod:"Blomhuvuden, röda delar",blomlador_blommor_vit:"Blomhuvuden, vita delar",takrannor:"Takrännor",stupror:"Stuprör",stupror_vit:"Stuprör, rörklammer",fonsterrutor:"Fönsterinsatser",solskydd:"Kamerans solskydd",solskydd_vit:"Solskydd, vindskiva",kropp_packning:"Packning under kroppen",tak_v:"Takhalva vänster",tak_v_vit:"Takhalva vänster, vindskivor",tak_h:"Takhalva höger",tak_h_vit:"Takhalva höger, vindskivor",skorsten_krage:"Skorstenskrage",elektroniklada:"Elektroniklåda",elpackning:"Packning till elektroniklådan",skarmram:"Svart skärmram",skarmklamma:"Skärmklämma",avstrykare:"Avstrykare vid inloppet",kropp:"Kropp, röd",kropp_vit:"Kropp, vita detaljer",kropp_rutor:"Kropp, fönsterrutor",tak:"Tak med pannor",tak_vit:"Vindskivor och skorstenskrage",skorsten:"Skorsten",bas:"Bas",bottenplatta:"Bottenplatta",fotter:"Fötter",skal:"Farstukvist (skål), röd",skal_vit:"Farstukvist, kant och servostolpe",lucka:"Lucka (farstutak), grå",lucka_vit:"Lucka, vindskiva",servokapa:"Stolphatt",grasmatta:"Gräsmatta",stenar:"Stenplattor",framgard:"Framgård",framgard_gras:"Framgård, gräsmatta",framgard_stenar:"Framgård, stenplattor",framgard_platta:"Framgård, bottenplatta",doserare_bas:"Doserare, underdel med ränna",doserare_kammare:"Doserare, kammare",doseringsskiva:"Doseringsskiva",doseringslock:"Doseringslock",notmagasin:"Nötmagasin",kamerafaste:"Kamerafäste"};
+const GROUPS = ["Tak","Kropp","Skål","Inredning","Bas"];
+const EXPLODE = {Tak:[0,0,150],Kropp:[0,0,0],Skål:[0,-70,0],Inredning:[0,0,0],Bas:[0,0,-70]};
+const PIVOT = {doserhjul:[0,57,64.3], lucka:[0,-8,32.2], lucka_vit:[0,-8,32.2]};
+const stage = document.getElementById("stage");
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(32,1,1,30000);
+// ljus: mjukt himmelsljus, varm sol snett framifrån vänster med skuggor, sval motljus bakifrån
+scene.add(new THREE.HemisphereLight(0xEEF3FF, 0x6E6A60, 0.44));
+const sun = new THREE.DirectionalLight(0xFFF1DC, 1.08); scene.add(sun); scene.add(sun.target);
+sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.6; sun.shadow.radius = 3;
+const fill = new THREE.DirectionalLight(0xDDE6FF, 0.28); fill.position.set(900,700,-1100); scene.add(fill);
+const bounce = new THREE.DirectionalLight(0xFFE8D0, 0.12); bounce.position.set(200,-400,600); scene.add(bounce);
+function aimSun(center, half){                 // solen och skuggkameran följer det som visas
+  sun.target.position.copy(center); sun.position.copy(center).add(new THREE.Vector3(-0.55, 1.0, 0.75).multiplyScalar(half*3));
+  const c = sun.shadow.camera; c.left = -half; c.right = half; c.top = half; c.bottom = -half; c.near = 1; c.far = half*8; c.updateProjectionMatrix();
+}
+const root = new THREE.Group(); root.rotation.x = -Math.PI/2; scene.add(root);
+const house = new THREE.Group(); root.add(house);
+function b64(s, T){ const bin = atob(s); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new T(u.buffer); }
+const meshes = [];
+PARTS.forEach(p => {
+  let g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(b64(p.pos, Float32Array),3));
+  g.setIndex(new THREE.BufferAttribute(b64(p.idx, Uint32Array),1));
+  g = g.toNonIndexed(); g.computeVertexNormals(); g.computeBoundingBox();
+  const mat = new THREE.MeshStandardMaterial({color:p.color, roughness:.85, metalness:0, transparent:true, opacity:1});
+  const m = new THREE.Mesh(g, mat); m.userData = p;
+  const holder = new THREE.Group(); const piv = PIVOT[p.name] || [0,0,0];
+  holder.userData.base = piv; holder.position.set(...piv); m.position.set(-piv[0],-piv[1],-piv[2]);
+  holder.add(m); house.add(holder); m.userData.holder = holder; meshes.push(m);
+  const bb = g.boundingBox; p.size = [bb.max.x-bb.min.x, bb.max.y-bb.min.y, bb.max.z-bb.min.z].map(v=>Math.round(v));
+});
+// kamera i sfäriska koordinater runt huset
+const TARGET = new THREE.Vector3(0,135,-75);
+const view = {th:-0.6, ph:1.2, r:900};
+const DEF = {...view};
+const nutsGroup = new THREE.Group(); house.add(nutsGroup);
+function place(){ cam.position.set(TARGET.x+view.r*Math.sin(view.ph)*Math.sin(view.th), TARGET.y+view.r*Math.cos(view.ph), TARGET.z+view.r*Math.sin(view.ph)*Math.cos(view.th)); cam.lookAt(TARGET); }
+const ptrs = new Map(); let pinch0 = 0, mid0 = null, panMode = false;
+function pan(dx, dy){
+  const right = new THREE.Vector3(), upv = new THREE.Vector3();
+  cam.updateMatrixWorld(); right.setFromMatrixColumn(cam.matrixWorld,0); upv.setFromMatrixColumn(cam.matrixWorld,1);
+  const k = view.r * 0.0011; TARGET.addScaledVector(right, -dx*k).addScaledVector(upv, dy*k);
+}
+renderer.domElement.addEventListener("contextmenu", e => e.preventDefault());
+renderer.domElement.addEventListener("mousedown", e => { if(e.button === 1) e.preventDefault(); });
+renderer.domElement.addEventListener("pointerdown", e => {
+  renderer.domElement.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  panMode = e.button===2 || e.button===1 || e.shiftKey;
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch0=Math.hypot(a.x-b.x,a.y-b.y); mid0={x:(a.x+b.x)/2,y:(a.y+b.y)/2}; }
+});
+renderer.domElement.addEventListener("pointermove", e => {
+  if(!ptrs.has(e.pointerId)) return; const prev = ptrs.get(e.pointerId);
+  const dx = e.clientX-prev.x, dy = e.clientY-prev.y;
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1){
+    if(panMode) pan(dx, dy);
+    else { view.th -= dx*0.008; view.ph = Math.min(Math.PI-0.15, Math.max(0.15, view.ph-dy*0.008)); }
+  } else if(ptrs.size===2){
+    const [a,b]=[...ptrs.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y), mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    if(pinch0) view.r=Math.min(9000,Math.max(60,view.r*pinch0/d));
+    if(mid0) pan(mid.x-mid0.x, mid.y-mid0.y);
+    pinch0=d; mid0=mid;
+  }
+  draw();
+});
+const up = e => { ptrs.delete(e.pointerId); pinch0=0; mid0=null; };
+renderer.domElement.addEventListener("pointerup", up); renderer.domElement.addEventListener("pointercancel", up);
+renderer.domElement.addEventListener("wheel", e => { e.preventDefault(); view.r = Math.min(9000, Math.max(60, view.r*(1+e.deltaY*0.001))); draw(); }, {passive:false});
+document.getElementById("reset").addEventListener("click", () => { solo = null; markRow(); preset(patio.checked ? "patio" : "close"); apply(); });
+
+// kontroller
+const state = {}; GROUPS.forEach(g => state[g] = true);
+const gf = document.getElementById("groups");
+GROUPS.forEach(g => {
+  const col = PARTS.find(p => p.group===g).color;
+  const l = document.createElement("label"); l.className="row";
+  l.innerHTML = `<input type="checkbox" checked data-g="${g}"><span class="sw" style="background:${col}"></span>${g}`;
+  gf.appendChild(l);
+});
+gf.addEventListener("change", e => { state[e.target.dataset.g] = e.target.checked; solo = null; markRow(); apply(); });
+const ghost = document.getElementById("ghost"), ex = document.getElementById("explode");
+ghost.addEventListener("change", apply); ex.addEventListener("input", apply);
+let solo = null;
+const xray = document.getElementById("xray"); xray.addEventListener("change", apply);
+let roofLift = 0, asmStep = 0, asmAnim = 1, peek = 0;
+const SOLID_IN_XRAY = new Set(["doserhjul","lucka","lucka_vit"]);
+// monteringen i tio steg, i den ordning delarna sätts ihop
+const ASM = [
+  {title:"Basen", text:"Lägg ballasten i basen och skruva på bottenplattorna. Skruva ihop basen och framgården med tre skruvar och tryck i fötterna.", from:[0,0,-120], parts:["bas","framgard","bottenplatta","framgard_platta","fotter"]},
+  {title:"Gräsmattorna", text:"Lägg gräsmattorna och stenplattorna på basen och framgården.", parts:["grasmatta","stenar","framgard_gras","framgard_stenar"]},
+  {title:"Kroppen", text:"Tryck fast de vita detaljerna i sina fickor på kroppen medan den står på bänken. Lägg sedan packningen på plats, ställ kroppen på de två styrtapparna och dra sex skruvar inifrån.", parts:["kropp_packning","kropp","kropp_sockel","kropp_vit"]},
+  {title:"Insidan av kroppen", text:"Gör klart insidan medan den är tom: fönsterinsatserna, skärmen med ram och klämma, och kameran med sitt fäste.", from:[0,90,60], parts:["fonsterrutor","skarmram","skarmklamma","kamerafaste"]},
+  {title:"Elektroniken", text:"Skruva fast elektroniklådan utifrån genom bakväggen. Skjut ner monteringsplattan med all elektronik uppifrån och lägg på locket.", parts:["elpackning","elektroniklada","monteringsplatta","ellock","genomforingar"]},
+  {title:"Doseringen", text:"Ställ doserhuset på sina styrtappar och dra två skruvar. Lägg hjulet i sätet och skruva fast servot från höger.", parts:["doserhus","doserhjul"]},
+  {title:"Magasinet", text:"Sätt magasinet över hjulet och dra dess två skruvar framtill. Fyll på med nötter.", parts:["notmagasin"]},
+  {title:"Farstukvisten", text:"Skruva fast skålen i basen, montera luckan med sitt servo och sätt på stolphatten.", from:[0,-110,30], parts:["skal","skal_vit","lucka","lucka_vit","servopackning","servokapa"]},
+  {title:"Taket", text:"Pressa ihop takhalvorna med nockkilarna, tryck fast skorstenen och takrännorna och lägg taket på plats. Magneterna håller det.", parts:["tak_v","tak_v_vit","tak_h","tak_h_vit","nockkilar","skorsten","skorsten_krage","takrannor","takpackning"]},
+  {title:"Detaljerna", text:"Tryck fast kamerans solskydd, häng blomlådorna på fönsterkarmarna och snäpp fast stuprören.", from:[0,-60,90], parts:["solskydd","solskydd_vit","blomlador","blomlador_vaxter","blomlador_blommor_rod","blomlador_blommor_vit","stupror","stupror_vit"]}
+];
+const STEP_OF = {}; ASM.forEach((st,i) => st.parts.forEach(n => STEP_OF[n] = i+1));
+function apply(){
+  const f = ex.value/100;
+  meshes.forEach(m => {
+    const p = m.userData, o = EXPLODE[p.group], b = m.userData.holder.userData.base;
+    let dx = o[0]*f, dy = o[1]*f, dz = o[2]*f;
+    if(p.group==="Tak") dz += roofLift*105;
+    let vis = solo ? p.name===solo : state[p.group];
+    if(asmStep && !solo){
+      const st = STEP_OF[p.name] || 1; vis = st <= asmStep;
+      if(st===asmStep){ const k = 1-asmAnim, d = ASM[st-1].from || [0,0,170]; dx += d[0]*k; dy += d[1]*k; dz += d[2]*k; }
+    }
+    m.userData.holder.position.set(b[0]+dx, b[1]+dy, b[2]+dz);
+    m.visible = vis;
+    let op = 1;
+    if(!solo){
+      if(xray.checked && !SOLID_IN_XRAY.has(p.name)) op = p.group==="Inredning" ? 0.34 : 0.11;
+      else if(p.group==="Kropp" || p.group==="Tak"){
+        const g = (ghost.checked || (asmStep>=4 && asmStep<=7)) ? 1 : peek;          // insidan syns genom väggarna när den monteras eller visas
+        op = 1 - g*(p.group==="Tak" ? 0.88 : 0.8);
+      }
+    }
+    m.material.opacity = op; m.material.depthWrite = op===1; m.castShadow = op===1;
+  });
+  const inner = !solo && ex.value==0 && state.Inredning;
+  nutsGroup.visible = inner && (!asmStep || asmStep>=7);
+  if(pocket) pocket.visible = nutsGroup.visible;                                   // nöten i hjulets ficka följer de andra nötterna
+  actors.visible = !solo && ex.value==0 && !asmStep;
+  screenMesh.visible = !solo && state.Kropp && (!asmStep || asmStep>=4);
+  camG.visible = inner && (!asmStep || asmStep>=4);
+  camGlass.visible = !solo && state.Kropp && ex.value==0 && (!asmStep || asmStep>=4);
+  draw();
+}
+// faktaruta och tabell
+document.getElementById("facts").innerHTML = `<p>Total höjd: ca 31 cm inklusive skorsten</p><p>Bas med framgård: 220 × 335 mm</p><p>Magasinet rymmer ca 0,35 liter, ungefär 50 hasselnötter</p><p>Nötter: i skal, 18–22 mm</p><p>${PARTS.length} delar, ${Object.keys(TIMES).length} utskrifter</p><p>Total utskriftstid: ca ${Math.round(Object.values(TIMES).reduce((a,b)=>a+b,0))} timmar</p>`;
+const seenJob = new Set();
+const tbody = document.getElementById("tbl");
+PARTS.forEach(p => {
+  const tr = document.createElement("tr"); tr.dataset.n = p.name; tr.tabIndex = 0;
+  const job = p.file.split("_")[0]; const first = !seenJob.has(job); seenJob.add(job);
+  const tt = first ? fmt(TIMES[job]) + (PARTS.filter(q=>q.file.split("_")[0]===job).length>1 ? " för hela utskriften" : "") : "ingår ovan";
+  tr.innerHTML = `<td>${LABEL[p.name]||p.name}</td><td><code>${p.file}</code></td><td>${p.note}</td><td>${p.size.join(" × ")}</td><td>${tt}</td>`;
+  const pick = () => { solo = solo===p.name ? null : p.name; markRow(); apply(); stage.scrollIntoView({behavior:"smooth", block:"nearest"}); };
+  tr.addEventListener("click", pick); tr.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(); }});
+  tbody.appendChild(tr);
+});
+function markRow(){ tbody.querySelectorAll("tr").forEach(tr => tr.classList.toggle("sel", tr.dataset.n===solo)); }
+function resize(){ const w = stage.clientWidth, h = stage.clientHeight; if(!w || !h) return; renderer.setSize(w,h,false); cam.aspect = w/h; cam.updateProjectionMatrix(); draw(); }
+function draw(){ place(); renderer.render(scene, cam); }
+
+
+// ================= UTEPLATSEN =================
+const PED_H = 700, FOOT = 37;                       // pedestalens höjd och husets fötter (mm)
+const patioG = new THREE.Group(); root.add(patioG);
+function mat(c, o={}){ return new THREE.MeshStandardMaterial(Object.assign({color:c, roughness:.9, metalness:0}, o)); }
+function bx(w,d,h,c,x,y,z,parent=patioG){ const m = new THREE.Mesh(new THREE.BoxGeometry(w,d,h), typeof c==="string"?mat(c):c); m.position.set(x,y,z); parent.add(m); return m; }
+function tex(draw, w=256, h=256){ const c=document.createElement("canvas"); c.width=w; c.height=h; draw(c.getContext("2d"),w,h); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; }
+// golv, väggar och räcke
+const concrete = tex((g,w,h)=>{ g.fillStyle="#C9CCC4"; g.fillRect(0,0,w,h); for(let i=0;i<1400;i++){ g.fillStyle=`rgba(${90+Math.random()*60|0},${95+Math.random()*60|0},${90+Math.random()*50|0},${Math.random()*.12})`; g.fillRect(Math.random()*w,Math.random()*h,2+Math.random()*5,2+Math.random()*5);} });
+concrete.repeat.set(6,6);
+// golvet: det främre vänstra hörnet är avskuret snett
+const fshape = new THREE.Shape([new THREE.Vector2(-1600, 200), new THREE.Vector2(1300, 200), new THREE.Vector2(1300, -2345), new THREE.Vector2(-450, -2345), new THREE.Vector2(-1600, -1250)]);
+concrete.repeat.set(1/480, 1/480);
+const floorMesh = new THREE.Mesh(new THREE.ExtrudeGeometry(fshape, {depth:20, bevelEnabled:false}), mat("#B9BCB5",{map:concrete}));
+floorMesh.position.z = -20; patioG.add(floorMesh);
+const wallTex = tex((g,w,h)=>{ g.fillStyle="#9A9D9D"; g.fillRect(0,0,w,h);
+  for(let i=0;i<260;i++){ const x=Math.random()*w, y=Math.random()*h, r=20+Math.random()*90, l=Math.random()<.5;
+    const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0, l?"rgba(185,188,186,.25)":"rgba(95,98,100,.22)"); gr.addColorStop(1,"rgba(0,0,0,0)"); g.fillStyle=gr; g.fillRect(x-r,y-r,r*2,r*2); }
+  for(let i=0;i<5000;i++){ g.fillStyle=`rgba(${Math.random()<.5?40:150},${Math.random()<.5?42:152},${Math.random()<.5?44:150},${Math.random()*.15})`; g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2); } }, 1024, 1024);
+bx(2900, 30, 2500, mat("#ffffff",{map:wallTex, roughness:.95}), -150, 191, 1250);           // mörkgrå flammig vägg bakom huset
+const green = mat("#2F6F63");
+const iron = mat("#2C2C2C",{roughness:.6});
+const greenDark = mat("#28635A");
+const G0 = -2290, G1 = -1610;                                            // grindöppningen (y)
+[[G1, 185]].forEach(([a,b]) => {                           // räcke i två delar
+  bx(70, b-a, 950, green, 1265, (a+b)/2, 475); bx(140, b-a, 50, green, 1265, (a+b)/2, 975);
+  for(let y=a+60; y<b-30; y+=110) bx(72, 8, 900, greenDark, 1265, y, 470);
+});
+bx(110, 110, 2500, green, 1265, 130, 1250);                             // stolpe
+bx(110, 110, 2500, green, 1265, G0, 1250);                              // stolpe vid grinden
+bx(120, 130 - G0 + 110, 120, green, 1265, (130 + G0)/2, 2440);           // ribba överst mellan stolparna
+[G0, G1].forEach(y => { bx(100, 100, 1060, green, 1265, y, 530); bx(120, 120, 30, green, 1265, y, 1075); });   // grindstolpar
+const gate = new THREE.Group(); gate.position.set(1265, G0 + 50, 0); patioG.add(gate);
+const GW = G1 - G0 - 110;                                                // grindens bredd
+bx(50, GW, 60, green, 0, GW/2, 920, gate); bx(50, GW, 60, green, 0, GW/2, 110, gate);
+bx(50, 60, 870, green, 0, 30, 515, gate); bx(50, 60, 870, green, 0, GW-30, 515, gate);
+for(let y=110; y<GW-60; y+=95) bx(34, 60, 750, green, 0, y, 515, gate);
+const diag = bx(40, 50, Math.hypot(GW-60, 750), green, 0, GW/2, 515, gate); diag.rotation.x = -Math.atan2(GW-60, 750);
+bx(70, 20, 20, iron, -40, GW-80, 600, gate);                             // handtag
+gate.rotation.z = 0;
+// utsikt: gräsmatta och staket
+
+// pedestal
+const pedTex = tex((g,w,h)=>{ for(let i=0;i<10;i++){ g.fillStyle = i%2 ? "#E9E3DC" : "#A9474D"; g.fillRect(i*w/10,0,w/10,h);} });
+bx(250, 245, PED_H, mat("#3E4246",{roughness:.8}), 0, 57.5, PED_H/2);
+// repstege längs pedestalens framsida
+function cyl3(r, a, b, m){ const A=new THREE.Vector3(...a), B=new THREE.Vector3(...b), d=B.clone().sub(A);
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 10), m); c.position.copy(A).add(B).multiplyScalar(.5);
+  c.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), d.normalize()); patioG.add(c); return c; }
+const ropeTex = tex((g,w,h)=>{ g.fillStyle="#CDB78C"; g.fillRect(0,0,w,h); g.lineWidth=7; for(let i=-h;i<w+h;i+=16){ g.strokeStyle="#A89066"; g.beginPath(); g.moveTo(i,0); g.lineTo(i+h*0.6,h); g.stroke(); g.strokeStyle="#DCC9A2"; g.lineWidth=3; g.beginPath(); g.moveTo(i+6,0); g.lineTo(i+6+h*0.6,h); g.stroke(); g.lineWidth=7; } }, 64, 256);
+ropeTex.repeat.set(1,6);
+const barkTex = tex((g,w,h)=>{ g.fillStyle="#9A7146"; g.fillRect(0,0,w,h); for(let i=0;i<70;i++){ g.strokeStyle=`rgba(${60+Math.random()*50|0},${40+Math.random()*30|0},${20+Math.random()*20|0},${.25+Math.random()*.35})`; g.lineWidth=1+Math.random()*3; g.beginPath(); const x=Math.random()*w; g.moveTo(x,0); g.bezierCurveTo(x+Math.random()*10-5,h*.3,x+Math.random()*10-5,h*.7,x+Math.random()*8-4,h); g.stroke(); } for(let i=0;i<6;i++){ g.fillStyle="rgba(70,45,22,.55)"; g.beginPath(); g.ellipse(Math.random()*w,Math.random()*h,3+Math.random()*4,6+Math.random()*8,0,0,Math.PI*2); g.fill(); } }, 128, 128);
+let seed = 11; const rnd = (a,b) => { seed = (seed*16807) % 2147483647; return a + (b-a)*(seed/2147483647); };
+const ropeM = mat("#ffffff",{map:ropeTex}), knotM = mat("#B9A277");
+const LT = 736, LB = 8, YT = -174, YB = -210, LX = 36, CX = 10, N = 11;
+const onRope = t => [YT + (YB-YT)*t, LT + (LB-LT)*t];
+// varje rep får små knickar mellan stegen
+const rungs = []; for(let i=1;i<=N;i++){ const t=i/(N+0.6)+rnd(-0.012,0.012); rungs.push({t, tilt:rnd(-9,9), l:rnd(-7,9), r:rnd(-7,9), th:rnd(5.5,8.5), tone:rnd(.82,1.08)}); }
+[-1,1].forEach(s => {
+  const pts = [[s*LX+CX, -152, 745], [s*LX+CX, YT, LT]];
+  rungs.forEach(r => { const [y,z]=onRope(r.t); pts.push([s*LX+CX + rnd(-2.5,2.5), y + rnd(-2,2), z + (s<0 ? r.tilt/2 : -r.tilt/2)]); });
+  pts.push([s*LX+CX+rnd(-3,3), YB+rnd(-6,6), LB]);
+  for(let i=1;i<pts.length;i++) cyl3(rnd(3.8,4.8), pts[i-1], pts[i], ropeM);
+  bx(10, 10, 5, iron, s*LX+CX, -143, 739.5, patioG);
+  rungs.forEach((r,i) => { const p=pts[i+2]; const k=new THREE.Mesh(new THREE.SphereGeometry(rnd(6.5,9.5),9,7), knotM); k.scale.set(rnd(.85,1.15),rnd(.8,1.1),rnd(.9,1.3)); k.position.set(p[0], p[1], p[2]+5); patioG.add(k); r[s<0?'pl':'pr']=p; });
+});
+cyl3(8, [-LX-12+CX, -152, 745], [LX+14+CX, -152, 745], mat("#ffffff",{map:barkTex}));
+rungs.forEach(r => { const m = mat(new THREE.Color("#ffffff").multiplyScalar(r.tone), {map:barkTex});
+  const a=[r.pl[0]-r.l, r.pl[1], r.pl[2]], b=[r.pr[0]+r.r, r.pr[1], r.pr[2]];
+  const c=cyl3(r.th, a, b, m); c.rotation.z += rnd(-0.05,0.05); });
+// jutematta
+const jute = tex((g,w,h)=>{ g.fillStyle="#9C7748"; g.fillRect(0,0,w,h); for(let r=4;r<w/2;r+=4){ g.strokeStyle= r%8? "#8A6840":"#A98457"; g.lineWidth=2.4; g.beginPath(); g.arc(w/2,h/2,r,0,Math.PI*2); g.stroke(); } }, 512, 512);
+const rug = new THREE.Mesh(new THREE.CircleGeometry(560, 64), mat("#ffffff",{map:jute})); rug.position.set(560,-900,2); patioG.add(rug);
+// bord (Tärnö-liknande)
+const wood = mat("#A8937D");
+function table(x,y){ const g=new THREE.Group(); g.position.set(x,y,0); patioG.add(g);
+  for(let i=0;i<6;i++) bx(550, 78, 22, wood, 0, -225+i*90, 700, g);
+  bx(560, 20, 25, iron, 0, -250, 680, g); bx(560, 20, 25, iron, 0, 250, 680, g);
+  [[-1,1],[1,-1]].forEach(([a,b])=>{ [-1,1].forEach(s=>{ const l=bx(16,16,760,iron, s*230, 0, 345, g); l.rotation.x = a*0.38; }); });
+  return g; }
+function rod(w, p1, p2, m, g, x){                          // stång mellan två punkter i stolens yz-plan
+  const dy=p2[0]-p1[0], dz=p2[1]-p1[1], L=Math.hypot(dy,dz);
+  const r = bx(w, w, L, m, x, (p1[0]+p2[0])/2, (p1[1]+p2[1])/2, g); r.rotation.x = Math.atan2(-dy, dz); return r; }
+function chair(x,y,rot){ const g=new THREE.Group(); g.position.set(x,y,0); g.rotation.z=rot; patioG.add(g);
+  const backY = z => 170 + 92*z/890, frontY = z => -262 + 72*z/450;   // benens läge på höjden z
+  bx(408,16,22,iron,0,-195,438,g); bx(408,16,22,iron,0,backY(438),438,g);               // sitsram fram och bak
+  [-1,1].forEach(s=>{ const X = s*196;
+    bx(16, backY(438)+195+8, 22, iron, X, (backY(438)-195)/2, 438, g);                  // sitsram sidor
+    rod(16, [170,0], [262,890], iron, g, X);                                            // bakben som blir ryggstöd
+    rod(16, [-262,0], [-190,450], iron, g, X);                                          // framben
+    rod(12, [frontY(40),40], [backY(400),400], iron, g, X);                             // kryss
+    rod(12, [backY(40),40], [frontY(400),400], iron, g, X); });
+  for(let i=0;i<5;i++) bx(392, 68, 16, wood, 0, -158+i*79, 457, g);                   // sitsribbor
+  [690, 800].forEach(z=>{ const r=bx(408,16,78,wood,0,backY(z),z,g); r.rotation.x = Math.atan2(-92,890); });   // ryggribbor
+  return g; }
+const stripes = tex((g,w,h)=>{ for(let i=0;i<16;i++){ g.fillStyle = i%2 ? "#E9E3DC" : "#A9474D"; g.fillRect(i*w/16,0,w/16,h);} });
+function cushion(g){ const c=new THREE.Mesh(new THREE.BoxGeometry(380,380,40), mat("#ffffff",{map:stripes})); c.position.set(0,-5,485); g.add(c);
+  const btn = mat("#B9575C"); for(let i=-1;i<=1;i++) for(let j=-1;j<=1;j++){ const d=new THREE.Mesh(new THREE.SphereGeometry(7,8,6), btn); d.scale.z=.4; d.position.set(i*115,j*115-5,505); g.add(d); } }
+table(720,-720);
+const ch1 = chair(720, -230, 0); cushion(ch1);
+const ch2 = chair(720, -1210, Math.PI); cushion(ch2);
+// Lennart på bordet
+function squirrel(x,y,z,rot){ const g=new THREE.Group(); g.position.set(x,y,z); g.rotation.z=rot; patioG.add(g);
+  const fur=mat("#B4602A"), belly=mat("#EBD6B8"), dark=mat("#2B1A10");
+  const body=new THREE.Mesh(new THREE.SphereGeometry(55,20,14), fur); body.scale.set(.85,.8,1.25); body.position.set(0,0,70); g.add(body);
+  const bel=new THREE.Mesh(new THREE.SphereGeometry(40,16,12), belly); bel.scale.set(.8,.5,1.1); bel.position.set(0,-30,68); g.add(bel);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(34,18,12), fur); head.scale.set(1,1.15,.95); head.position.set(0,-30,152); g.add(head);
+  [-1,1].forEach(s=>{ const e=new THREE.Mesh(new THREE.ConeGeometry(9,30,8), fur); e.position.set(s*17,-24,190); e.rotation.x=Math.PI/2; g.add(e);
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(5,8,6), dark); eye.position.set(s*15,-58,160); g.add(eye); });
+  const nose=new THREE.Mesh(new THREE.SphereGeometry(5,8,6), dark); nose.position.set(0,-70,148); g.add(nose);
+  const tail=new THREE.Mesh(new THREE.TorusGeometry(62,26,10,24,Math.PI*1.25), fur); tail.rotation.set(0,Math.PI/2,0); tail.position.set(0,62,118); g.add(tail);
+  return g; }
+// husets placering och kameravyer
+function setHouseZ(){ house.position.z = patio.checked ? PED_H + FOOT : 0;
+  if(!window._catcher){ window._catcher = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.ShadowMaterial({opacity:.14})); window._catcher.position.z = -37.2; root.add(window._catcher); }
+  window._catcher.visible = !patio.checked;                 // mjuk skugga under huset när uteplatsen är avstängd
+  if(patio.checked) aimSun(new THREE.Vector3(-150, 700, 1100), 2600); else aimSun(new THREE.Vector3(0, 130, 20), 330);
+  scene.traverse(o => { if(o.isMesh){ const transparent = o.material && o.material.transparent && o.material.opacity < 1; o.castShadow = !transparent && o !== screenMesh; o.receiveShadow = o !== screenMesh; } }); }
+const patio = document.getElementById("patio");
+function preset(v){
+  if(v==="patio"){ TARGET.set(80,700,1100); Object.assign(view,{th:-0.6, ph:1.22, r:5100}); cam.fov=40; }
+  else if(v==="door"){ TARGET.set(420,520,300); Object.assign(view,{th:0.22, ph:1.0, r:3000}); cam.fov=50; }
+  else if(v==="front"){ const z = patio.checked ? PED_H+FOOT : 0; TARGET.set(0,120+z,-10); Object.assign(view,{th:0, ph:1.45, r:820}); cam.fov=32; }
+  else if(v==="side" || v==="inside"){ const z = patio.checked ? PED_H+FOOT : 0; TARGET.set(0,95+z,-55); Object.assign(view,{th:-1.45, ph:1.42, r:620}); cam.fov=32; if(v==="inside" && !xray.checked){ xray.checked = true; apply(); } }
+  else { const z = patio.checked ? PED_H+FOOT : 0; TARGET.set(0,100+z,-20); Object.assign(view,{th:-0.55, ph:1.22, r:820}); cam.fov=32; }
+  cam.updateProjectionMatrix(); draw();
+}
+document.querySelectorAll(".views button[data-v]").forEach(b => b.addEventListener("click", () => { if(b.dataset.v==="door" && !patio.checked){ patio.checked=true; patioToggle(); } preset(b.dataset.v); }));
+function patioToggle(){ patioG.visible = patio.checked; setHouseZ(); preset(patio.checked ? "patio" : "close"); apply(); }
+patio.addEventListener("change", patioToggle);
+
+// ================= DEMO =================
+const scr = document.createElement("canvas"); scr.width = 336; scr.height = 248;
+const sctx = scr.getContext("2d"); const stex = new THREE.CanvasTexture(scr);
+const screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(40.8,30.6), new THREE.MeshBasicMaterial({map:stex}));
+screenMesh.rotation.x = Math.PI/2; screenMesh.position.set(0,2.9,108); house.add(screenMesh);
+// kameramodul (Raspberry Pi Camera Module 3) bakom kamerahålet, lutad 35° nedåt
+const camG = new THREE.Group(); camG.position.set(0, 11.2, 172.1); camG.rotation.x = 35*Math.PI/180; house.add(camG);
+const pcb = new THREE.Mesh(new THREE.BoxGeometry(25, 1.2, 24), new THREE.MeshStandardMaterial({color:"#1F6B3A", roughness:.6})); camG.add(pcb);
+const lensBlock = new THREE.Mesh(new THREE.BoxGeometry(8.5, 4, 8.5), new THREE.MeshStandardMaterial({color:"#1A1A1A", roughness:.5})); lensBlock.position.y = -2.6; camG.add(lensBlock);
+const barrel = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.4, 2.4, 24), new THREE.MeshStandardMaterial({color:"#0D0D0D", roughness:.3, metalness:.4})); barrel.position.y = -5.6; camG.add(barrel);
+const glassEl = new THREE.Mesh(new THREE.SphereGeometry(2.6, 16, 10, 0, Math.PI*2, 0, Math.PI/2), new THREE.MeshStandardMaterial({color:"#2A3F6B", roughness:.05, metalness:.6})); glassEl.rotation.x = Math.PI; glassEl.position.y = -6.8; camG.add(glassEl);
+const ribbon = new THREE.Mesh(new THREE.BoxGeometry(16, 40, .3), new THREE.MeshStandardMaterial({color:"#E8DCC0", roughness:.8})); ribbon.position.set(0, 21, -10.5); camG.add(ribbon);   // flatkabeln går bakåt in i huset
+for(const [x,z] of [[-10.5,-6.25],[10.5,-6.25],[-10.5,6.25],[10.5,6.25]]){ const sc=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,1,10), new THREE.MeshStandardMaterial({color:"#B8B8B8", metalness:.7, roughness:.3})); sc.position.set(x,-.9,z); camG.add(sc); }
+const camGlass = new THREE.Mesh(new THREE.CylinderGeometry(12, 12, 3, 40), new THREE.MeshStandardMaterial({color:"#24313A", transparent:true, opacity:.6, roughness:.05, metalness:.2}));
+camGlass.position.set(0, 2.7, 167); house.add(camGlass);
+function screen(mode){
+  const c = sctx; c.fillStyle = "#06120b"; c.fillRect(0,0,336,248);
+  c.textAlign = "center"; c.textBaseline = "middle";
+  if(mode==="ok"){ c.fillStyle="#0d3a1f"; c.fillRect(0,0,336,248); c.fillStyle="#5CFF8F"; c.font="bold 46px Courier New, monospace"; c.fillText("ACCESS",168,100); c.fillText("GRANTED",168,152); }
+  else if(mode==="no"){ c.fillStyle="#3a0d0d"; c.fillRect(0,0,336,248); c.fillStyle="#FF6B5C"; c.font="bold 46px Courier New, monospace"; c.fillText("ACCESS",168,100); c.fillText("DENIED",168,152); }
+  else if(mode==="scan"){ c.fillStyle="#F2C14E"; c.font="bold 30px Courier New, monospace"; c.fillText("VERIFIERAR…",168,124); }
+  else if(mode==="empty"){ c.fillStyle="#F2C14E"; c.font="bold 30px Courier New, monospace"; c.fillText("MAGASINET",168,100); c.fillText("ÄR TOMT",168,140); }
+  else { c.fillStyle="#3f8f5f"; c.font="24px Courier New, monospace"; c.fillText("VÄNTAR PÅ",168,104); c.fillText("BESÖKARE…",168,138); }
+  stex.needsUpdate = true; draw();
+}
+const nutGeo = new THREE.SphereGeometry(8.5, 18, 12); nutGeo.scale(1,1,1.15);
+const nutMat = new THREE.MeshStandardMaterial({color:"#8A5A2E", roughness:.7});
+const wheel = meshes.find(m=>m.userData.name==="doserhjul").userData.holder;        // vrids kring sin axel
+const DUMP = 130*Math.PI/180, AX = [0,57,64.3], PKT = 19.3;                           // tömvinkel, axelns läge, nötens avstånd från axeln i fickan
+const lids = meshes.filter(m=>m.userData.name.startsWith("lucka")).map(m=>m.userData.holder);
+const lid = {set t(v){ lids.forEach(h=>h.rotation.x=-1.66*v); }, set px(v){ lids.forEach(h=>h.position.x=h.userData.base[0]+v); }};
+// platser i magasinet: en nöt i halsen över hjulet, resten i tratten och lådan ovanför
+const SLOTS = [[0,57,105.5],[-10,56,116],[10,56,116],[0,73,117]];
+for(const y of [52,70,88]) for(const x of [-20,0,20]) SLOTS.push([x,y,132]);
+for(const z of [150,166]) for(const y of [49,65.5,82,97]) for(const x of [-34,-17,0,17,34]) SLOTS.push([x+(z===166?2:0), y+(z===166?1:0), z]);
+const nearAxis = p => Math.hypot(p[0], p[1]-57);
+SLOTS.sort((a,b)=> (a[2]-b[2]) || (nearAxis(a)-nearAxis(b)));
+const hopper = []; let pocket = null, served = 0, busy = false;
+const tweens = [];
+function tween(dur, fn, delay=0){ return new Promise(res => tweens.push({t0:performance.now()+delay, dur, fn, res})); }
+let raf = 0;
+function tick(now){
+  for(let i=tweens.length-1;i>=0;i--){ const tw=tweens[i]; const k=(now-tw.t0)/tw.dur; if(k<0) continue; const e=Math.min(1,k); tw.fn(e<.5?2*e*e:1-Math.pow(-2*e+2,2)/2); if(e>=1){ tweens.splice(i,1); tw.res(); } }
+  draw(); raf = tweens.length ? requestAnimationFrame(tick) : 0;
+}
+function run(){ if(!raf) raf = requestAnimationFrame(tick); }
+const lerp=(a,b,t)=>a+(b-a)*t;
+const wait = ms => { const w = tween(ms, ()=>{}); run(); return w; };
+function path(obj, pts, dur, delay=0){
+  const seg=[]; let L=0; for(let i=1;i<pts.length;i++){ const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1],pts[i][2]-pts[i-1][2]); seg.push(d); L+=d; }
+  return tween(dur, t => { let s=t*L, i=0; while(i<seg.length-1 && s>seg[i]){ s-=seg[i]; i++; } const u=Math.min(1,s/seg[i]); const a=pts[i], b=pts[i+1]; obj.position.set(lerp(a[0],b[0],u),lerp(a[1],b[1],u),lerp(a[2],b[2],u)); obj.rotation.x+=0.15; }, delay);
+}
+// kameran glider mellan vyer
+function flyTo(o, dur=1000){
+  const off = patio.checked ? PED_H+FOOT : 0;
+  const a = {x:TARGET.x, y:TARGET.y, z:TARGET.z, th:view.th, ph:view.ph, r:view.r, fov:cam.fov};
+  let dth = o.th-a.th; dth = Math.atan2(Math.sin(dth), Math.cos(dth));
+  const tw = tween(dur, t => { TARGET.set(lerp(a.x,o.T[0],t), lerp(a.y,o.T[1]+off,t), lerp(a.z,o.T[2],t)); view.th = a.th+dth*t; view.ph = lerp(a.ph,o.ph,t); view.r = lerp(a.r,o.r,t); cam.fov = lerp(a.fov,32,t); cam.updateProjectionMatrix(); });
+  run(); return tw;
+}
+const VIEW_VISIT = {T:[0,62,58], th:-0.62, ph:1.2, r:700}, VIEW_MECH = {T:[0,80,-40], th:-1.32, ph:1.38, r:600}, VIEW_HOME = {T:[0,105,-20], th:-0.55, ph:1.15, r:860};
+// textremsan i bilden
+const capEl = document.getElementById("cap"), capBar = document.getElementById("capBar");
+function cap(title, text, progress){ capEl.hidden = false; document.getElementById("capT").textContent = title; document.getElementById("capX").textContent = text; if(progress!==undefined) capBar.style.width = (progress*100)+"%"; }
+function capHide(){ capEl.hidden = true; capBar.style.width = "0"; }
+const acts = [...document.querySelectorAll("aside button.act")];
+function setBusy(b){ busy = b; acts.forEach(x => x.disabled = b); }
+function status(){ document.getElementById("status").textContent = `I magasinet: ${hopper.length + (pocket?1:0)} nötter. Lennart har fått ${served}.`; }
+function demoReset(){ if(asmStep) asmStop(); if(ex.value!=0) ex.value = 0; solo = null; markRow(); apply(); }
+function seat(n){ nutsGroup.remove(n); wheel.add(n); n.position.set(0,0,PKT); }                 // nöten ligger i hjulets ficka
+function unseat(n){ const w=new THREE.Vector3(); n.getWorldPosition(w); nutsGroup.worldToLocal(w); wheel.remove(n); nutsGroup.add(n); n.position.copy(w); n.visible = true; }
+function loadPocket(){
+  if(pocket || !hopper.length) return Promise.resolve();
+  const n = hopper.shift(); pocket = n; const from = n.position.toArray();
+  return path(n, [from, [0,57,Math.max(from[2],106)], [0,57,AX[2]+PKT]], 450).then(()=>seat(n));
+}
+const fillBtn = document.getElementById("fill"), roofBtn = document.getElementById("roofbtn");
+const isFull = () => hopper.length === SLOTS.length && !!pocket;
+function fillLabel(){ fillBtn.lastChild.textContent = isFull() ? "Töm magasinet" : "Fyll på nötter"; }
+function freeSlots(){ const used = new Set(hopper.map(n=>n.userData.slot)); return SLOTS.map((s,i)=>i).filter(i=>!used.has(i)); }
+function sortHopper(){ hopper.sort((a,b)=> (a.position.z-b.position.z) || (nearAxis(a.position.toArray())-nearAxis(b.position.toArray()))); }
+function addNut(i){ const n = new THREE.Mesh(nutGeo, nutMat); n.userData.slot = i; n.rotation.set(Math.random()*3,Math.random()*3,0); nutsGroup.add(n); hopper.push(n); return n; }
+
+// ---- aktörerna: Lennart och skatan ----
+const actors = new THREE.Group(); nutsGroup.parent.add(actors);
+function blob(r, color, pos, sc=[1,1,1]){ const m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14), new THREE.MeshStandardMaterial({color, roughness:.85})); m.position.set(...pos); m.scale.set(...sc); m.castShadow = true; return m; }
+function cone(r, h, color, pos, rot){ const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 14), new THREE.MeshStandardMaterial({color, roughness:.8})); m.position.set(...pos); m.rotation.set(...rot); m.castShadow = true; return m; }
+const FUR = "#A9562F", CREAM = "#F0E2CC", DARK = "#1B1B1D";
+// Lennart spelas av en klisterdekal som en hand håller i och låter hoppa
+function squirrelArt(){
+  const S = 512, a = document.createElement("canvas"); a.width = a.height = S; const c = a.getContext("2d");
+  let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  const FURC = "#B4572B", DARKC = "#8A3F1E", LIGHT = "#DB8F55", CREAMC = "#F5E8D4";
+  const ell = (x,y,rx,ry,rot,fill) => { c.beginPath(); c.ellipse(x,y,rx,ry,rot,0,Math.PI*2); c.fillStyle = fill; c.fill(); };
+  const grad = (x,y,r,c0,c1) => { const g = c.createRadialGradient(x-r*.3,y-r*.35,r*.1,x,y,r); g.addColorStop(0,c0); g.addColorStop(1,c1); return g; };
+  // svansen: en bred, yvig båge bakom kroppen
+  c.lineCap = "round"; c.lineJoin = "round";
+  const tail = () => { c.beginPath(); c.moveTo(318,418); c.bezierCurveTo(430,400,470,250,415,150); c.bezierCurveTo(395,112,360,98,335,112); };
+  tail(); c.strokeStyle = DARKC; c.lineWidth = 104; c.stroke();
+  tail(); c.strokeStyle = FURC; c.lineWidth = 88; c.stroke();
+  tail(); c.strokeStyle = LIGHT; c.lineWidth = 34; c.globalAlpha = .55; c.stroke(); c.globalAlpha = 1;
+  // kropp, lår, mage
+  ell(262,332,90,112,-0.18,grad(262,332,115,LIGHT,FURC));
+  ell(296,388,72,64,0,grad(296,388,74,FURC,DARKC));
+  ell(214,338,46,84,-0.1,grad(214,338,86,"#FFFAF0",CREAMC));
+  // bakre örat, huvud, nos
+  c.beginPath(); c.moveTo(232,140); c.lineTo(262,62); c.lineTo(274,150); c.closePath(); c.fillStyle = DARKC; c.fill();
+  ell(192,186,64,55,-0.1,grad(192,186,66,LIGHT,FURC));
+  ell(142,202,32,25,0.1,grad(142,202,34,"#E9A56A",FURC));
+  ell(160,216,30,19,0.15,CREAMC);
+  ell(113,197,7,6,0,"#2B1A12");
+  // främre örat med tofs
+  c.beginPath(); c.moveTo(196,142); c.lineTo(222,58); c.lineTo(246,146); c.closePath(); c.fillStyle = FURC; c.fill();
+  c.beginPath(); c.moveTo(208,138); c.lineTo(222,84); c.lineTo(236,140); c.closePath(); c.fillStyle = "#E7B08A"; c.fill();
+  // öga
+  ell(178,174,13,12,0,CREAMC); ell(178,174,9.5,9.5,0,"#17100C"); ell(174.5,170,3.2,3.2,0,"#FFFFFF");
+  // arm, tass, fot
+  ell(186,292,17,38,0.55,grad(186,292,38,FURC,DARKC)); ell(163,318,12,10,0,DARKC);
+  ell(218,440,52,17,0,grad(218,440,52,FURC,DARKC));
+  // päls: korta streck i pälsens riktning, bara ovanpå det som redan är ritat
+  c.globalCompositeOperation = "source-atop"; c.lineWidth = 1.6;
+  for(let k=0;k<2600;k++){ const x = 100+rnd()*380, y = 60+rnd()*400; const tailSide = x > 330; const ang = tailSide ? -1.2+rnd()*.7 : 1.1+rnd()*.8; const L = 5+rnd()*9;
+    c.strokeStyle = rnd()<.5 ? "rgba(255,214,170,.20)" : "rgba(90,36,14,.20)"; c.beginPath(); c.moveTo(x,y); c.lineTo(x+Math.cos(ang)*L, y+Math.sin(ang)*L); c.stroke(); }
+  c.globalCompositeOperation = "source-over";
+  // morrhår
+  c.strokeStyle = "rgba(40,25,15,.7)"; c.lineWidth = 1.3; [[-34,-8],[-38,2],[-32,12]].forEach(d => { c.beginPath(); c.moveTo(126,206); c.lineTo(126+d[0],206+d[1]); c.stroke(); });
+  return stickerFinish(a);
+}
+function stickerFinish(a){                       // vit stansad kant runt motivet, sedan en svag blank yta; baksidan är bara vitt papper
+  const S = a.width, b = document.createElement("canvas"); b.width = b.height = S; const d = b.getContext("2d");
+  for(let k=0;k<28;k++){ const t = k/28*Math.PI*2; d.drawImage(a, Math.cos(t)*15, Math.sin(t)*15); }
+  d.globalCompositeOperation = "source-in"; d.fillStyle = "#FBFBF8"; d.fillRect(0,0,S,S);
+  const back = document.createElement("canvas"); back.width = back.height = S; back.getContext("2d").drawImage(b,0,0);
+  d.globalCompositeOperation = "source-over"; d.drawImage(a,0,0);
+  d.globalCompositeOperation = "source-atop"; const gl = d.createLinearGradient(80,40,430,470); gl.addColorStop(0,"rgba(255,255,255,.28)"); gl.addColorStop(.35,"rgba(255,255,255,0)"); gl.addColorStop(.7,"rgba(255,255,255,0)"); gl.addColorStop(1,"rgba(0,0,0,.10)"); d.fillStyle = gl; d.fillRect(0,0,S,S);
+  return [new THREE.CanvasTexture(b), new THREE.CanvasTexture(back)];
+}
+function magpieArt(){
+  const S = 512, a = document.createElement("canvas"); a.width = a.height = S; const c = a.getContext("2d"); c.translate(0,42);
+  let seed = 11; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  const BLK = "#17181C", WHT = "#F6F5F0", BLU = "#1F3F6E";
+  const ell = (x,y,rx,ry,rot,fill) => { c.beginPath(); c.ellipse(x,y,rx,ry,rot,0,Math.PI*2); c.fillStyle = fill; c.fill(); };
+  // den långa stjärten med blågrön glans
+  const tg = c.createLinearGradient(300,290,490,380); tg.addColorStop(0,"#16303F"); tg.addColorStop(.5,"#1F5A5E"); tg.addColorStop(1,"#1B2A55");
+  c.beginPath(); c.moveTo(300,262); c.lineTo(494,362); c.lineTo(486,384); c.lineTo(292,318); c.closePath(); c.fillStyle = tg; c.fill();
+  // ben och fötter
+  c.strokeStyle = "#2A2A2E"; c.lineWidth = 7; c.lineCap = "round";
+  [[226,330,220,398],[262,332,266,398]].forEach(l => { c.beginPath(); c.moveTo(l[0],l[1]); c.lineTo(l[2],l[3]); c.stroke(); c.beginPath(); c.moveTo(l[2]-20,l[3]+3); c.lineTo(l[2],l[3]); c.lineTo(l[2]+16,l[3]+4); c.stroke(); });
+  // kropp, vit buk, vinge, vit skulderfläck
+  ell(248,268,98,62,-0.25,BLK);
+  ell(232,300,72,40,-0.2,WHT);
+  const wg = c.createLinearGradient(240,240,370,310); wg.addColorStop(0,"#1B2C52"); wg.addColorStop(1,BLU); ell(302,272,74,27,0.32,wg);
+  ell(268,240,46,16,0.38,WHT);
+  // hals, huvud, näbb, öga
+  ell(196,236,52,46,-0.3,BLK); ell(160,204,45,43,0,BLK);
+  c.beginPath(); c.moveTo(124,190); c.lineTo(66,210); c.lineTo(126,224); c.closePath(); c.fillStyle = "#2B2C31"; c.fill();
+  ell(150,194,8,8,0,"#6B6F78"); ell(150,194,6,6,0,"#0B0B0D"); ell(148,192,2,2,0,"#FFFFFF");
+  // fjädrar: korta streck ovanpå det som redan är ritat
+  c.globalCompositeOperation = "source-atop"; c.lineWidth = 1.5;
+  for(let k=0;k<1800;k++){ const x = 80+rnd()*420, y = 150+rnd()*260, L = 6+rnd()*10, ang = 0.35+rnd()*.5;
+    c.strokeStyle = rnd()<.5 ? "rgba(120,160,220,.16)" : "rgba(0,0,0,.14)"; c.beginPath(); c.moveTo(x,y); c.lineTo(x+Math.cos(ang)*L, y+Math.sin(ang)*L); c.stroke(); }
+  c.globalCompositeOperation = "source-over";
+  return stickerFinish(a);
+}
+// en hand i naturlig storlek: handflata, fem fingrar med leder och naglar, handled, underarm och ärm
+const SKIN = new THREE.MeshStandardMaterial({color:"#D8A584", roughness:.62}), NAIL = new THREE.MeshStandardMaterial({color:"#F1D3C2", roughness:.3}), CLOTH = new THREE.MeshStandardMaterial({color:"#2E4057", roughness:.95});
+const V = (x,y,z) => new THREE.Vector3(x,y,z);
+function limb(g, a, b, r0, r1, mat=SKIN){            // avsmalnande, rundad del mellan två punkter
+  const L = a.distanceTo(b), cyl = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, L, 20), mat);
+  cyl.position.copy(a).add(b).multiplyScalar(.5); cyl.quaternion.setFromUnitVectors(V(0,1,0), b.clone().sub(a).normalize());
+  const s0 = new THREE.Mesh(new THREE.SphereGeometry(r0, 20, 14), mat), s1 = new THREE.Mesh(new THREE.SphereGeometry(r1, 20, 14), mat); s0.position.copy(a); s1.position.copy(b);
+  [cyl,s0,s1].forEach(m => { m.castShadow = m.receiveShadow = true; g.add(m); });
+}
+function lump(g, c, r, sc, mat=SKIN){ const m = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), mat); m.position.copy(c); m.scale.set(...sc); m.castShadow = m.receiveShadow = true; g.add(m); return m; }
+function nail(g, a, b, r, away){                     // nagel på yttersta leden, på fingrets ovansida
+  const d = b.clone().sub(a).normalize(), n = away.clone().sub(d.clone().multiplyScalar(away.dot(d))).normalize();
+  const m = lump(g, a.clone().lerp(b,.72).add(n.clone().multiplyScalar(r*.62)), r*.86, [1,1,1], NAIL);
+  m.quaternion.setFromUnitVectors(V(0,0,1), n); m.scale.set(.82,1.05,.34); const q = new THREE.Quaternion().setFromUnitVectors(V(0,1,0), d.clone().applyQuaternion(m.quaternion.clone().invert()).setZ(0).normalize()); m.quaternion.multiply(q);
+}
+function buildHand(grip){
+  // handens egna axlar: y mot fingrarna, x mot tummen, z ut från handflatan
+  const g = new THREE.Group();
+  lump(g, V(0,50,0), 1, [41,50,14]); lump(g, V(-8,18,3), 1, [33,22,15]); lump(g, V(27,34,9), 1, [19,31,15]); lump(g, V(-30,44,5), 1, [13,34,13]);
+  const curl = (base, lens, radii, flex, splay) => { let pt = base.clone(), ang = 0; const pts = [pt.clone()];
+    lens.forEach((L,k) => { ang += flex[k]*Math.PI/180; pt = pt.clone().add(V(splay, Math.cos(ang), Math.sin(ang)).normalize().multiplyScalar(L)); pts.push(pt.clone()); });
+    lump(g, base, radii[0]+1.2, [1,1,1]);
+    for(let k=0;k<3;k++) limb(g, pts[k], pts[k+1], radii[k], radii[k+1]);
+    const dz = pts[3].clone().sub(pts[2]).normalize(); nail(g, pts[2], pts[3], radii[3], V(0, dz.z, -dz.y)); };
+  curl(V(9,98,-2),  [46,30,23], [10,9,8,7],     [80,85,60], 0);          // långfinger, ringfinger och lillfinger är krökta in mot handflatan
+  curl(V(-10,95,-2),[42,28,22], [9.5,8.6,7.6,6.8],[85,85,60], -.05);
+  curl(V(-27,87,-1),[33,20,19], [8.4,7.4,6.6,6], [88,85,60], -.1);
+  // pekfinger och tumme möts i ett nyp
+  const K = V(27,97,-2), J1 = V(16.5,123,36.5), J2 = V(22.8,113.7,58.6), I = V(21,98.6,72.4);       // pekfingret löper bakom dekalen ända till mellanleden
+  lump(g, K, 11, [1,1,1]); limb(g, K, J1, 10, 9); limb(g, J1, J2, 9, 8); limb(g, J2, I, 8, 7); nail(g, J2, I, 7, V(0,1,.6));
+  const B = V(31,20,10), T1 = V(52,47,34), T2 = V(46,74,55), T = V(38,88.4,64.6);
+  limb(g, B, T1, 14, 11.5); limb(g, T1, T2, 11.5, 10); limb(g, T2, T, 10, 8.6); nail(g, T2, T, 8.6, V(1,-.4,-.2));
+  // handled, underarm och uppkavlad ärm
+  const arm = new THREE.Group(), armIn = new THREE.Group(); armIn.scale.set(1,1,.8); arm.add(armIn);       // armen är en egen del, så att handleden kan böjas
+  limb(armIn, V(0,6,0), V(0,-60,0), 26, 25); limb(armIn, V(0,-60,0), V(0,-170,-6), 25, 36); lump(g, V(0,4,0), 1, [27,20,21]);
+  limb(armIn, V(0,-150,-6), V(0,-420,-22), 41, 46, CLOTH); const cuff = new THREE.Mesh(new THREE.TorusGeometry(42, 7, 12, 28), CLOTH); cuff.rotation.x = Math.PI/2; cuff.position.set(0,-150,-6); cuff.castShadow = true; armIn.add(cuff);
+  // Högerhand som kommer in från höger, i höjd med dekalen. Tummen ligger framför dekalen och pekfingret bakom.
+  // Handen vrids så att pekfingret passerar dekalens plan utanför kanten (riktning D2), så att inget finger går igenom motivet.
+  const mid0 = T.clone().add(I).multiplyScalar(.5), pch = T.clone().sub(I).normalize();
+  const depthOf = v => v.clone().sub(mid0).dot(pch), k = (0-depthOf(J1))/(depthOf(K)-depthOf(J1)), X = J1.clone().lerp(K,k).sub(mid0);
+  const d = X.sub(pch.clone().multiplyScalar(X.dot(pch))).normalize(), r = pch.clone().cross(d);
+  const P2 = V(0,-1,0), D2 = V(Math.cos(1.15),0,Math.sin(1.15)), R2 = P2.clone().cross(D2);       // D2 pekar snett uppåt höger: handflatan hamnar rakt till höger om nypet
+  const M = new THREE.Matrix4().makeBasis(P2,D2,R2).multiply(new THREE.Matrix4().makeBasis(pch,d,r).transpose());
+  g.quaternion.setFromRotationMatrix(M); g.scale.setScalar(.86); arm.scale.setScalar(.86);
+  const mid = mid0.clone().applyMatrix4(M); g.position.set(grip[0]-mid.x*.86, -mid.y*.86 + grip[0]*grip[0]*0.0016 - .7, grip[1]-mid.z*.86);      // dekalen är lätt böjd: nypet följer ytan där handen håller
+  arm.quaternion.copy(g.quaternion); arm.userData.base = arm.quaternion.clone();                    // armen fortsätter rakt ut från handleden
+  g.userData.arm = arm;
+  return g;
+}
+// en docka: dekal + hand. pose vrids kring fötterna när handen vinklar ner dekalen
+function makePuppet(tex, grip){
+  const [front, back] = tex; front.anisotropy = back.anisotropy = 4;
+  const P = {root:new THREE.Group(), pose:new THREE.Group(), inner:new THREE.Group(), sticker:new THREE.Group()};
+  const geo = new THREE.PlaneGeometry(118, 118, 16, 1), pa = geo.attributes.position;
+  for(let k=0;k<pa.count;k++){ const x = pa.getX(k); pa.setZ(k, -x*x*0.0016); }                 // dekalen böjer sig lite, som ett styvt papper
+  geo.computeVertexNormals();
+  const mf = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({map:front, alphaTest:.5, roughness:.35, side:THREE.FrontSide}));
+  const mb = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({map:back, alphaTest:.5, roughness:.9, side:THREE.BackSide}));
+  const depth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:back, alphaTest:.5, side:THREE.DoubleSide});   // skuggan följer dekalens kontur
+  mf.customDepthMaterial = mb.customDepthMaterial = depth;
+  P.sticker.add(mf, mb); P.sticker.rotation.x = Math.PI/2; P.sticker.position.set(0,0,64);
+  P.hand = buildHand(grip); P.arm = P.hand.userData.arm;
+  P.pose.position.set(0,0,12); P.inner.position.set(0,0,-12); P.inner.add(P.sticker, P.hand); P.pose.add(P.inner); P.root.add(P.pose, P.arm);
+  P.root.userData.puppet = P; P.root.visible = false; return P;
+}
+const LP = makePuppet(squirrelArt(), [38,90]), SP = makePuppet(magpieArt(), [43,36]);       // nypet sitter vid svansens övre kant
+const lennart = LP.root, pose = LP.pose, skata = SP.root;
+// mjuk skugga på marken under Lennart: gör att han ser ut att stå på gräset och lyfta när han hoppar
+const shade = (() => { const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"); const g = x.createRadialGradient(64,64,4,64,64,62); g.addColorStop(0,"rgba(0,0,0,.55)"); g.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0,0,128,128);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(150,150), new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c), transparent:true, depthWrite:false})); m.renderOrder = 2; m.visible = false; return m; })();
+actors.add(shade);
+function syncArm(P){ P.arm.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), P.pose.rotation.y*.45).multiply(P.arm.userData.base);   // armen följer med en bit, resten tar handleden
+  P.root.updateMatrixWorld(true); P.arm.position.copy(P.root.worldToLocal(P.hand.getWorldPosition(new THREE.Vector3()))); }   // armen följer handleden när handen vinklas
+function ground(P){ syncArm(P); const p = P.root.position; shade.visible = P.root.visible && p.z > -5 && p.y > -172 && Math.abs(p.x) < 112;      // bara över framgården
+  const k = 1/(1+Math.max(0,p.z)/40); shade.position.set(p.x, p.y, 2.2); shade.rotation.z = P.root.rotation.z; shade.scale.set(.95*k, .34*k, 1); shade.material.opacity = .5*k; }
+// hur mycket dockan måste luta för att nosen eller näbben ska nå en punkt, och var fötterna då ska stå
+function bowTo(P, tip, target, lift){
+  const mx = tip[0], mz = tip[2]-12, yaw = P.root.rotation.z; let al = 0;
+  while(al > -1.4 && lift+12 - mx*Math.sin(al) + mz*Math.cos(al) > target[2]) al -= 0.01;
+  const fx = mx*Math.cos(al) + mz*Math.sin(al), fy = tip[1];
+  return {al, stand:[target[0] - (fx*Math.cos(yaw) - fy*Math.sin(yaw)), target[1] - (fx*Math.sin(yaw) + fy*Math.cos(yaw)), lift]};
+}
+function tilt(P, from, to, dur){ const tw = tween(dur, t => { P.pose.rotation.y = lerp(from,to,t); syncArm(P); }); run(); return tw; }
+function faceCam(obj){ const c = actors.worldToLocal(cam.position.clone()); obj.rotation.z = Math.atan2(c.x-obj.position.x, -(c.y-obj.position.y)); }
+actors.add(lennart, skata);
+function hop(obj, to, dur, h=26, hops=1){ const a = obj.position.toArray(); return tween(dur, t => { obj.position.set(lerp(a[0],to[0],t), lerp(a[1],to[1],t), lerp(a[2],to[2],t) + Math.abs(Math.sin(Math.PI*t*hops))*h); if(obj.userData.puppet) ground(obj.userData.puppet); }); }
+const SPOT = [0,-33,13.2], MOUTH = [-36,-4,70], BEAK = [-44,-4,56], LEN_X = 30;     // nosen på dekalen; Lennart står lite till höger så att skålen syns
+
+async function moveRoof(upNow){
+  if(roofUp===upNow) return; const a = roofLift, b = upNow ? 1 : 0;
+  const tw = tween(900, t => { roofLift = a+(b-a)*t; apply(); }); run(); await tw;
+  roofUp = upNow; roofBtn.lastChild.textContent = roofUp ? "Lägg på taket" : "Lyft av taket";
+}
+let roofUp = false;
+function setPeek(v, dur=600){ const a = peek; const tw = tween(dur, t => { peek = lerp(a,v,t); apply(); }); run(); return tw; }
+
+// ---- Lennart kommer på besök ----
+async function visit(inside){
+  if(busy) return; setBusy(true); demoReset(); await moveRoof(false);
+  const back = {T:[TARGET.x, TARGET.y-(patio.checked?PED_H+FOOT:0), TARGET.z], th:view.th, ph:view.ph, r:view.r}, hadX = xray.checked;
+  if(inside){ xray.checked = true; apply(); await flyTo(VIEW_MECH); } else await flyTo(VIEW_VISIT);
+  lennart.visible = true; pose.rotation.y = 0; lennart.position.set(LEN_X+60,-300,10); faceCam(lennart); ground(LP);
+  cap("Lennart kommer hoppande", "I demon spelas han av en klisterdekal.", .1);
+  let h = hop(lennart, [LEN_X+10,-165,0], 900, 34, 2); run(); await h; h = hop(lennart, [LEN_X,-104,0], 900, 26, 2); run(); await h;
+  cap("Kameran tittar", "Den tar tre bilder och AI:n avgör vem som står där.", .3); screen("scan"); await wait(1500);
+  if(!pocket){
+    screen("empty"); cap("Magasinet är tomt", "Lennart får vänta. Fyll på nötter och prova igen.", 1); await wait(2400);
+  } else {
+    screen("ok"); cap("ACCESS GRANTED", "Det är Lennart. Luckan öppnas och hjulet vrider fram en nöt.", .5);
+    const open = tween(900, t => { lid.t = t; }), turn = tween(1300, t => { wheel.rotation.x = DUMP*t; }, 350);
+    run(); await Promise.all([open, turn]);
+    cap("En nöt rullar ut", "Fickan släpper nöten i rännan, och den rullar ner i skålen.", .7);
+    const n = pocket; pocket = null; unseat(n);
+    const fall = path(n, [n.position.toArray(),[0,33.7,41.2],[0,18.7,28.6],[0,3.7,16.0],[0,-5,13.2],SPOT], 1500);
+    const ret = tween(1200, t => { wheel.rotation.x = DUMP*(1-t); }, 900);
+    run(); await Promise.all([fall, ret]); const lp = loadPocket(); run(); await lp;
+    cap("Lennart äter ur skålen", "Handen för fram honom och tippar ner huvudet i skålen.", .85);
+    const bw = bowTo(LP, MOUTH, [SPOT[0]+4, SPOT[1]-4, SPOT[2]+15], 10);      // utprovat så att dekalen går fri från skålens kant och den öppna luckan
+    h = hop(lennart, bw.stand, 550, 18); run(); await h;
+    await tilt(LP, 0, bw.al, 650);
+    const eat = tween(1500, t => { pose.rotation.y = bw.al + Math.sin(t*Math.PI*8)*0.05; syncArm(LP); n.scale.setScalar(Math.max(0.001, 1-t*1.1)); }); run(); await eat;       // nöten äts upp i skålen
+    nutsGroup.remove(n); n.scale.setScalar(1); served++; status();
+    cap("Lennart är nöjd", "Luckan stängs långsamt, och bara när kameran inte ser någon rörelse.", .95);
+    await tilt(LP, bw.al, 0, 600);
+    const close = tween(1100, t => { lid.t = 1-t; }); h = hop(lennart, [LEN_X+10,-170,0], 900, 28, 2); run(); await Promise.all([h, close]);      // han hoppar baklänges hem, utan att vända sig
+    h = hop(lennart, [LEN_X+70,-320,10], 800, 34, 2); run(); await h;
+  }
+  shade.visible = false; pose.rotation.y = 0; lennart.visible = false; screen("idle"); fillLabel(); status(); capHide();
+  if(inside){ xray.checked = hadX; apply(); }
+  await flyTo(back, 900); setBusy(false);
+}
+document.getElementById("visit").addEventListener("click", () => visit(false));
+document.getElementById("mech").addEventListener("click", () => visit(true));
+// ---- Objuden gäst ----
+document.getElementById("deny").addEventListener("click", async () => {
+  if(busy) return; setBusy(true); demoReset(); await moveRoof(false);
+  const back = {T:[TARGET.x, TARGET.y-(patio.checked?PED_H+FOOT:0), TARGET.z], th:view.th, ph:view.ph, r:view.r};
+  await flyTo(VIEW_VISIT);
+  skata.visible = true; SP.pose.rotation.y = 0; skata.position.set(60,-300,10); faceCam(skata); ground(SP);
+  cap("En skata kommer hoppande", "Även hon spelas av en klisterdekal.", .15);
+  let h = hop(skata, [14,-165,0], 900, 34, 2); run(); await h; h = hop(skata, [8,-112,0], 800, 24, 2); run(); await h;
+  cap("Kameran tittar", "Tre bilder, och AI:n avgör vem som står där.", .4); screen("scan"); await wait(1500);
+  screen("no"); cap("ACCESS DENIED", "Inte en ekorre. Luckan förblir stängd och besöket sparas som en incidentrapport.", .65);
+  await wait(900);
+  cap("Skatan pickar på luckan", "Hon försöker ändå, men luckan är stängd och nötterna ligger kvar.", .85);
+  const pk = bowTo(SP, BEAK, [4,-28,39], 4);
+  h = hop(skata, pk.stand, 500, 16); run(); await h;
+  for(let k=0;k<3;k++){ await tilt(SP, k ? pk.al*.55 : 0, pk.al, 220); const shake = tween(260, t => { lid.px = Math.sin(t*Math.PI*4)*1.0*(1-t); }); run(); await Promise.all([shake, tilt(SP, pk.al, pk.al*.55, 260)]); lid.px = 0; }
+  await tilt(SP, pk.al*.55, 0, 350); await wait(500);
+  cap("Skatan ger upp", "Hon hoppar därifrån utan nöt.", 1);
+  h = hop(skata, [20,-170,0], 900, 28, 2); run(); await h; h = hop(skata, [80,-320,10], 800, 34, 2); run(); await h;
+  shade.visible = false; skata.visible = false; screen("idle"); capHide(); await flyTo(back, 900); setBusy(false);
+});
+// ---- taket och påfyllningen ----
+roofBtn.addEventListener("click", async () => { if(busy) return; setBusy(true); demoReset(); await moveRoof(!roofUp); setBusy(false); });
+fillBtn.addEventListener("click", async () => {
+  if(busy) return; setBusy(true); demoReset();
+  const wasUp = roofUp, emptying = isFull();
+  cap(emptying ? "Magasinet töms" : "Påfyllning", "Taket hålls av magneter. Lyft av det, så ligger magasinet öppet.", .3);
+  await moveRoof(true);
+  if(emptying){
+    const all = hopper.splice(0); if(pocket){ unseat(pocket); all.push(pocket); pocket=null; }
+    const jobs = all.map((n,i) => path(n, [n.position.toArray(), [n.position.x, n.position.y, 330]], 600, i*12).then(()=>nutsGroup.remove(n)));
+    run(); await Promise.all(jobs);
+  } else {
+    cap("Påfyllning", "Häll i hasselnötter i skal, 18–22 mm. Magasinet rymmer ungefär 50.", .7);
+    const jobs = []; freeSlots().forEach((i,k) => { const s=SLOTS[i]; const n=addNut(i); n.position.set(s[0], s[1], 330); jobs.push(path(n, [[s[0],s[1],330],[s[0],s[1],s[2]]], 650, k*30)); });
+    run(); await Promise.all(jobs); sortHopper();
+    if(!pocket){ const p = loadPocket(); run(); await p; const i=freeSlots()[0]; if(i!==undefined){ const s=SLOTS[i]; const n=addNut(i); n.position.set(...s); sortHopper(); } }
+  }
+  if(!wasUp) await moveRoof(false);
+  status(); fillLabel(); capHide(); setBusy(false);
+});
+// ---- monteringen spelas upp av sig själv ----
+const asmCtl = document.getElementById("capCtl"), asmPlayBtn = document.getElementById("asmPlay");
+let asmPlaying = false, asmTimer = 0;
+function asmShow(n){
+  clearTimeout(asmTimer); asmStep = n; const st = ASM[n-1];
+  cap(`${n}. ${st.title}`, st.text, n/ASM.length);
+  document.getElementById("asmPrev").disabled = n===1; document.getElementById("asmNext").disabled = n===ASM.length;
+  asmAnim = 0; apply(); tween(900, t => { asmAnim = t; apply(); }); run();
+  if(asmPlaying){ if(n<ASM.length) asmTimer = setTimeout(() => asmShow(n+1), 3600); else asmSetPlaying(false); }
+}
+function asmSetPlaying(b){ asmPlaying = b; asmPlayBtn.innerHTML = b ? "&#10074;&#10074;" : "&#9654;"; asmPlayBtn.setAttribute("aria-label", b ? "Pausa" : "Spela"); if(!b) clearTimeout(asmTimer); }
+function asmStop(){ clearTimeout(asmTimer); asmPlaying = false; asmStep = 0; asmAnim = 1; asmCtl.hidden = true; capHide(); acts.forEach(x => x.disabled = false); apply(); }
+document.getElementById("asmStart").addEventListener("click", async () => {
+  if(busy) return; demoReset(); ex.value = 0; roofLift = 0; roofUp = false; roofBtn.lastChild.textContent = "Lyft av taket";
+  acts.forEach(x => x.disabled = true); asmCtl.hidden = false; asmStep = 1; asmAnim = 0; apply();
+  await flyTo(VIEW_HOME, 800); asmSetPlaying(true); asmShow(1);
+});
+document.getElementById("asmPrev").addEventListener("click", () => { if(asmStep>1){ asmSetPlaying(false); asmShow(asmStep-1); } });
+document.getElementById("asmNext").addEventListener("click", () => { if(asmStep<ASM.length){ asmSetPlaying(false); asmShow(asmStep+1); } });
+asmPlayBtn.addEventListener("click", () => { if(asmPlaying) asmSetPlaying(false); else { asmSetPlaying(true); asmShow(asmStep<ASM.length ? asmStep+1 : 1); } });
+document.getElementById("asmEnd").addEventListener("click", asmStop);
+// start med fullt magasin och en nöt i hjulets ficka
+SLOTS.forEach((s,i) => { const n = addNut(i); n.position.set(...s); }); sortHopper();
+{ const n = hopper.shift(); pocket = n; seat(n); const m = addNut(n.userData.slot); m.position.set(...SLOTS[n.userData.slot]); sortHopper(); }
+screen("idle"); status(); fillLabel();
+
+new ResizeObserver(resize).observe(stage);
+resize(); patioG.visible = patio.checked; setHouseZ(); preset(patio.checked ? "patio" : "close"); apply();
+
+// ================= FLIKAR =================
+const TABS = ["modell","dokument","filer","utskrift"];
+function showTab(name, focus){
+  if(!TABS.includes(name)) name = "modell";
+  TABS.forEach(t => { const b=document.getElementById("t-"+t), p=document.getElementById("p-"+t);
+    const on = t===name; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; p.hidden = !on; });
+  if(focus) document.getElementById("t-"+name).focus();
+  if(name==="modell") resize();
+  if(name==="utskrift") setTimeout(initPlates, 0);   // körs när hela skriptet har laddats
+}
+document.querySelectorAll('[role="tab"]').forEach(b => {
+  b.addEventListener("click", () => { location.hash = b.dataset.tab; });
+  b.addEventListener("keydown", e => { const i=TABS.indexOf(b.dataset.tab);
+    if(e.key==="ArrowRight"||e.key==="ArrowLeft"){ e.preventDefault(); const n=TABS[(i+(e.key==="ArrowRight"?1:TABS.length-1))%TABS.length]; location.hash=n; showTab(n,true); } });
+});
+window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
+showTab(location.hash.slice(1));
+// ================= 3D-FILER =================
+const FILES = [["00_toleranstest.stl", 161484], ["01_bas.stl", 897184], ["01b_framgard.stl", 446984], ["02_grasmatta_gron.stl", 478184], ["02_grasmatta_stenar.stl", 2484], ["02b_framgard_grasmatta_gron.stl", 746984], ["02b_framgard_stenar.stl", 2484], ["03_bottenplatta.stl", 111084], ["03b_framgard_bottenplatta.stl", 75484], ["04_fotter_tpu.stl", 85284], ["05_kropp_rod.stl", 685184], ["05_kropp_sockel_gra.stl", 163484], ["05b_fonsterinsatser_gra.stl", 7684], ["05c_solskydd_gra.stl", 15284], ["05c_solskydd_vit.stl", 1084], ["05d_kropp_packning_tpu.stl", 80384], ["05e_vit_dorroverstycke.stl", 17484], ["05e_vit_hornbrada_1.stl", 33584], ["05e_vit_hornbrada_2.stl", 26784], ["05e_vit_hornbrada_3.stl", 33684], ["05e_vit_hornbrada_4.stl", 26784], ["05e_vit_kamerakrage.stl", 28884], ["05e_vit_sidofonster_1.stl", 36584], ["05e_vit_sidofonster_2.stl", 36584], ["05e_vit_skarmfonster.stl", 34584], ["06_tak_vanster_gra.stl", 236684], ["06_tak_vanster_vit.stl", 1284], ["06b_tak_hoger_gra.stl", 264984], ["06b_tak_hoger_vit.stl", 1284], ["06c_skorsten_rod.stl", 23484], ["06c_skorsten_vit.stl", 1484], ["06d_takpackning_tpu.stl", 2484], ["06e_nockkilar_gra.stl", 2084], ["07_farstukvist_rod.stl", 64384], ["07_farstukvist_vit.stl", 59684], ["08_lucka_gra.stl", 40884], ["08_lucka_vit.stl", 1884], ["09_stolphatt.stl", 2284], ["09b_stolphatt_packning_tpu.stl", 1684], ["10_doserhus.stl", 163684], ["11_doserhjul.stl", 78884], ["14_notmagasin.stl", 53484], ["15_kamerafaste.stl", 117084], ["16_elektroniklada.stl", 83284], ["16b_elektroniklada_lock.stl", 5684], ["17_elektroniklada_packning_tpu.stl", 1484], ["18_skarmram_svart.stl", 1684], ["19_skarmklamma.stl", 22984], ["21_blomlador_gron.stl", 256484], ["21_blomlador_vit.stl", 31884], ["21b_blomhuvuden_rod.stl", 967484], ["21b_blomhuvuden_vit.stl", 850084], ["22_takrannor_gra.stl", 142484], ["23_stupror_gra.stl", 174884], ["23_stupror_vit.stl", 49284], ["24_monteringsplatta.stl", 264184], ["25_genomforingar_tpu.stl", 69884]];
+const fileInfo = {}; PARTS.forEach(p => { fileInfo[p.file] = {label: LABEL[p.name] || p.name, note: p.note}; });
+fileInfo["00_toleranstest.stl"] = {label:"Toleranstest och nötmall", note:"Valfri färg. Skrivs ut först"};
+const kb = n => n > 1048576 ? (n/1048576).toFixed(1).replace(".",",")+" MB" : Math.max(1,Math.round(n/1024))+" kB";
+const ftbl = document.getElementById("ftbl"), msg = document.getElementById("filemsg");
+FILES.forEach(([name,size]) => {
+  const inf = fileInfo[name] || {label:"–", note:"–"};
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td><code>${name}</code></td><td>${inf.label}</td><td>${inf.note}</td><td>${kb(size)}</td><td><button class="dl small" type="button" data-f="${name}">Ladda ner</button></td>`;
+  ftbl.appendChild(tr);
+});
+let zipBytes = null, zipObj = null;
+function bytes(){ if(!zipBytes){ const b=atob(document.getElementById("zipdata").textContent.trim()); zipBytes=new Uint8Array(b.length); for(let i=0;i<b.length;i++) zipBytes[i]=b.charCodeAt(i); } return zipBytes; }
+let downloads = null;
+(window.claude ? window.claude.use("downloads") : Promise.resolve(null)).then(d => { downloads = d;
+  if(!d){ document.querySelectorAll("button.dl").forEach(b=>b.disabled=true); msg.textContent = "Nedladdning fungerar inte i den här vyn. Be Marcus om zip-filen."; }
+}).catch(() => {});
+async function save(filename, data){
+  if(!downloads){ msg.textContent = "Nedladdning fungerar inte i den här vyn. Be Marcus om zip-filen."; return; }
+  try { await downloads.save({filename, data}); msg.textContent = `${filename} är sparad.`; }
+  catch(e){ msg.textContent = e && e.code==="declined" ? "Nedladdningen avbröts." : "Det gick inte att spara filen just nu. Försök igen om en stund."; }
+}
+document.getElementById("dlall").addEventListener("click", () => save("lennarts-matstation-3d.zip", new Blob([bytes()])));
+ftbl.addEventListener("click", async e => {
+  const b = e.target.closest("button[data-f]"); if(!b) return;
+  try {
+    if(!zipObj) zipObj = await JSZip.loadAsync(bytes());
+    const one = new JSZip(); one.file(b.dataset.f, await zipObj.file(b.dataset.f).async("uint8array"));
+    const blob = await one.generateAsync({type:"blob", compression:"DEFLATE"});
+    save(b.dataset.f.replace(/\.stl$/i, ".zip"), blob);              // STL kan inte sparas direkt, därför en liten zip per fil
+  } catch(err){ msg.textContent = "Det gick inte att packa filen. Ladda ner alla i stället."; }
+});
+
+// ================= UTSKRIFT: BYGGPLATTOR =================
+let plateView = null;
+function initPlates(){
+  if(plateView){ plateView.resize(); return; }
+  const PLATES = JSON.parse(document.getElementById("platedata").textContent);
+  const st = document.getElementById("pstage");
+  const r2 = new THREE.WebGLRenderer({antialias:true, alpha:true}); r2.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  r2.shadowMap.enabled = true; r2.shadowMap.type = THREE.PCFSoftShadowMap; st.prepend(r2.domElement);
+  const sc = new THREE.Scene(); const cam2 = new THREE.PerspectiveCamera(30,1,1,6000);
+  sc.add(new THREE.HemisphereLight(0xF2F5FF, 0x77736A, 0.62));
+  const l1 = new THREE.DirectionalLight(0xFFF3E0, 0.85); l1.position.set(-220,420,300); l1.castShadow = true; l1.shadow.mapSize.set(2048,2048);
+  Object.assign(l1.shadow.camera,{left:-230,right:230,top:330,bottom:-230,near:1,far:1500}); sc.add(l1);
+  const l2 = new THREE.DirectionalLight(0xDDE6FF, 0.3); l2.position.set(300,200,-300); sc.add(l2);
+  const g = new THREE.Group(); g.rotation.x = -Math.PI/2; sc.add(g);
+  // byggplattan: ljus yta med rutnät var 16:e mm
+  const grid = (()=>{ const c=document.createElement("canvas"); c.width=c.height=1024; const x=c.getContext("2d");
+    x.fillStyle="#C9C6BB"; x.fillRect(0,0,1024,1024); x.strokeStyle="rgba(60,55,45,.16)"; x.lineWidth=1;
+    for(let i=0;i<=256;i+=16){ const q=i*4; x.beginPath(); x.moveTo(q,0); x.lineTo(q,1024); x.stroke(); x.beginPath(); x.moveTo(0,q); x.lineTo(1024,q); x.stroke(); }
+    x.fillStyle="rgba(176,42,34,.20)"; x.fillRect(0,0,82,1024); x.strokeStyle="rgba(176,42,34,.55)"; x.lineWidth=3; x.beginPath(); x.moveTo(82,0); x.lineTo(82,1024); x.stroke();
+    x.strokeStyle="rgba(60,55,45,.55)"; x.lineWidth=6; x.strokeRect(3,3,1018,1018); return new THREE.CanvasTexture(c); })();
+  const edge = new THREE.MeshStandardMaterial({color:"#8F8C82"});
+  const bed = new THREE.Mesh(new THREE.BoxGeometry(256,256,3), [edge,edge,edge,edge,new THREE.MeshStandardMaterial({map:grid, roughness:.9}),edge]);
+  bed.position.set(0,0,-1.5); bed.receiveShadow = true; g.add(bed);
+  const holder = new THREE.Group(); holder.position.set(-128,-128,0); g.add(holder);
+  const T = new THREE.Vector3(0,30,0); const v = {th:-0.5, ph:0.85, r:640};
+  const labels = document.createElement("div"); labels.style.cssText = "position:absolute;inset:0;overflow:hidden;pointer-events:none"; st.appendChild(labels);
+  let current = null, picked = null;
+  function place(){ cam2.position.set(T.x+v.r*Math.sin(v.ph)*Math.sin(v.th), T.y+v.r*Math.cos(v.ph), T.z+v.r*Math.sin(v.ph)*Math.cos(v.th)); cam2.lookAt(T); }
+  function draw2(){
+    place(); r2.render(sc, cam2);
+    if(!current) return;
+    const w = st.clientWidth, h = st.clientHeight; holder.updateMatrixWorld();
+    current.groups.forEach((gr,k) => { const pt = new THREE.Vector3(gr.cx, gr.cy, gr.top+3).applyMatrix4(holder.matrixWorld).project(cam2);
+      const el = labels.children[k]; el.style.left = ((pt.x+1)/2*w)+"px"; el.style.top = ((1-pt.y)/2*h)+"px"; el.style.display = pt.z<1 ? "" : "none"; });
+    [[128,-9,0],[265,128,0],[10,265,0]].forEach((q,k) => { const pt = new THREE.Vector3(...q).applyMatrix4(holder.matrixWorld).project(cam2);
+      const el = labels.children[current.groups.length+k]; el.style.left = ((pt.x+1)/2*w)+"px"; el.style.top = ((1-pt.y)/2*h)+"px"; });
+  }
+  function resize2(){ const w=st.clientWidth, h=st.clientHeight; if(!w||!h) return; r2.setSize(w,h,false); cam2.aspect=w/h; cam2.updateProjectionMatrix(); draw2(); }
+  // rotera, flytta (högerklick, scrollknapp eller skift) och zooma
+  const ptr = new Map(); let pan2=false, pinch=0, mid=null;
+  function pan(dx,dy){ const rgt=new THREE.Vector3(), up=new THREE.Vector3(); cam2.updateMatrixWorld(); rgt.setFromMatrixColumn(cam2.matrixWorld,0); up.setFromMatrixColumn(cam2.matrixWorld,1); const k=v.r*0.0011; T.addScaledVector(rgt,-dx*k).addScaledVector(up,dy*k); }
+  const cv = r2.domElement;
+  cv.addEventListener("contextmenu", e=>e.preventDefault());
+  cv.addEventListener("mousedown", e=>{ if(e.button===1) e.preventDefault(); });
+  cv.addEventListener("pointerdown", e=>{ cv.setPointerCapture(e.pointerId); ptr.set(e.pointerId,{x:e.clientX,y:e.clientY}); pan2 = e.button===2||e.button===1||e.shiftKey;
+    if(ptr.size===2){ const [a,b]=[...ptr.values()]; pinch=Math.hypot(a.x-b.x,a.y-b.y); mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2}; } });
+  cv.addEventListener("pointermove", e=>{ if(!ptr.has(e.pointerId)) return; const q=ptr.get(e.pointerId); const dx=e.clientX-q.x, dy=e.clientY-q.y; ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(ptr.size===1){ if(pan2) pan(dx,dy); else { v.th-=dx*0.008; v.ph=Math.min(Math.PI/2-0.02, Math.max(0.05, v.ph-dy*0.008)); } }
+    else if(ptr.size===2){ const [a,b]=[...ptr.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y), m={x:(a.x+b.x)/2,y:(a.y+b.y)/2}; if(pinch) v.r=Math.min(1800,Math.max(80,v.r*pinch/d)); if(mid) pan(m.x-mid.x,m.y-mid.y); pinch=d; mid=m; }
+    draw2(); });
+  const up2 = e=>{ ptr.delete(e.pointerId); pinch=0; mid=null; }; cv.addEventListener("pointerup",up2); cv.addEventListener("pointercancel",up2);
+  cv.addEventListener("wheel", e=>{ e.preventDefault(); v.r=Math.min(1800,Math.max(80,v.r*(1+e.deltaY*0.001))); draw2(); }, {passive:false});
+  const Q = 0.005, cache = {};
+  function b64(sv,Ty){ const bin=atob(sv); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new Ty(u.buffer); }
+  function meshesOf(i){
+    if(cache[i]) return cache[i];
+    cache[i] = PLATES[i].items.map(it => {
+      const q=b64(it.pos, Uint16Array), pos=new Float32Array(q.length); for(let k=0;k<q.length;k++) pos[k]=q[k]*Q;
+      let geo=new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos,3));
+      geo.setIndex(new THREE.BufferAttribute(it.i32 ? b64(it.idx,Uint32Array) : b64(it.idx,Uint16Array),1));
+      geo=geo.toNonIndexed(); geo.computeVertexNormals();
+      const m=new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:it.color, roughness:.75, transparent:true})); m.castShadow=true; m.receiveShadow=true; m.userData.group=it.group; return m; });
+    return cache[i];
+  }
+  const fmtH = h => h < 0.95 ? `ca ${Math.max(10,Math.round(h*6)*10)} min` : `ca ${String(Math.round(h*2)/2).replace(".",",")} h`;
+  const box = document.getElementById("plates"), info = document.getElementById("pinfo");
+  let lastPhase = null;
+  // vilka plattor som är utskrivna: förvalt från filen, och det du själv bockar av sparas i webbläsaren
+  const KEY = "lennart-utskrivna-plattor", keyOf = p => p.groups.map(g=>g.g).sort().join("+");
+  let marks = {}; try { marks = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch(e) { marks = {}; }
+  const isDone = p => (keyOf(p) in marks) ? marks[keyOf(p)] : !!p.printed;
+  function setDone(p, v){ marks[keyOf(p)] = v; try { localStorage.setItem(KEY, JSON.stringify(marks)); } catch(e) {} }
+  function paintButtons(){ box.querySelectorAll("button").forEach(b => { const p = PLATES[+b.dataset.i], d = isDone(p);
+    b.classList.toggle("done", d); b.textContent = `${d ? "✓ " : ""}Platta ${+b.dataset.i+1}${p.material==="TPU" ? " · TPU" : ""}`; b.setAttribute("aria-label", b.textContent + (d ? ", utskriven" : "")); }); }
+  PLATES.forEach((p,i) => {
+    if(p.phase!==lastPhase){ const h=document.createElement("div"); h.className="ph"; h.textContent=p.phase; box.appendChild(h); lastPhase=p.phase; }
+    const b=document.createElement("button"); b.type="button"; b.textContent=`Platta ${i+1}${p.material==="TPU"?" · TPU":""}`; b.dataset.i=i; b.setAttribute("aria-pressed","false");
+    b.addEventListener("click",()=>show(i)); box.appendChild(b);
+  });
+  paintButtons();
+  const total = PLATES.reduce((a,p)=>a+p.hours,0);
+  function highlight(){ holder.children.forEach(m => { const dim = picked && m.userData.group!==picked; m.material.opacity = dim ? 0.15 : 1; m.material.depthWrite = !dim; m.castShadow = !dim; });
+    info.querySelectorAll("li").forEach(li => li.setAttribute("aria-pressed", String(li.dataset.g===picked))); draw2(); }
+  function show(i){
+    current = PLATES[i]; picked = null;
+    holder.clear(); meshesOf(i).forEach(m=>holder.add(m));
+    labels.innerHTML = current.groups.map(gr=>`<span class="plabel">${gr.name}</span>`).join("") + `<span class="plabel dim">256 mm</span><span class="plabel dim">256 mm</span><span class="plabel dim">20,5 mm: bara vänster munstycke</span>`;
+    box.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", String(+b.dataset.i===i)));
+    const rows = current.groups.map(gr => `<li data-g="${gr.g}" tabindex="0" role="button" aria-pressed="false"><span>${gr.colors.map(c=>`<span class="sw" style="background:${c}"></span>`).join("")}</span><span><b>${gr.name}</b>${gr.how}<small>${fmtH(gr.hours)} · ${gr.files.join(", ")}</small></span></li>`).join("");
+    const done = isDone(current), left = PLATES.reduce((a,p)=>a+(isDone(p)?0:p.hours),0), nDone = PLATES.filter(isDone).length;
+    info.classList.toggle("done", done);
+    info.innerHTML = `<h3>Platta ${i+1} av ${PLATES.length}${done ? ' <span class="pdone">Utskriven</span>' : ''}</h3><p style="margin:0;color:var(--ink-2)">${current.phase} · ${current.material}</p>
+      <p class="ptime">${fmtH(current.hours)}<small>uppskattad tid för plattan · ${nDone} av ${PLATES.length} plattor utskrivna, ca ${Math.round(left)} h kvar av ${Math.round(total)} h</small></p>
+      <button type="button" class="pmark">${done ? "Ångra: inte utskriven" : "Markera som utskriven"}</button>
+      <p style="margin:0 0 .4rem;color:var(--ink-2);font-size:.9rem">Klicka på en del för att lyfta fram den.</p><ul>${rows}</ul>`;
+    info.querySelector(".pmark").addEventListener("click", () => { setDone(current, !isDone(current)); paintButtons(); show(i); });
+    info.querySelectorAll("li").forEach(li => { const pick = () => { picked = picked===li.dataset.g ? null : li.dataset.g; highlight(); };
+      li.addEventListener("click", pick); li.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(); } }); });
+    T.set(0, Math.min(110, current.height*0.42), 10); v.r = Math.max(600, 470 + current.height*2.0); v.th = -0.5; v.ph = current.height > 120 ? 1.05 : 0.85;
+    highlight();
+  }
+  plateView = {resize: resize2};
+  new ResizeObserver(resize2).observe(st);
+  resize2(); show(0);
+}
+</script>
+</body>
+</html>
