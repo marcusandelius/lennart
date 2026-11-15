@@ -1,0 +1,20 @@
+# Systemd-användartjänst för Lennart på Raspberry Pi.
+# Installeras automatiskt av scripts/pi-deploy.sh till ~/.config/systemd/user/.
+#
+# %h = användarens hemmapp. Tjänsten körs som ditt eget konto, inte som root.
+
+[Unit]
+Description=Lennart (tävlingsbidrag, Raspberry Pi-delen)
+# Appen ska själv klara att nätet (wifi/4G) saknas en stund och försöka igen.
+
+[Service]
+Type=simple
+WorkingDirectory=%h/lennart-app
+EnvironmentFile=%h/.config/lennart/.env
+# start.sh ligger i pi/ i repot och startar själva appen [osäkert: fastställs när koden flyttats in].
+ExecStart=/usr/bin/env bash %h/lennart-app/start.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

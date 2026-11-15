@@ -1,0 +1,65 @@
+# Deploy vid push till main – och ALDRIG annars.
+#
+# Säkerhet (repot är publikt och Pi:n kör en self-hosted runner):
+# - Endast `push` till `main` startar flödet. Ingen pull_request, ingen
+#   pull_request_target, ingen workflow_dispatch. Utomstående kan inte pusha
+#   till main, och kan därför inte få kod att köras på Pi:n.
+# - Varje jobb kontrollerar dessutom att det körs i originalrepot och inte i en fork.
+# - GITHUB_TOKEN får bara läsrätt.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Två pushar tätt efter varandra: vänta in den första i stället för att köra parallellt.
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  coolify:
+    name: Webbdelen → Coolify
+    if: github.repository == 'marcusandelius/lennart'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Be Coolify bygga och starta om appen
+        env:
+          COOLIFY_URL: ${{ secrets.COOLIFY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_APP_UUID: ${{ secrets.COOLIFY_APP_UUID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${COOLIFY_URL}" ] || [ -z "${COOLIFY_TOKEN}" ] || [ -z "${COOLIFY_APP_UUID}" ]; then
+            echo "::warning::Coolify-secrets saknas ännu – hoppar över deploy av webbdelen."
+            exit 0
+          fi
+          # Coolifys API: GET /api/v1/deploy?uuid=<app-uuid> med Bearer-token.
+          # --fail-with-body gör att jobbet blir rött om Coolify svarar med fel.
+          curl --silent --show-error --fail-with-body \
+            --max-time 60 \
+            -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+            "${COOLIFY_URL%/}/api/v1/deploy?uuid=${COOLIFY_APP_UUID}&force=false"
+          echo
+          echo "Coolify har tagit emot deploy-beställningen."
+
+  pi:
+    name: Raspberry Pi → systemd
+    if: github.repository == 'marcusandelius/lennart'
+    # Etiketten "pi" sätts när runnern registreras på Pi:n (docs/SETUP-PI.md).
+    runs-on: [self-hosted, pi]
+    timeout-minutes: 20
+    steps:
+      - name: Hämta koden
+        uses: actions/checkout@v4
+        with:
+          # Spara inte GITHUB_TOKEN i .git/config på Pi:n.
+          persist-credentials: false
+
+      - name: Installera och starta om tjänsten
+        run: bash scripts/pi-deploy.sh
