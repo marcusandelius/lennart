@@ -1,20 +1,22 @@
 """Lennarts matstation – programmet på Raspberry Pi.
 
-Visar kamerans bild live på 2"-skärmen, rapporterar status till lennart.cam
-och skickar livebild till lennart.cam när någon tittar där. Igenkänning,
-servon och lucka läggs till senare.
+Visar kamerans bild live på 2"-skärmen, rapporterar status till lennart.cam,
+skickar livebild när någon tittar där och tar emot inställningar och
+servokommandon från adminvyn. Igenkänningen läggs till senare.
 
 Inställningar läses från miljön (~/.config/lennart/.env via systemd):
   LENNART_SERVER_URL, LENNART_DEVICE_TOKEN  – för heartbeat
-  CAMERA_FLIP=1                              – vänd bilden 180° om kameran sitter upp och ner
+  CAMERA_FLIP=1                              – vänd bilden 180° tills adminvyn säger något annat
   DISPLAY_FPS                                – bilder per sekund på skärmen (standard 10)
   LCD_*                                      – se display.py
 """
 
 import os
+import math
 import signal
 import sys
 import textwrap
+import threading
 import time
 
 import numpy as np
@@ -23,6 +25,7 @@ from PIL import Image, ImageDraw, ImageFont
 from display import HEIGHT, WIDTH, Display
 from heartbeat import Heartbeat
 from live import LiveSender
+from servo import ServoController
 
 CAMERA_RETRY_S = 30
 # Kameran levererar 1280 × 720 (16:9). Livebilden skalas ner till vald upplösning,
@@ -50,15 +53,13 @@ FONT_BIG = load_font(26)
 
 
 def start_camera():
-    """Startar Camera Module 3 med en bildström i 1280 × 720."""
-    from libcamera import Transform, controls
+    """Startar Camera Module 3 med en bildström i 1280 × 720. Rotationen görs i mjukvaran."""
+    from libcamera import controls
     from picamera2 import Picamera2
 
-    flip = os.environ.get("CAMERA_FLIP", "0") == "1"
     cam = Picamera2()
     config = cam.create_video_configuration(
         main={"size": CAMERA_SIZE, "format": "RGB888"},
-        transform=Transform(hflip=flip, vflip=flip),
         buffer_count=4,
     )
     cam.configure(config)
@@ -79,12 +80,20 @@ def message_screen(title: str, detail: str = "") -> np.ndarray:
     return np.asarray(img)
 
 
+def rotate(rgb: np.ndarray, degrees: int) -> np.ndarray:
+    """Vrid bilden medsols i steg om 90°. np.rot90 vrider motsols, därav minustecknet."""
+    turns = (degrees // 90) % 4
+    return np.ascontiguousarray(np.rot90(rgb, -turns)) if turns else rgb
+
+
 def for_display(rgb: np.ndarray) -> np.ndarray:
-    """Skala ner kamerabilden till skärmen: var fjärde bildpunkt, centrerad med svarta kanter."""
-    small = rgb[::4, ::4][:HEIGHT, :WIDTH]
+    """Skala ner kamerabilden så att den ryms på skärmen, centrerad med svarta kanter."""
+    h, w = rgb.shape[:2]
+    step = max(math.ceil(h / HEIGHT), math.ceil(w / WIDTH))  # 4 för liggande bild, 6 för stående
+    small = rgb[::step, ::step][:HEIGHT, :WIDTH]
     canvas = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
-    top = (HEIGHT - small.shape[0]) // 2
-    canvas[top:top + small.shape[0], :small.shape[1]] = small
+    top, left = (HEIGHT - small.shape[0]) // 2, (WIDTH - small.shape[1]) // 2
+    canvas[top:top + small.shape[0], left:left + small.shape[1]] = small
     return canvas
 
 
@@ -127,6 +136,12 @@ def main() -> int:
         print(f"Kameran gick inte att starta: {camera_error}", flush=True)
     fps = 0.0
 
+    # Inställningar från adminvyn. CAMERA_FLIP gäller bara tills servern har svarat.
+    device = {"camera_rotation": 180 if os.environ.get("CAMERA_FLIP", "0") == "1" else 0}
+
+    # Efter varje servokommando skickas en rapport direkt, så att adminvyn ser resultatet.
+    servo = ServoController(on_change=lambda: threading.Thread(target=heartbeat.send_once, daemon=True).start())
+
     def status() -> dict:
         # Felmeddelandet skickas med, så att fel kan felsökas från lennart.cam utan att logga in på Pi:n.
         problems = []
@@ -134,7 +149,8 @@ def main() -> int:
             problems.append(f"Kamera: {camera_error}")
         if display is None and display_error:
             problems.append(f"Skärm: {display_error}")
-        report = {"camera_ok": camera is not None, "display_ok": display is not None, "fps": round(fps, 1)}
+        report = {"camera_ok": camera is not None, "display_ok": display is not None, "fps": round(fps, 1),
+                  "camera_rotation": device["camera_rotation"], "servo_ok": servo.ok, "servo_info": servo.info()[:200]}
         if problems:
             report["message"] = " · ".join(problems)[:200]
         return report
@@ -144,7 +160,18 @@ def main() -> int:
 
     # Senaste kamerabilden delas med livebilden, som skickar den när någon tittar.
     latest = {"rgb": None}
-    live = LiveSender(lambda: latest["rgb"])
+
+    def on_config(config: dict) -> None:
+        device.update(config)
+        servo.config.update({k: v for k, v in config.items() if k in servo.config})
+        print(f"Nya inställningar från lennart.cam: {config}", flush=True)
+
+    def on_commands(commands: list) -> None:
+        for cmd in commands:
+            print(f"Kommando från lennart.cam: {cmd}", flush=True)
+            servo.submit(cmd)
+
+    live = LiveSender(lambda: latest["rgb"], on_config, on_commands)
     live.start()
 
     frames, fps_since = 0, time.monotonic()
@@ -175,6 +202,7 @@ def main() -> int:
             camera = None
             continue
         rgb = np.ascontiguousarray(frame[..., ::-1])  # picamera2 levererar "RGB888" i ordningen blå, grön, röd
+        rgb = rotate(rgb, device["camera_rotation"])
         latest["rgb"] = rgb
 
         if display is not None:
