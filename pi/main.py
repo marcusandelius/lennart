@@ -10,6 +10,7 @@ Inställningar läses från miljön (~/.config/lennart/.env via systemd):
   LCD_*                                      – se display.py
 """
 
+import os
 import signal
 import sys
 import textwrap
@@ -22,6 +23,9 @@ from display import HEIGHT, WIDTH, Display
 from heartbeat import Heartbeat
 
 CAMERA_RETRY_S = 30
+# Skärmen är en förhandsvisning, så 10 bilder per sekund räcker. Färre bilder ger
+# mindre processorlast och värme. Kan ändras med DISPLAY_FPS i .env.
+DISPLAY_FPS = float(os.environ.get("DISPLAY_FPS", "10"))
 
 GREEN = (60, 200, 90)
 RED = (230, 70, 60)
@@ -156,6 +160,11 @@ def main() -> int:
             time.sleep(0.5)
 
         display.show(add_status_bar(np.ascontiguousarray(rgb), heartbeat.last_ok, fps))
+
+        # Vänta in nästa bild, så att skärmen inte uppdateras oftare än DISPLAY_FPS.
+        spare = 1 / DISPLAY_FPS - (time.monotonic() - now)
+        if spare > 0:
+            time.sleep(spare)
 
         frames += 1
         if now - fps_since >= 5:
