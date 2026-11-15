@@ -35,9 +35,18 @@ if [ ! -f "${ENV_FILE}" ]; then
   exit 1
 fi
 
+# Paketen installeras en gång för hand med apt (docs/SETUP-PI.md, steg 4).
+# Kontrollera dem här, så att ett tydligt fel syns i GitHub i stället för en krasch.
+if ! /usr/bin/python3 -c "import picamera2, spidev, gpiozero, PIL, numpy" 2>/dev/null; then
+  echo "::error::Python-paket saknas på Pi:n. Kör: sudo apt install -y python3-picamera2 python3-spidev python3-gpiozero python3-lgpio python3-pil python3-numpy --no-install-recommends"
+  exit 1
+fi
+
 echo "→ Kopierar kod till ${APP_DIR}"
 mkdir -p "${APP_DIR}"
 rsync -a --delete --exclude '.venv/' "${SRC_DIR}/" "${APP_DIR}/"
+# Vilken commit som körs, så att statussidan på lennart.cam kan visa det.
+echo "${GITHUB_SHA:-okänd}" > "${APP_DIR}/VERSION"
 
 if [ -f "${APP_DIR}/requirements.txt" ]; then
   echo "→ Installerar Python-beroenden"
