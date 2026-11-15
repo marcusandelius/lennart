@@ -1,15 +1,30 @@
 # Fanns före tävlingen (före 16 okt 2026)
 
-Tävlingen startade 16 oktober 2026. Allt nedan fanns redan innan dess och är alltså inte gjort under tävlingsperioden. Allt som inte står här är gjort under tävlingen.
+Tävlingen startade 16 oktober 2026. Allt nedan fanns redan innan dess och är alltså inte gjort under tävlingsperioden. Allt som inte står här är gjort under tävlingen, med AI, och redovisas i [TOKENS.md](TOKENS.md) och [docs/historik/](docs/historik/).
 
-| Vad | Typ | Datum (ungefär) | Var det kommer från | Används i bidraget? |
-|---|---|---|---|---|
-| *Fylls i från HANDOFF-filerna i `docs/historik/`* | | | | |
+**Inget av arbetet med Lennarts matstation gjordes före 16 oktober.** Chattens första meddelande är daterat 2026-10-27 kl. 00.06 (källa: [HANDOFF](docs/historik/HANDOFF-lennarts-matstation-projekt.md), avsnitt 6).
 
-**Typer:** kod · idé/koncept · design · 3D-modell · bild · hårdvara · research · annat.
+## Idé och bakgrund
 
-## Hårdvara som ägdes före tävlingen
+| Vad | Datum (ungefär) | Källa | Används i bidraget? |
+|---|---|---|---|
+| Ekorren Lennart besöker uteplatsen nästan dagligen, och fåglar stjäl hans mat | Sedan början av sommaren 2026 | HANDOFF, avsnitt 1 och 6 | Ja, det är problemet bidraget löser |
+| Ett separat mobilspel med ekorren Lennart och en slangbella (sidoprojekt) | Promptdokument i Google Drive daterade 2026-07-27 och 2026-08-05 | HANDOFF, avsnitt 6, och dokumentens datum i Drive | **Nej**, har inte använts i bygget |
 
-| Hårdvara | Köpt (ungefär) |
-|---|---|
-| Raspberry Pi 5 (8 GB) | [osäkert] |
+## Hårdvara och material som ägdes före tävlingen
+
+| Vad | Köpt | Källa |
+|---|---|---|
+| Raspberry Pi 5, 8 GB | Före tävlingen, exakt datum [osäkert] | HANDOFF, avsnitt 3.1. Minnesstorleken enligt Marcus. |
+| Lödpenna med spetssats för gänginsatser | Före tävlingen, datum [osäkert] | HANDOFF, avsnitt 3.1 och 6 |
+| Oanvänt data-SIM | [osäkert] | HANDOFF, avsnitt 3.1 |
+| Ruthex-insatser (cirka 30 M3 och 6 M4), silikagel, Wago 221, kopplingskablar, kabelskor och krympslang | [osäkert om före 16 okt] | HANDOFF, avsnitt 3.1: "När de skaffades är [osäkert]." |
+
+## Osäkert om det fanns före tävlingen
+
+| Vad | Vad vi vet | Källa |
+|---|---|---|
+| Bambu Lab X2D Combo (3D-skrivare) | Kallas "den nya skrivaren" 2026-10-28. Första utskriften för bygget 2026-11-13. Inköpsdatum [osäkert]. | HANDOFF, avsnitt 2 och 3.2 |
+| Filament: Fiberon ASA-CF08 Dark Red, Bambu ASA röd och vit, PrimaSelect ASA grå och svart, TPU 95A | Listas som "Finns redan" i projektdokumentet 2026-11-11. Inköpsdatum [osäkert]. | HANDOFF, bilagan |
+
+Marcus fyller i datumen som saknas.
