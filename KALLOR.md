@@ -14,6 +14,9 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | ChatGPT (OpenAI) | Marcus genererade logotypen "Lennart.cam". Vilken bildmodell [osäkert]. | 2026-11-15 [verifiera] | https://chatgpt.com |
 | Kopplingar i claude.ai: Notion och Gmail | Notion: tillfällig sida för att föra över demobilderna | 2026-10-27 | – |
 | Bildigenkänning | *Beslutas, se [docs/beslut/bildigenkanning.md](docs/beslut/bildigenkanning.md)* | – | – |
+| Claude Code (Anthropic), lokal session i Claude-appen på Windows | Hela trailern i `trailer/`: storyboard, 3D-scener i Blender via Python-skript, bearbetning av rösten, ljudmix, ljudeffekter, klippning och övergångar. Modellerna var Claude Fable 5.2 och Claude Opus 5.5. | 2026-11-14–11-16 | https://claude.ai/code |
+| Whisper medium (OpenAI), i ggml-format via ffmpegs whisper-filter, lokalt på datorn | Tidsstämplad utskrift av Marcus röstinspelning, för att lägga replikerna på rätt klipp. Rösten lämnade aldrig datorn. | 2026-11-15 [verifiera] | https://github.com/ggml-org/whisper.cpp |
+| Suno | Marcus gjorde musiken "System Online" till trailern | 2026-11-15 [verifiera] | https://suno.com |
 
 ## Bibliotek och program
 
@@ -40,6 +43,9 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | gpiozero | BSD-3-Clause [verifiera] | Installerad. Provades för skärmens styrpinnar men valde fel GPIO-krets på Pi 5, så den används inte för skärmen. | https://gpiozero.readthedocs.io |
 | lgpio | Unlicense [verifiera] | Styrpinnarna till skärmen (DC, RST, BL) på Pi 5 | https://abyz.me.uk/lg/py_lgpio.html |
 | smbus (python3-smbus, från i2c-tools) eller smbus2 | GPL-2.0 resp. MIT [verifiera] | I2C till servokortet PCA9685 | https://i2c.wiki.kernel.org/index.php/I2C_Tools |
+| Blender 5.2 | GPL-2.0-or-later [verifiera] | Alla 3D-scener i trailern, renderade med Cycles och EEVEE via Python-skript | https://www.blender.org |
+| FFmpeg 9.0 (gyan.dev, full build) | GPL [verifiera] | Klippning, röstkedjan, ljudmix och Whisper-utskriften i trailern | https://ffmpeg.org |
+| Node.js | MIT [verifiera] | Byggskripten för ljudmix och arbetskopia i trailern | https://nodejs.org |
 
 ## Typsnitt
 
@@ -48,6 +54,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Bricolage Grotesque | SIL OFL 1.1 (licenstexten ligger i `server/static/fonts/`) | Webbsidorna. På lennart.cam ligger typsnittsfilen (latin) på servern, hämtad från Google Fonts 2026-11-15. | https://github.com/ateliertriay/bricolage |
 | Special Elite (Astigmatic) | Apache-2.0 (licenstexten ligger i `server/static/fonts/`) | Stämplarna på webbsidorna. På lennart.cam ligger typsnittsfilen (latin) på servern, hämtad från Google Fonts 2026-11-15. | https://fonts.google.com/specimen/Special+Elite |
 | DejaVu Sans | Bitstream Vera-licens / fri [verifiera] | Text i 3D-modellen och på skärmen i huset | https://dejavu-fonts.github.io |
+| Consolas, Segoe UI och Georgia (Microsoft) | Följer med Windows, får inte spridas [verifiera]. Ligger därför **inte** i repot, utan läses från datorns typsnittsmapp. | Texter i trailerns 3D-scener: etiketter, Claude-fönstret, skyltar | https://learn.microsoft.com/typography/fonts/windows_11_font_list |
 
 ## Verktyg och tjänster för drift
 
@@ -88,6 +95,15 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Logotypen "Lennart.cam" (pixelhus med ekorre och ACCESS GRANTED) | `server/static/logo.webp` | Genererad av Marcus med ChatGPT (OpenAI), 2026-11-15 [verifiera datum]. Bakgrunden gjordes genomskinlig och bilden beskars med `tools/logo_transparent.py`. |
 | 12 demobilder till besöksliggaren | `server/static/demo/` | AI-genererade med Higgsfield (se ovan), tagna ur artefakten https://claude.ai/artifact/3Pf1zaveQGaKdFKwVuLrTc. Inga personer syns. |
 
+**I trailern (`trailer/`):**
+
+| Resurs | Var | Ursprung |
+|---|---|---|
+| Ljudeffekter: Kenney Interface Sounds och Impact Sounds | `trailer/film/ljud/kenney/` | Kenney, CC0 1.0 (licenstexten ligger i mapparna). Hämtade 2026-11-15. https://kenney.nl |
+| Musiken "System Online" | `trailer/System Online.mp3` | Gjord av Marcus i Suno. Licens för spridning beror på abonnemanget [verifiera]. |
+| Claude-logotypen i trailerns del 3 | Ritad i `trailer/film/akt_design.py` | Egen tolkning av Anthropics logotyp, ritad i kod. Om logotypen får användas så [verifiera]. |
+| Videoklipp på Lennart | `trailer/PXL_*.mp4`, `trailer/1000007512.mp4`, `trailer/VID-20261114-WA0000~3.mp4` | Marcus mobilklipp. VID-klippet kom via WhatsApp, vem som filmade det [verifiera]. Marcus är den enda personen i bild. |
+
 ## Hjälp från personer och AI-sessioner
 
 | Vem/vad | Vilken hjälp | Datum |
@@ -96,11 +112,12 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Claude Code, molnsession | Repo-struktur, deploy-uppsättning, Pi-guide, flytt av kod och dokument, beslutsunderlag för bildigenkänning | 2026-11-15 |
 | Claude Code, molnsession | Valruta, demosida och grönt tema på lennart.cam, ny text på demosidan | 2026-11-15 |
 | Behörig elektriker | *Planerat: elsäkerheten för utomhusström ska kontrolleras av en behörig person* | [osäkert] |
+| Claude Code, lokal session i Claude-appen | Trailern: storyboard, 3D-scener, rösten, ljudmix, effekter, övergångar, flytt av filmprojektet till repot | 2026-11-14–11-16 |
 
 ## Samtycke för bilder med personer
 
 | Bild/fil | Person (förnamn eller beskrivning) | Samtycke givet (datum, hur) |
 |---|---|---|
-| *Inga ännu* | | |
+| Trailerns del 1 (klipp 1.1, 1.2 och 1.4) och videorna `trailer/PXL_*.mp4`, `trailer/1000007512.mp4`, `trailer/VID-20261114-WA0000~3.mp4` | Marcus själv, den enda personen i bild | Ja, 2026-11-16, skriftligt i chatten med Claude Code |
 
 Kontaktuppgifter till personerna skrivs **inte** här, eftersom repot är publikt.

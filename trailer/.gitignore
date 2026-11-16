@@ -1,0 +1,14 @@
+# Aterskapas av skripten och ska inte versionshanteras
+film/*_frames/
+film/titel_frames/
+film/utskrift_frames/
+film/verktyg/ak_tmp/
+film/ljud/*.wav
+film/ljud/handelser.json
+film/ljud/fx/
+film/ljud/modell/
+film/ljud/kenney/*.zip
+film/ljud/*prov*
+film/ljud/Tallriksnurr - alternativ/
+# Egna typsnitt (Microsofts typsnitt far inte spridas)
+film/typsnitt/

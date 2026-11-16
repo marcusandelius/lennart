@@ -1,0 +1,350 @@
+[
+ {
+  "name": "kropp",
+  "group": "Kropp",
+  "color": "#A23A2C",
+  "file": "05_kropp_rod.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "kropp_vit",
+  "group": "Kropp",
+  "color": "#EEEBE3",
+  "file": "05_kropp_vit.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "fonsterrutor",
+  "group": "Kropp",
+  "color": "#5A5E62",
+  "file": "05b_fonsterinsatser_gra.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "solskydd",
+  "group": "Kropp",
+  "color": "#5A5E62",
+  "file": "05c_solskydd_gra.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "solskydd_vit",
+  "group": "Kropp",
+  "color": "#EEEBE3",
+  "file": "05c_solskydd_vit.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "kropp_packning",
+  "group": "Kropp",
+  "color": "#2B2B2B",
+  "file": "05d_kropp_packning_tpu.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "tak_v",
+  "group": "Tak",
+  "color": "#5A5E62",
+  "file": "06_tak_vanster_gra.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "tak_v_vit",
+  "group": "Tak",
+  "color": "#EEEBE3",
+  "file": "06_tak_vanster_vit.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "tak_h",
+  "group": "Tak",
+  "color": "#5A5E62",
+  "file": "06b_tak_hoger_gra.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "tak_h_vit",
+  "group": "Tak",
+  "color": "#EEEBE3",
+  "file": "06b_tak_hoger_vit.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "skorsten",
+  "group": "Tak",
+  "color": "#A23A2C",
+  "file": "06c_skorsten_rod.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "skorsten_krage",
+  "group": "Tak",
+  "color": "#EEEBE3",
+  "file": "06c_skorsten_vit.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "bas",
+  "group": "Bas",
+  "color": "#3B6A2B",
+  "file": "01_bas.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "framgard",
+  "group": "Bas",
+  "color": "#3B6A2B",
+  "file": "01b_framgard.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "framgard_gras",
+  "group": "Bas",
+  "color": "#3B6A2B",
+  "file": "02b_framgard_grasmatta_gron.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "framgard_stenar",
+  "group": "Bas",
+  "color": "#6B6D70",
+  "file": "02b_framgard_stenar.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "framgard_platta",
+  "group": "Bas",
+  "color": "#6B6D70",
+  "file": "03b_framgard_bottenplatta.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "grasmatta",
+  "group": "Bas",
+  "color": "#3B6A2B",
+  "file": "02_grasmatta_gron.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "stenar",
+  "group": "Bas",
+  "color": "#6B6D70",
+  "file": "02_grasmatta_stenar.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "bottenplatta",
+  "group": "Bas",
+  "color": "#6B6D70",
+  "file": "03_bottenplatta.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "fotter",
+  "group": "Bas",
+  "color": "#2B2B2B",
+  "file": "04_fotter_tpu.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "skal",
+  "group": "Skål",
+  "color": "#A23A2C",
+  "file": "07_farstukvist_rod.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "skal_vit",
+  "group": "Skål",
+  "color": "#EEEBE3",
+  "file": "07_farstukvist_vit.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "lucka",
+  "group": "Skål",
+  "color": "#5A5E62",
+  "file": "08_lucka_gra.stl",
+  "pivot_mm": [
+   0,
+   -8,
+   32.2
+  ]
+ },
+ {
+  "name": "lucka_vit",
+  "group": "Skål",
+  "color": "#EEEBE3",
+  "file": "08_lucka_vit.stl",
+  "pivot_mm": [
+   0,
+   -8,
+   32.2
+  ]
+ },
+ {
+  "name": "servokapa",
+  "group": "Skål",
+  "color": "#EEEBE3",
+  "file": "09_stolphatt.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "kamerafaste",
+  "group": "Inredning",
+  "color": "#CDB991",
+  "file": "15_kamerafaste.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "elektroniklada",
+  "group": "Inredning",
+  "color": "#4A5560",
+  "file": "16_elektroniklada.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "elpackning",
+  "group": "Inredning",
+  "color": "#2B2B2B",
+  "file": "17_elektroniklada_packning_tpu.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "monteringsplatta",
+  "group": "Inredning",
+  "color": "#4A5560",
+  "file": "24_monteringsplatta.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "skarmram",
+  "group": "Inredning",
+  "color": "#1A1A1A",
+  "file": "18_skarmram_svart.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "skarmklamma",
+  "group": "Inredning",
+  "color": "#CDB991",
+  "file": "19_skarmklamma.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "blomlador",
+  "group": "Kropp",
+  "color": "#EEEBE3",
+  "file": "21_blomlador_vit.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "blomlador_vaxter",
+  "group": "Kropp",
+  "color": "#3B6A2B",
+  "file": "21_blomlador_gron.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "blomlador_blommor_rod",
+  "group": "Kropp",
+  "color": "#A23A2C",
+  "file": "21b_blomhuvuden_rod.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "blomlador_blommor_vit",
+  "group": "Kropp",
+  "color": "#F4F1EA",
+  "file": "21b_blomhuvuden_vit.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "takrannor",
+  "group": "Tak",
+  "color": "#5A5E62",
+  "file": "22_takrannor_gra.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "stupror",
+  "group": "Kropp",
+  "color": "#5A5E62",
+  "file": "23_stupror_gra.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "stupror_vit",
+  "group": "Kropp",
+  "color": "#EEEBE3",
+  "file": "23_stupror_vit.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "servopackning",
+  "group": "Skål",
+  "color": "#2B2B2B",
+  "file": "09b_stolphatt_packning_tpu.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "takpackning",
+  "group": "Tak",
+  "color": "#2B2B2B",
+  "file": "06d_takpackning_tpu.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "genomforingar",
+  "group": "Inredning",
+  "color": "#2B2B2B",
+  "file": "25_genomforingar_tpu.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "nockkilar",
+  "group": "Tak",
+  "color": "#5A5E62",
+  "file": "06e_nockkilar_gra.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "ellock",
+  "group": "Inredning",
+  "color": "#4A5560",
+  "file": "16b_elektroniklada_lock.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "doserhus",
+  "group": "Inredning",
+  "color": "#D8C59A",
+  "file": "10_doserhus.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "doserhjul",
+  "group": "Inredning",
+  "color": "#C9A86A",
+  "file": "11_doserhjul.stl",
+  "pivot_mm": [
+   0,
+   57,
+   64.3
+  ]
+ },
+ {
+  "name": "notmagasin",
+  "group": "Inredning",
+  "color": "#D8C59A",
+  "file": "14_notmagasin.stl",
+  "pivot_mm": null
+ },
+ {
+  "name": "kropp_sockel",
+  "group": "Kropp",
+  "color": "#8C9094",
+  "file": "05_kropp_sockel_gra.stl",
+  "pivot_mm": null
+ }
+]

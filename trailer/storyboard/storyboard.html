@@ -1,0 +1,585 @@
+<meta charset="utf-8">
+<title>Projekt Lennart – storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: en filmtavla. Mörk biograf-yta, akterna som band, varje klipp = ruta till vänster + klippkort till höger. */
+:root {
+  color-scheme: dark;
+  --bg: #14110f; --surface: #1d1917; --raised: #262120; --line: #352e2b;
+  --fg: #ece7e0; --muted: #a79d94; --faint: #7d746c;
+  --falu: #d0604d; --falu-deep: #a23a2c; --knut: #eeebe3;
+  --granted: #5fe08f; --wait: #f2b93b; --denied: #ff6b5e; --cool: #8fb4e8;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { background: var(--bg); color: var(--fg); font: 15px/1.6 var(--body); padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.02em; }
+h1 { font-size: clamp(34px, 6vw, 64px); line-height: 1.02; font-weight: 700; }
+h2 { font-size: clamp(22px, 3vw, 30px); font-weight: 600; }
+h3 { font-size: 18px; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 600 12px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--wait); }
+.muted { color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 18px; }
+.lead { font-size: 18px; color: var(--fg); max-width: 62ch; }
+
+header.top { display: flex; flex-direction: column; gap: 20px; border-bottom: 1px solid var(--line); padding-bottom: 32px; }
+header.top h1 span { color: var(--falu); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 28px; font: 13px/1.5 var(--mono); color: var(--muted); }
+.facts b { color: var(--fg); font-weight: 600; }
+.note { background: var(--surface); border-left: 3px solid var(--wait); padding: 14px 18px; border-radius: 0 6px 6px 0; color: var(--muted); max-width: 80ch; }
+.note b { color: var(--fg); }
+
+/* tempo */
+.tempo { display: flex; gap: 3px; height: 54px; }
+.tempo div { min-width: 0; padding: 8px 10px; font: 600 11px/1.3 var(--mono); color: #14110f; border-radius: 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tempo small { display: block; font-weight: 400; opacity: .75; }
+.acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.acts > div { background: var(--surface); border-radius: 6px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+.acts .tc { font: 12px var(--mono); color: var(--faint); }
+.acts p { font-size: 14px; color: var(--muted); }
+
+/* klipp */
+.act-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; border-top: 1px solid var(--line); padding-top: 22px; margin-top: 14px; }
+.act-head .tc { font: 13px var(--mono); color: var(--faint); }
+.clip { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 22px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.clip:last-child { border-bottom: 0; }
+.shot { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.frame { position: relative; aspect-ratio: 16 / 9; max-width: 100%; background: #000; border-radius: 4px; overflow: hidden; }
+.frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.frame .no { position: absolute; left: 8px; top: 8px; background: rgba(20,17,15,.82); color: var(--fg); font: 600 12px/1 var(--mono); padding: 6px 8px; border-radius: 3px; }
+.frame .src { position: absolute; right: 8px; bottom: 8px; background: rgba(20,17,15,.82); font: 600 10px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 5px 7px; border-radius: 3px; }
+.src.cg { color: var(--cool); } .src.real { color: var(--granted); } .src.mix { color: var(--wait); }
+.titlecard { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; height: 100%; font-family: var(--display); }
+.titlecard b { font-size: clamp(20px, 3.2vw, 34px); letter-spacing: .16em; color: var(--knut); }
+.titlecard i { font: 12px var(--mono); color: var(--wait); font-style: normal; }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 12px var(--mono); color: var(--faint); }
+.meta b { color: var(--wait); font-weight: 600; }
+.vo { font-size: 15px; color: var(--knut); border-left: 2px solid var(--falu); padding-left: 12px; }
+.vo.none { color: var(--faint); border-color: var(--line); }
+dl { margin: 0; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 7px 14px; font-size: 14px; min-width: 0; align-content: start; }
+dt { font: 600 11px/1.9 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+dd { margin: 0; color: var(--muted); min-width: 0; }
+dd.tr { color: var(--granted); } dd.pur { color: var(--fg); }
+
+.frame video { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
+.frame .film { position: absolute; left: 52px; top: 8px; padding-block: 7px !important; background: var(--granted); color: #14110f; font: 600 10px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 5px 7px; border-radius: 3px; pointer-events: none; }
+.frame:has(video) .src { bottom: auto; top: 8px; }
+.filmnote { font: 12px var(--mono); color: var(--faint); }
+.clip { scroll-margin-block: 90px; transition: background .25s; margin-inline: -12px; padding-inline: 12px; border-radius: 6px; }
+.clip.now { background: var(--surface); box-shadow: inset 3px 0 0 var(--wait); }
+.side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.adjust { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+button { font: 600 13px/1 var(--body); color: var(--fg); background: var(--raised); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; cursor: pointer; }
+button:hover { border-color: var(--faint); }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--wait); outline-offset: 2px; }
+button.primary { background: var(--wait); border-color: var(--wait); color: #14110f; }
+button.quiet { background: none; border-color: transparent; color: var(--muted); }
+.mynote { align-self: stretch; background: var(--raised); border-left: 3px solid var(--wait); border-radius: 0 6px 6px 0; padding: 10px 14px; font-size: 14px; color: var(--knut); white-space: pre-wrap; overflow-wrap: anywhere; }
+.mynote small { display: block; font: 600 11px/1.6 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--wait); }
+dialog { background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; padding: 24px; width: min(560px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(8, 6, 5, .72); }
+dialog form { display: flex; flex-direction: column; gap: 14px; }
+dialog textarea { width: 100%; min-height: 150px; resize: vertical; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 12px; font: 15px/1.5 var(--body); }
+dialog .row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+dialog .row .quiet { margin-right: auto; }
+.player { position: sticky; bottom: 12px; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: rgba(38, 33, 32, .96); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+.player .what { flex: 1 1 180px; min-width: 0; font: 13px var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player .what b { color: var(--fg); }
+.player .bar { flex: 1 0 100%; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.player .bar i { display: block; height: 100%; width: 0; background: var(--wait); }
+
+.work { background: var(--surface); border-radius: 10px; padding: clamp(14px, 2.5vw, 24px); gap: 14px; }
+.work video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 6px; display: block; }
+.chapters { display: flex; flex-wrap: wrap; gap: 6px; }
+.chapters button { font: 600 12px/1 var(--mono); padding: 9px 11px; }
+.chapters button.on { background: var(--wait); border-color: var(--wait); color: #14110f; }
+.chapters button small { font-weight: 400; opacity: .7; margin-left: 6px; }
+.nowrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.nowrow .what { flex: 1 1 220px; font: 14px var(--mono); color: var(--muted); }
+.nowrow .what b { color: var(--fg); }
+.nowrow .still { color: var(--wait); }
+
+/* listor och tabeller */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.cards > div { background: var(--surface); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.cards p, .cards li { font-size: 14px; color: var(--muted); }
+.cards img { border-radius: 4px; aspect-ratio: 16/9; object-fit: cover; width: 100%; }
+ul, ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 76ch; }
+li { color: var(--muted); } li b { color: var(--fg); font-weight: 600; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14px; }
+th { text-align: left; font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); color: var(--muted); vertical-align: top; }
+td:first-child { color: var(--fg); white-space: nowrap; font-family: var(--mono); font-size: 13px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.sw { display: flex; flex-direction: column; gap: 6px; font: 11px var(--mono); color: var(--muted); width: 104px; }
+.sw i { display: block; height: 52px; border-radius: 4px; border: 1px solid var(--line); }
+.script { background: var(--surface); border-radius: 6px; padding: 26px clamp(18px, 4vw, 40px); display: flex; flex-direction: column; gap: 14px; }
+.script p { font-size: 17px; line-height: 1.65; color: var(--knut); max-width: 60ch; }
+.script .cue { font: 12px var(--mono); color: var(--faint); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px; }
+.two > div { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.verify { color: var(--wait); font-family: var(--mono); font-size: .92em; }
+@media (max-width: 760px) { .clip { grid-template-columns: minmax(0, 1fr); } dl { grid-template-columns: 84px minmax(0, 1fr); } .tempo div { padding: 8px 5px; font-size: 10px; } }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">Storyboard v12 · övergångar mellan scenerna</div>
+  <h1>Projekt <span>Lennart</span></h1>
+  <p class="lead">En helt orimlig mängd teknik, redovisad med fullt allvar, för att en ekorre ska få äta sin nöt i fred.</p>
+  <div class="facts">
+    <span><b>ca 3:00</b></span><span><b>30</b> klipp</span><span>kallöppning + <b>7</b> delar</span><span><b>16:9</b>, 25 fps</span><span>röst: <b>din egen</b>, spelas in när manuset är låst</span><span>modell <b>v7</b>, 48 delar</span>
+  </div>
+  <div class="note"><b>Så använder du tavlan.</b> Rutor märkta <b>Film</b> går att spela direkt, och raden under säger vilken version det är. Övriga rutor är stillbilder ur modellen eller platshållare för film som spelas in när huset är utskrivet. <b>Arbetskopian</b> överst är hela filmen i ett svep. <b>Spela alla</b> längst ner i tavlan kör klippen ett i taget och följer med i sidan. Med <b>Justera scen</b> skriver du vad du vill ändra i ett klipp. Noterna sparas här och jag läser dem när du säger till.</div>
+</header>
+
+<section class="work" id="work">
+  <div class="eyebrow">Arbetskopia</div>
+  <h2>Allt som är producerat, i ett svep</h2>
+  <p class="muted">Hela filmen i ordning som en enda film. Klipp som inte är producerade än visas som gråtonade stillbilder i sin planerade längd, med gul text. Numret nere till vänster är klippets nummer i tavlan.</p>
+  <video id="wk" src="arbetskopia.mp4" controls playsinline preload="metadata"></video>
+  <div class="nowrow"><span class="what" id="wknow">Tryck på spela, eller hoppa till en del.</span><button type="button" id="wkadj">Justera den här scenen</button><button type="button" id="wkgo">Visa klippet i tavlan</button></div>
+  <div class="chapters" id="wkch"></div>
+</section>
+
+<section>
+  <div class="eyebrow">A · Öppningen</div>
+  <h2>Börja i slutet, och avbryt precis före svaret</h2>
+  <div class="two">
+    <div>
+      <p>Filmen börjar tätt inpå en liten skärm där det står <span class="verify">VÄNTAR PÅ BESÖKARE…</span>, medan rösten lugnt presenterar "ett helt vanligt autonomt säkerhetssystem".</p>
+      <p>Sedan får varje fackord en egen bild. Kameran åker in i linsen bakom gluggen för åtkomstkontrollen. För precisionsdoseringen syns bara mekaniken, i ett hus av mörkt glas: luckan öppnas och hjulet vrider fram en hasselnöt. De fyrtioåtta delarna ligger utlagda på ett golv, omonterade. Huset som helhet visas aldrig. Det avslöjas först när Claude har ritat det i del 3.</p>
+      <p>Tillbaka till skärmen, som nu visar <span class="verify">VERIFIERAR…</span>. Två sekunders tystnad. Klipp till titeln: det vaktar nötter.</p>
+      <p class="muted">Orden är dina egna ur den första inspelningen. Öppningen är 19,5 sekunder med den genererade rösten. Frågan den lämnar obesvarad, vem som stod framför kameran, får sitt svar i akt 6.</p>
+    </div>
+    <div class="cards" style="grid-template-columns: 1fr 1fr;">
+      <div style="padding:10px"><img src="frames/o2.jpg" alt="Närbild på den runda gluggen i gaveln"></div>
+      <div style="padding:10px"><img src="frames/o3.jpg" alt="Närbild på doseringshjulet"></div>
+      
+      <div style="padding:10px"><img src="frames/o1.jpg" alt="Skärmen i mörker med texten Väntar på besökare"></div>
+      <div style="padding:10px"><img src="frames/o5.jpg" alt="Skärmen i närbild med texten Verifierar"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">C · Berättarupplägg</div>
+  <h2>Sex akter, ett tempo som stiger och en ram som sluts</h2>
+  <p>Ordningen är ändrad så att tittaren får veta hur matstationen är tänkt att fungera innan bygget börjar. Efter historien om Lennart berättas problemet och planen i samma 3D-stil som resten: en mörk scen med ett lerhus som växer upp ur golvet, utstansade kartongfigurer och ett moln som svarar ja eller nej. Lerhuset får sedan färg utan klipp. Monteringen är nästan utan röst, eftersom funktionen redan är förklarad. Finalen visar samma förlopp i verkligheten, utan ett ord. Den filmas när huset är utskrivet.</p>
+  <div class="tempo" role="img" aria-label="Delarnas längd i förhållande till varandra">
+    <div style="flex:20;background:var(--wait)">Öppning<small>0:20</small></div>
+    <div style="flex:22;background:#c9b48a">1 Lennart<small>0:22</small></div>
+    <div style="flex:45;background:var(--cool)">2 Planen<small>0:45</small></div>
+    <div style="flex:20;background:#7fa0c9">3 Design<small>0:20</small></div>
+    <div style="flex:16;background:#9a9aa6">4 Inköp<small>0:16</small></div>
+    <div style="flex:13;background:#e09a6b">5 Utskrift<small>0:13</small></div>
+    <div style="flex:22;background:var(--falu)">6 Montering<small>0:22</small></div>
+    <div style="flex:20;background:var(--granted)">7 På riktigt<small>0:20</small></div>
+  </div>
+  <div class="acts">
+    <div><span class="tc">0:00–0:20 · 3D</span><h3>Kallöppning</h3><p>Ett makroklipp per fackord, sedan paus, sedan nötterna.</p></div>
+    <div><span class="tc">0:20–0:42 · riktig film</span><h3>1 · Lennart</h3><p>Hur han dök upp, namnet, nötterna. Varmt och kort.</p></div>
+    <div><span class="tc">0:42–1:27 · 3D med kartongfigurer</span><h3>2 · Problemet och planen</h3><p>Fåglarna länsar buffén. Sedan idén: kameran, frågan till molnet, nej till fågeln och ja till Lennart.</p></div>
+    <div><span class="tc">1:27–1:47 · 3D</span><h3>3 · Designen</h3><p>Skissen blir lera, blir färdig stuga, i en enda kamerabana.</p></div>
+    <div><span class="tc">1:47–2:03 · 3D</span><h3>4 · Inköpen</h3><p>Rösten räknar upp delarna och varje del landar på sitt ord.</p></div>
+    <div><span class="tc">2:03–2:16 · 3D och riktig film</span><h3>5 · Utskriften</h3><p>Lager för lager. Kan filmas på riktigt när du skriver ut.</p></div>
+    <div><span class="tc">2:16–2:38 · 3D</span><h3>6 · Monteringen</h3><p>Filmens visuella topp. Två repliker, resten musik och klick.</p></div>
+    <div><span class="tc">2:38–2:58 · riktig film</span><h3>7 · På riktigt</h3><p>Fågeln nekas och Lennart släpps in, i verkligheten. Platshållare tills huset är utskrivet.</p></div>
+  </div>
+</section>
+
+<section id="board">
+  <div class="eyebrow">Storyboard · klipp för klipp</div>
+  <h2>30 klipp</h2>
+  <p class="muted">Märkningen nere till höger i varje ruta visar hur klippet bör produceras: <span style="color:var(--cool)">3D</span> är Blender från modellen, <span style="color:var(--granted)">Autentiskt</span> är riktigt filmat material, <span style="color:var(--wait)">Blandat</span> är riktigt material med 3D eller grafik ovanpå. Grön text är övergången till nästa klipp.</p>
+  <div id="clips"></div>
+  <div class="player">
+    <button class="primary" id="playall" type="button">▶ Spela alla</button>
+    <button id="stopall" type="button" hidden>Stopp</button>
+    <span class="what" id="what">Spelar klippen i ordning och följer med i tavlan. Rutor utan film visas som stillbild i sin planerade längd.</span>
+    <button id="copynotes" type="button" hidden>Kopiera noter</button>
+    <div class="bar"><i id="prog"></i></div>
+  </div>
+  <dialog id="dlg">
+    <form method="dialog" id="dlgform">
+      <div class="eyebrow" id="dlgno"></div>
+      <h3 id="dlgtitle"></h3>
+      <label class="muted" for="dlgtext" style="font-size:14px">Vad vill du ändra i den här scenen?</label>
+      <textarea id="dlgtext" placeholder="Till exempel: kameran går för fort, molnet ska vara större, byt formulering i rösten …"></textarea>
+      <div class="row">
+        <button class="quiet" type="button" id="dlgdel">Ta bort not</button>
+        <button type="button" id="dlgcancel">Avbryt</button>
+        <button class="primary" type="submit">Spara</button>
+      </div>
+    </form>
+  </dialog>
+</section>
+
+<section>
+  <div class="eyebrow">D · Tre ögonblick att minnas</div>
+  <h2>Filmens mest ambitiösa idéer</h2>
+  <div class="cards">
+    <div><img src="frames/07.jpg" alt="Tomt fat rakt uppifrån"><h3>1. Cirkeln som går igen</h3><p>Det tomma fatet sett rakt uppifrån blir en ritad cirkel, som blir den runda gluggen i gaveln, som blir filamentrullen, som blir doseringshjulet, som till sist är nöten i Lennarts tassar. Fem övergångar bygger på samma form i samma läge i bild. Ingen kommer att kunna sätta ord på det, men filmen känns som gjuten i ett stycke.</p></div>
+    <div><img src="frames/12.jpg" alt="Halvfärdig modell med lagerplan"><h3>2. Lagerplanet som gör modellen verklig</h3><p>I slicern stiger ett glödande lagerplan genom den grå modellen. Allt under planet blir röd plast med riktiga lagerlinjer, allt ovanför förblir digitalt. Mitt i rörelsen glider munstycket in och rider på planet, och vi är hos skrivaren utan att ha klippt. Det är övergången digitalt till fysiskt, gjord som en enda rörelse.</p></div>
+    <div><img src="frames/18.jpg" alt="Genomskinlig stuga med mekaniken synlig"><h3>3. Nötens resa</h3><p>Vid ACCESS GRANTED åker kameran in genom skärmen. Huset blir genomskinligt och vi följer en nöt från magasinet, ner i doseringshjulet som vrider sina 130 grader, ut i skålen där luckan fälls upp 95 grader, och ut i solen där en riktig ekorre väntar. Ett oavbrutet tagning från 3D till verklighet, och förklaringen av hela mekaniken på sex sekunder.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">E · Monteringsanimationen</div>
+  <h2>Så används de 48 delarna</h2>
+  <div class="two">
+    <div>
+      <p>Modellen är redan uppdelad i fem grupper och varje del är ett eget objekt med namn. Det gör att monteringen kan animeras exakt som huset är byggt, utan att något behöver hittas på. Ordningen nedan följer grupperna i <code>delar.json</code>.</p>
+      <ul>
+        <li><b>En kamera, en kurva.</b> Hela akt 5 är en enda bana: bred omloppsbana kring sprängskissen, ner i låg vinkel vid grunden, in genom väggen, upp över taket, ut till hjältebilden. Kameran byter aldrig riktning.</li>
+        <li><b>Rakt först, vrid sedan.</b> Varje del åker rakt mot sin plats och roterar bara de sista centimetrarna. Det ser mekaniskt ut i stället för magiskt.</li>
+        <li><b>Tyngd.</b> Delarna bromsar in, sätter sig med ett par tiondels millimeter översläng och ligger sedan still. De svarta TPU-packningarna trycks ihop synligt.</li>
+        <li><b>Ett klick per del.</b> Varje landning får ett eget ljud i takt med musiken. Sista klicket är skorstenen.</li>
+        <li><b>Skärpedjup som pekpinne.</b> Fokus ligger på delen som är på väg in. Resten är mjukt. När mekaniken förklaras bländar vi ner så att allt är skarpt.</li>
+        <li><b>Lagerlinjer.</b> Modellens ytor är släta. I Blender läggs en fin lagerstruktur på 0,2 mm som normal map så att plasten ser utskriven ut i makro.</li>
+      </ul>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Tid</th><th>Delar</th><th>Rörelse</th></tr></thead>
+        <tbody>
+          <tr><td>2:09</td><td>Alla 48</td><td>Sprängskiss. Långsam omloppsbana, delarna andas svagt.</td></tr>
+          <tr><td>2:13</td><td>fotter, bottenplatta, framgard_platta, bas, framgard, grasmatta, framgard_gras, stenar</td><td>Staplas nerifrån och upp. Gräset sist.</td></tr>
+          <tr><td>2:16</td><td>kropp_packning, kropp_sockel, kropp, kropp_vit, fonsterrutor, blomlador med växter, stuprör</td><td>Kroppen sänks på packningen. Knutar, fönster och blomlådor snäpper på utifrån.</td></tr>
+          <tr><td>2:19</td><td>doserhus, doserhjul, notmagasin</td><td>Kameran går in genom väggen. Hjulet träs på sin axel, magasinet ovanpå.</td></tr>
+          <tr><td>2:21</td><td>kamerafaste, skarmklamma, skarmram, solskydd</td><td>Monteras mot framväggen inifrån och utifrån. Skärmen är fortfarande svart.</td></tr>
+          <tr><td>2:23</td><td>elektroniklada, elpackning, monteringsplatta, genomforingar, ellock</td><td>Skjuts in bakifrån. Locket sist.</td></tr>
+          <tr><td>2:24</td><td>skal, skal_vit, lucka, lucka_vit, servopackning, servokapa</td><td>Skålen med LENNART-skylten dockar i framsidan. Luckan provöppnas en gång (−95°).</td></tr>
+          <tr><td>2:25</td><td>takpackning, tak_v, tak_h, takrannor, nockkilar, skorsten, skorsten_krage</td><td>Takhalvorna möts i nocken. Skorstenen landar sist.</td></tr>
+          <tr><td>2:27</td><td>Skärmen</td><td>Tänds: VÄNTAR PÅ BESÖKARE…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">B · Visuell stilguide</div>
+  <h2>Två världar, samma film</h2>
+  <div class="swatches">
+    <div class="sw"><i style="background:#A23A2C"></i>Faluröd #A23A2C</div>
+    <div class="sw"><i style="background:#EEEBE3"></i>Vita knutar #EEEBE3</div>
+    <div class="sw"><i style="background:#5A5E62"></i>Takgrå #5A5E62</div>
+    <div class="sw"><i style="background:#3B6A2B"></i>Gräs #3B6A2B</div>
+    <div class="sw"><i style="background:#D8C59A"></i>Mekanik #D8C59A</div>
+    <div class="sw"><i style="background:#0a0a0c"></i>Studiosvart</div>
+    <div class="sw"><i style="background:#5fe08f"></i>Granted</div>
+    <div class="sw"><i style="background:#f2b93b"></i>Verifierar</div>
+    <div class="sw"><i style="background:#ff6b5e"></i>Denied</div>
+  </div>
+  <p class="muted">Färgerna ovan är hämtade ur modellen och skärmbilderna. De ändras inte.</p>
+  <div class="two">
+    <div><h3>Naturen (akt 1 och 6)</h3>
+      <ul>
+        <li><b>Ljus:</b> lågt, varmt sidoljus eller motljus. Sen eftermiddag. Inga hårda middagsskuggor.</li>
+        <li><b>Optik:</b> tele, 85–135 mm, i ögonhöjd med Lennart. Kort skärpedjup och grön oskärpa bakom.</li>
+        <li><b>Gradering:</b> varma mellantoner, mjuka högdagrar, lite filmkorn.</li>
+        <li><b>Kuppen:</b> samma plats, men kallare ton, hårdare kontrast och övervakningsvinklar. Skämtet ligger i klippningen, inte i effekter.</li>
+      </ul></div>
+    <div><h3>Tekniken (akt 2–5)</h3>
+      <ul>
+        <li><b>Ljus:</b> en enda stor mjuk ljuskälla snett uppifrån vänster mot nästan svart studio. En svag kall kantljusstrimma för att lyfta silhuetten.</li>
+        <li><b>Optik:</b> 70–100 mm, makro vid mekaniken. Långsamma åkningar, aldrig handhållet.</li>
+        <li><b>Material:</b> matt PLA med synliga lagerlinjer, lite ojämn glans. Svart gummi för packningarna. Mässing i munstycket.</li>
+        <li><b>Gradering:</b> neutral och ren, men samma röda och samma svärta som i naturen, så att de två världarna hänger ihop.</li>
+      </ul></div>
+  </div>
+  <ul>
+    <li><b>Bron mellan världarna</b> är huset. Dess röda färg är den enda mättade färgen i studion och den varmaste i trädgården.</li>
+    <li><b>Mitten gäller.</b> Det viktiga ligger alltid inom mittersta kvadraten, så att filmen går att beskära till 1:1 och 4:5. Skärmen sitter på husets mittlinje och blir därmed filmens naturliga hårkors.</li>
+    <li><b>Text i bild</b> sätts i samma typsnitt med fast bredd som skärmen. Korta rader, inga studsar.</li>
+    <li><b>Inga övertoningar.</b> Varje klipp går vidare genom form, rörelse, ett föremål framför linsen eller ljud som kommer före bilden.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="eyebrow">Berättarmanus</div>
+  <h2>Hela speakertexten</h2>
+  <p class="muted">Det här är texten du spelar in. Kallöppningen och del 1 följer dina egna ord, med de ändringar du har gjort. Rubriken ovanför varje replik säger vilket klipp som visas medan den sägs. Bilden klipps efter din inspelning, så exakta tider spelar ingen roll.</p>
+  <div class="script" id="script"></div>
+  <p class="muted">Två saker stäms av mot verkligheten när huset är utskrivet: att utskriften tog några dagar, och att finalen går till som planen säger. Den genererade Cedar-rösten används bara som arbetsunderlag.</p>
+</section>
+
+<section>
+  <div class="eyebrow">F · Saknat material</div>
+  <h2>Löst och kvar att lösa</h2>
+  <div class="two">
+    <div><h3>Löst</h3>
+      <ul>
+        <li><b>Hur det fungerar.</b> Kameran tar en bild, en AI i molnet avgör om det är en ekorre, luckan öppnas och sedan rullar en nöt ner.</li>
+        <li><b>Elektroniken.</b> Raspberry Pi, kameramodul, LED-skärm, servomotorer.</li>
+        <li><b>Film på Lennart</b> finns och bär del 1.</li>
+        <li><b>Låtsasfigurerna</b> är dekalerna i mappen, använda som stående pappfigurer.</li>
+        <li><b>Rösten</b> spelar du in själv när manuset är låst.</li>
+      </ul></div>
+    <div><h3>Kvar att lösa</h3>
+      <ul>
+        <li><b>Finalen.</b> Film på det riktiga huset med en fågel och med Lennart, när huset är utskrivet. Tills dess ligger platshållare där.</li>
+        <li><b>Film från utskriften.</b> Eftersom huset inte är utskrivet än går det att filma munstycket i makro och en timelapse, i stället för att göra det i 3D.</li>
+        <li><b>Originalfilerna i högre upplösning.</b> Klippen är 720p och förstoras nästan två gånger.</li>
+        <li><b>Inköpslistan</b>, så att antal servon, filamentfärger och övriga delar blir rätt i del 4.</li>
+        <li><b>Vilken AI-tjänst</b> som används i molnet, om den ska nämnas vid namn.</li>
+      </ul></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">G · Produktionsflöde</div>
+  <h2>Från tavla till färdig film</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Del</th><th>Metod</th><th>Varför</th></tr></thead>
+      <tbody>
+        <tr><td>Kallöppning, akt 2, 5</td><td>Riktig 3D i Blender (Cycles) från GLB-filen</td><td>Kräver exakt samma hus i varje bild. AI-video kan inte hålla 48 delar konsekventa.</td></tr>
+        <tr><td>Akt 3</td><td>3D, när elektroniken finns som modeller. Annars filmat uppifrån på svart tyg.</td><td>En riktig knolling-bild av de riktiga delarna är både snabbare och ärligare än gissade modeller.</td></tr>
+        <tr><td>Akt 4</td><td>Autentisk makrofilm från skrivaren, med 3D-övergången in och ut</td><td>Riktig plast som läggs ut går inte att slå. 3D sköter bara lagerplanet och matchningen.</td></tr>
+        <tr><td>Akt 1 och 6</td><td>Autentiskt material på Lennart och huset, med 3D-grafik ovanpå</td><td>Lennart är filmens hjärta. Han ska vara på riktigt.</td></tr>
+        <tr><td>Luckor i akt 1 och 6</td><td>Rekonstruktion: 3D-huset i en fotograferad trädgårdsmiljö, eller AI-genererad video som sista utväg</td><td>Planeras och märks som rekonstruktion. Presenteras aldrig som dokumentation.</td></tr>
+        <tr><td>Ljud</td><td>Riktiga inspelningar av skrivaren och servona, kompletterat med ljudbibliotek</td><td>De riktiga ljuden är redan karaktäristiska.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ol>
+    <li><b>Du godkänner tavlan</b> eller ger noter. Här är ändringar gratis.</li>
+    <li><b>Du samlar materialet</b> under F. Jag anpassar klippen efter vad som faktiskt finns.</li>
+    <li><b>Animatic.</b> Alla 3D-klipp som snabba, lågupplösta rörelsetester, hopklippta med provisorisk röst. Här sätter vi tempot.</li>
+    <li><b>Utseende.</b> Material, lagerlinjer och ljus låses på tre nyckelbilder: hjältebilden, sprängskissen och röntgenbilden.</li>
+    <li><b>Rendering akt för akt</b>, med monteringen först eftersom den tar längst tid. Datorn har grafikkort som Blender kan använda, och provrutorna tog några sekunder styck.</li>
+    <li><b>Klippning och gradering</b> mot det autentiska materialet.</li>
+    <li><b>Ljud, musik och röst sist</b>, när bilden är låst.</li>
+  </ol>
+</section>
+
+<section>
+  <div class="eyebrow">Nästa steg</div>
+  <h2>Det här händer härnäst</h2>
+  <ol>
+    <li><b>Du godkänner ordningen och manuset</b>, eller ger noter per klippnummer.</li>
+    <li><b>Du spelar in rösten</b>, en fil per del.</li>
+    <li><b>Jag bygger del 2</b>, planen med pappfigurerna, och tajmar om de färdiga delarna efter din röst.</li>
+    <li><b>Del 5 och 6</b> byggs i 3D. Del 5 byts mot riktig film om du filmar utskriften.</li>
+    <li><b>Finalen</b> klipps in när huset är utskrivet och filmat.</li>
+  </ol>
+</section>
+
+</div>
+
+<script>
+// [nr, tid, längd, titel, ruta, källa, syfte, bild, kamera, ljus, rörelse, övergång, röst/text, ljud, material]
+const ACTS = [
+ ['Kallöppning', '0:00–0:20', 'Ny version, v4: huset avslöjas inte. Din egen introröst. Tajmas om efter din slutliga inspelning.', [
+  ['0.1','0:00','5 s','Skärmen','o1','cg','Börja lugnt och seriöst. Väcka en fråga innan något har förklarats.','En liten skärm i en vit ram på röd träpanel: VÄNTAR PÅ BESÖKARE…','85 mm. Börjar snett från sidan, lätt lutad, och sveper i en båge runt fasaden medan den rätar upp sig.','Varmt släpljus från höger, svag kall fyllning.','Kameran rör sig, skärmen står still.','Samma båge fortsätter uppåt längs fasaden tills gluggen ligger där skärmen låg.','"Okej, så det här är ett helt vanligt autonomt säkerhetssystem,"','Svagt elektriskt brum. Dämpat fågelkvitter.','3D från GLB + skarm-vantar.png'],
+  ['0.2','0:05','2,6 s','Gluggen och linsen','o2','cg','Systemets öga.','Den runda gluggen i gaveln, med kameramodulen där inne.','Kameran åker rakt in mot linsen tills det mörka glaset fyller bilden.','En liten kall reflex i glaset.','Inåkning som accelererar.','Klipp i mörkret till mekaniken.','"med artspecifik åtkomstkontroll,"','Ett lågt klick, som en slutare.','3D från GLB'],
+  ['0.3','0:08','2,6 s','Nötens väg','o3','cg','Visa mekaniken som ett urverk, utan att visa huset.','Mekaniken i full färg: magasinet med nötter, hjulet, rännan, luckan och skålen. Resten av huset är mörkt glas där bara kanterna skymtar. Luckan fälls upp, hjulet vrider fram en hasselnöt och den rullar ner i skålen.','Snabb inåkning som bromsar, sedan en tilt ner efter nöten.','Varm nyckel på mekaniken. Glaset lyser svagt blågrönt i kanterna.','Luckan öppnas först, sedan vrids hjulet 130° och nöten rullar.','Kameran tiltar snabbt nerat förbi skålen. Rörelsen fortsätter över klippet: 0.4 börjar med att tilta upp från golvet.','"motoriserad precisionsdosering"','Servosurr. Nöten som rullar och landar.','3D från GLB. Ny version, v4.'],
+  ['0.4','0:10','4,3 s','Fyrtioåtta delar','o4','cg','Storleken på vansinnet, utan att avslöja formen.','Alla fyrtioåtta delar ligger utlagda på ett mörkt golv, omonterade, var och en i sin plattaste riktning. Man ser mängden men kan inte pussla ihop huset.','Kameran sveper lågt förbi delarna från vänster till höger, med kort skärpedjup.','Varmt sidoljus, kall fyllning, mörk bakgrund.','En enda jämn åkning. Delarna ligger still.','Kameran lyfter och lägger sig rakt ovanför skärmramen på golvet. Klipp till skärmen i 0.5, där öppningen ligger på samma plats och i samma storlek.','"och fyrtioåtta väldigt noggrant tillverkade komponenter. Inget konstigt."','En låg ton växer.','3D från GLB + delar.json. Ny version, v4.'],
+  ['0.5','0:15','3 s','Verifierar','o5','cg','Pausen.','Tätt på skärmen i sin vita ram mot röd panel, som i första bilden. Skärmen visar VERIFIERAR…','Långsam inåkning rakt mot skärmen.','Lågt varmt ljus, svag kall fyllning.','Nästan stilla.','Kameran åker in i texten tills skärmens pixlar fyller bilden, och skärmen släcks. Titeln tänds i samma pixelrutnät.','Tystnad, två sekunder.','Tre korta pip. Tvärt tyst.','3D från GLB + skarm-verifierar.png. Ny version, v4.'],
+  ['0.6','0:18','1,9 s','Titel','','title','Leverera skämtet och namnet.','Svart. PROJEKT LENNART i skärmens typsnitt.','Stilla.','—','Bokstäverna tänds en i taget.','Rakt klipp på musikens slag till balkongen i juli.','"Det vaktar nötter."','Tystnad under repliken.','Grafik'],
+ ]],
+ ['1 · Lennart', '0:20–0:42', 'Klippt av ditt filmmaterial, kortas till fyra klipp', [
+  ['1.1','0:20','5,5 s','Balkongen i juli','a1_1','real','Etablera platsen och den nya grannen.','Uteplatsen en sommardag. Lennart springer längs räcket.','Mobilfilm beskuren till liggande. Svag inzoomning.','Mulet dagsljus.','Lennart rör sig längs räcket.','Rakt klipp i röstens paus.','"Men lite bakgrund först. I somras började en ekorre hälsa på hemma hos oss."','Sommarljud, lätt musik börjar.','PXL_20260702'],
+  ['1.2','0:26','5 s','Nästan varje dag','a1_2','real','Visa att besöken blev vardag.','Tre stående rutor som dyker upp en i taget: soffryggen, knät, golvet.','Tre mobilklipp i höjdformat sida vid sida.','Blandat inomhusljus.','En ruta på "då och då", två till på "nästan varje dag".','Rakt klipp till närbilden.','"Först bara då och då, men numera dyker han upp nästan varje dag."','Ett mjukt klick per ruta.','PXL_20260708, 1000007512, VID-20261114'],
+  ['1.3','0:31','3 s','Namnet','a1_3','real','Ge honom ett namn och ett ansikte.','Extrem närbild: han nosar på kameran. Namnskylt i skärmens stil.','Beskuren närbild med svag inzoomning.','Dagsljus från fönster.','Skylten tänds på "Lennart".','Rakt klipp.','"Vi gav honom namnet Lennart."','Ett klingande ljud när skylten tänds.','PXL_20260708 + grafik'],
+  ['1.4','0:34','8 s','Nötter och vatten','a1_4','real','Visa omsorgen. Sätta upp fatet som fåglarna snart tömmer.','Han sitter på någons ben och äter.','Beskuren till liggande, svag inzoomning.','Mjukt inomhusljus.','Han äter.','Bilden fryser och zoomar in på nöten i tassarna. Matchklipp till en 3D-hasselnöt på samma plats i bilden, som 2.1 backar ut från.','"Redan från första besöket har vi bjudit på nötter, och sen dess står det alltid käk och vatten utanför."','Knaprande.','1000007512'],
+ ]],
+ ['2 · Problemet och planen', '0:42–1:27', 'Ny version, v3: utan hus, med kamera i sladd och nötter som poppar upp. Arbetsröst fram till nejet. Den nya ja-repliken saknar röst.', [
+  ['2.1','0:42','5 s','Fåglarna','n1','cg','Berätta problemet i samma värld som lösningen.','En mörk scen. Ett vitt fat med hasselnötter, samma nötter som i husets magasin, och en skål med vatten bredvid. Skatan, en utstansad kartongfigur på fot, hoppar fram och tömmer fatet i tre hack.','Nära fatet, låg vinkel, långsam inåkning.','Varm nyckel från vänster, kall kant från höger, mot petroleumblå bakgrund.','Skatan hoppar in i tre hopp, pickar tre gånger, vänder som ett kort och hoppar ut.','Lennart hoppar in från samma håll.','"Problemet är bara att fåglarna också har upptäckt vår lilla uteservering,"','Lätta hopp, som kartong mot bord. Ett torrt ljud per nöt.','3D: dekalerna som kartongfigurer, hasselnötterna från öppningen'],
+  ['2.2','0:47','5 s','Den länsade buffén','n2','cg','Stillheten efter.','Lennart, som kartongfigur, framför ett tomt fat och en skål med vatten. Han lutar sig fram, tittar, och sjunker ihop en aning.','Samma bild.','Samma ljus.','Tre hopp in, en lutning framåt, en liten suck bakåt.','Kameran börjar dra sig bakåt och uppåt.','"så ibland kommer stackars Lennart fram till en helt länsad buffé."','Tystnad. Ett litet ljud när han sjunker ihop.','3D'],
+  ['2.3','0:52','10 s','Idén','n3','cg','Vändpunkten: från problem till plan.','Kameran backar till helbild. Fatet och vattenskålen ligger kvar. En liten kamera sänks ner i en sladd uppifrån, gungar till och blir hängande med linsen mot besökaren. Ett mjukt vitt moln växer fram uppe till höger. Lennart ser på.','Åkning bakåt och uppåt till en helbild som sedan ligger still.','Varm nyckel från vänster, kall kant från höger.','Kameran sänks på två sekunder och gungar ut. Molnet växer fram.','Lennart vänder och hoppar ut. Skatan hoppar in.','"Så ja, det är ju rätt uppenbart att vi har ett problem som behöver lösas. Jag tänkte: tänk om matstationen själv kunde se vem det är som kommer?"','Ett lätt gnissel när kameran sänks. En mjuk ton när molnet kommer.','3D. Kameran är en enkel, neutral kamera. Den riktiga kameramodulen presenteras i inköpen.'],
+  ['2.4','1:02','11 s','Frågan till molnet','n4','cg','Förklara det enda systemet egentligen gör.','Skatan vid fatet. Kameran blixtrar. Bilden den tog flyger upp till molnet som ett litet lysande kort med en ljusstrimma efter sig. Molnet börjar pulsera i gult och en skylt fälls ut framför det: ÄR DET EN EKORRE?','Stilla helbild. Kameran till vänster, molnet uppe till höger, besökaren och fatet mellan dem.','Molnet lyser inifrån och färgar scenen svagt.','Blixt, bildkortet färdas, molnet pulserar, skylten poppar fram.','Molnet slår om till rött.','"Tanken är enkel. När någon kommer fram tar kameran en bild och skickar den till en AI i molnet, som får svara på en enda fråga: är det här en ekorre?"','Ett slutarklick. Ett mjukt svep när signalen går. Tre pip.','3D. Molnet är byggt av mjuka klot med platt undersida.'],
+  ['2.5','1:13','6 s','Nej','n5','cg','Första utfallet. Skämtet ligger i att ingenting händer.','Skylten visar VERIFIERAR med tre vandrande punkter i knappt en sekund. Sedan slår den om till rött: ett kryss och INGEN EKORRE. En röd puls går ner till fatet, som förblir tomt. Skatan står kvar, vänder och hoppar ut.','Samma bild.','Rött sken från molnet.','Två sekunder där ingenting rör sig. Sedan vänder skatan.','Lennart hoppar in från samma håll.','"Är svaret nej händer ingenting."','Ett kort, lågt avvisande ljud. Tystnad.','3D'],
+  ['2.6','1:19','8 s','Ja','n6','cg','Andra utfallet. Fatet som skatan tömde fylls på igen, men bara för Lennart.','Lennart vid fatet. Blixt, bildkortet går upp, skylten visar VERIFIERAR och slår om till grönt: en bock och EKORRE. En grön puls går ner till fatet, och nio hasselnötter poppar upp ur det, en i taget. Lennart hoppar fram.','Helbilden, sedan en inåkning mot fatet.','Grönt sken från molnet.','Pulsen landar, nötterna poppar upp i en liten kaskad, sedan två små hopp fram.','Kameran lyfter och tittar upp förbi molnet, ut i mörkret. 3.1 fortsätter rörelsen och tittar ner mot Claude-fönstret.','"Är svaret ja finns det helt plötsligt mat."','Två stigande toner. Nötterna som poppar, en ton per nöt.','3D'],
+ ]],
+ ['3 · Designen', '1:27–1:47', 'Ny version, v3: Claude-fönstret är omgjort.', [
+  ['3.1','1:27','8 s','Ritningen på pappret','d1','cg','Visa var designen kom ifrån.','Ett vitt papper ligger på den mörka ytan. Ovanför svävar ett chattfönster märkt Claude. Frågan skrivs in: Hjälp mig rita ett hus åt Lennart. Han är en ekorre och vill ha sina nötter ifred. Claude svarar: Absolut. Här är ett första utkast. Fönstret lyser ner på pappret som en projektor och ritar upp stugan i tre vyer: framsida, ovanifrån och sida.','Börjar nära fönstret så att frågan går att läsa, backar sedan ut och visar pappret under.','Fönstret är scenens ljuskälla. Ljuskäglan syns svagt i mörkret.','Texten skrivs, ett svar börjar komma, linjerna ritas ut på pappret i samma takt.','Linjerna på pappret börjar lysa.','"Så jag satte mig med Claude och började bolla lite. Och det ena ledde till det andra."','Tangenter. Ett mjukt surr från projektionen. Penna mot papper.','3D. Ritningen är gjord av modellens egna linjer.'],
+  ['3.2','1:35','12 s','Huset reser sig ur ritningen','d2','cg','Presentera den färdiga designen.','Fönstret försvinner uppåt. Huset reser sig ur vyn ovanifrån mitt på ritningen, först i grå lera och sedan i färg: röd stuga med vita knutar. Måtten visas. Skärmen tänds.','Kameran sjunker från ovanifrån ner till trekvartsvy medan huset reser sig.','Full studioljussättning när färgen är på plats.','Huset växer uppåt ur pappret. Färgen stiger, måtten tänds och släcks.','Snabb panorering åt höger med rörelseoskärpa. Klippet göms i oskärpan och landar på den blå ytan i 4.1.','"Först en skiss, sen en ritning, och sen hade vi plötsligt en hel 3D-modell, redo för utskrift. En liten röd stuga med vita knutar, som jag har Claude att tacka för."','En stigande ton. Ett klingande ljud när skärmen tänds.','3D från GLB'],
+ ]],
+ ['4 · Inköpen', '1:47–2:03', 'Ny version, v4: blå bakgrund, en del per ord i din inspelning.', [
+  ['4.1','1:47','10 s','Uppläggningen','a3_1','cg','Varje del nämns i samma ögonblick som den landar.','Petroleumblå yta. Delarna glider in en i taget och får en etikett. Sladdarna växer fram i räta vinklar.','Snett uppifrån, nästan stilla.','En stor mjuk ljuskälla.','En del per ord, i röstens ordning: Raspberry Pi, kameramodul, LED-skärm, servomotorer, kablar, skruvar, nötter.','Kameran panorerar till filamentrullarna.','"Sen var det ju en hel del grejer som skulle köpas, såklart. En Raspberry Pi. En kameramodul. En LED-skärm. Servomotorer. Kablar. Skruvar. Och nötter."','Ett torrt klick per del. Nötterna får ett mjukare ljud.','3D. Komponenterna är generiska modeller, inte kopior av de inköpta delarna.'],
+  ['4.2','1:57','6 s','Filamentet','a3_2','cg','Bron till utskriften.','Filamentrullarna i husets färger. Kameran åker in mot den röda, som börjar snurra.','Inåkning till makro.','Kall kant från höger.','Rullen accelererar.','Kameran åker in i rullens svarta nav tills bilden är svart.','"Plus en massa filament i rätt färger. Claude satte ihop inköpslistan, och sen var det bara för mig och Lennart att hosta upp pengarna."','Ett surr som går över i skrivarens fläkt.','3D'],
+ ]],
+ ['5 · Utskriften', '2:03–2:16', 'Utskriftsväggen ligger in som platshållare med tre stillbilder. Byts mot dina riktiga timelapse-klipp.', [
+  ['5.1','2:03','3 s','Slicern','12','cg','Bron från digitalt till fysiskt.','Stugans kropp, alltså väggarna utan tak, grund och detaljer, står grå på skrivarens byggplatta. Ett glödande lagerplan stiger genom den, och allt under planet blir röd plast.','Snett ovanifrån.','Sval och platt.','Planet stiger nerifrån och upp, som utskriften kommer att göra.','Munstycket glider in och lägger sig på planet.','"Och sen skrev jag ut allt."','En stigande ton som går över i fläkten.','3D från GLB. Rutan är en tidig skiss och byts mot en tydligare bild där man ser att det är stugan.'],
+  ['5.2','2:06','4 s','Utskriftsväggen','u1','mix','Visa hur mycket som skrevs ut.','En utskrift i helbild. Kameran backar och vrids, och det visar sig att den är en av tolv rutor i en vägg av timelapse-klipp i olika storlekar. Rutorna dyker fram utåt från den första.','Helbild som backar till en sned vy av väggen.','Rutorna är bildens enda ljus mot mörk petroleumblå botten.','Rutorna dyker fram en i taget, på olika djup.','Kameran fortsätter in i nästa klipp utan avbrott.','Ingen röst.','Ett lätt ljud per ruta.','Riktiga timelapse-klipp från skrivaren i 3D-layout. Platshållare: tre stillbilder i olika beskärning.'],
+  ['5.3','2:10','6 s','Alla blir klara','u2','mix','Tid och tålamod, och att allt blev klart.','Kameran glider rakt framifrån och väggen planas ut till en exakt layout med tolv rutor. En tunn orange linje fylls under varje ruta, och alla når fram samtidigt och blixtrar till.','Rakt framifrån, långsam åkning.','Samma.','Linjerna fylls, alla blir klara i samma ögonblick.','Rutorna glider isär som dörrar och kameran åker in genom öppningen, rakt in i sprängskissen.','"Utskriften tog några dagar. Det här med att det ska bli rätt första gången är ändå lite överskattat."','Ett gemensamt klart-ljud när linjerna blixtrar.','Riktiga timelapse-klipp, tidsjusterade så att alla blir klara samtidigt. Platshållare tills de finns.'],
+ ]],
+ ['6 · Monteringen', '2:16–2:38', 'Första renderingen klar, utan ljud. Elektroniken från inköpen är inte med än.', [
+  ['6.1','2:16','4 s','Sprängskissen','m_16','cg','Visa hela konstruktionen på en gång.','Alla 48 delar svävar isär mot petroleumblå bakgrund.','Långsam omloppsbana.','En stor mjuk nyckel, kall kant.','Delarna andas svagt.','Grunddelarna börjar falla mot varandra.','"Okej, så här sitter den ihop."','Musikens huvudtema.','3D från GLB + delar.json'],
+  ['6.2','2:20','14 s','Delarna hittar hem','m_18','cg','Filmens visuella topp. Bilden får berätta.','Grunden staplas, kroppen sänks ner, magasinet och hjulet träs på plats, kameran och skärmen monteras fram, elektroniken skjuts in bak, taket stängs.','En enda bana: låg vinkel vid grunden, in genom väggen, upp över taket.','Samma nyckel hela vägen.','Varje del åker rakt mot sin plats och sätter sig med ett klick.','Skorstenen landar sist. Kameran börjar backa.','Ingen röst. Bara musik och klick.','Ett klick per del, i takt med musiken.','3D från GLB + elektroniken från inköpsakten'],
+  ['6.3','2:34','4 s','Färdig','m_20','cg','Avslöja helheten.','Hela stugan. Skärmen tänds: VÄNTAR PÅ BESÖKARE…','Trekvartsvy, åkning bakåt som bromsar.','Full hjälteljussättning.','Skärmen blinkar till och tänds.','Skärmens sken i 3D blir skärmens sken på det riktiga huset.','"Den har hängrännor också. Fråga inte."','Musikens lyft.','3D från GLB'],
+ ]],
+ ['7 · På riktigt', '2:38–2:58', 'Väntar på att huset skrivs ut. Platshållare tills dess.', [
+  ['7.1','2:38','5 s','Fågeln, på riktigt','22','real','Finalen: planen prövas i verkligheten.','Det riktiga huset utomhus. En fågel kommer fram. Skärmen: ACCESS DENIED. Luckan förblir stängd.','Stativ i låg höjd, huset i mitten.','Dagsljus, helst lågt och varmt.','Fågeln kommer, väntar, flyger.','Rakt klipp till samma bild senare.','Ingen röst.','Riktigt ljud från platsen. Det avvisande ljudet.','Riktig film. Platshållare tills huset är klart: ruta ur 3D.'],
+  ['7.2','2:43','7 s','Lennart, på riktigt','24','real','Filmens belöning.','Lennart kommer fram. Skärmen: ACCESS GRANTED. Luckan öppnas, nöten rullar ner, han tar den.','Samma stativbild, sedan närbild på skålen.','Samma ljus.','Hela förloppet i en tagning om det går.','Klipp till närbild när han äter.','Ingen röst.','De två stigande tonerna. Servot. Knaprande.','Riktig film. Platshållare tills huset är klart: ruta ur 3D.'],
+  ['7.3','2:50','11,5 s','Cirkeln sluten','a1_5','real','Landa filmen i värme.','Lennart äter, i närbild.','Närbild, långsam inzoomning.','Mjukt dagsljus.','Han äter.','En fågel landar på taket.','"Så där, då var cirkeln sluten. Nu har även ekorrar, på sätt och vis, tillgång till dagens AI-verktyg."','Huvudtemat i sin varmaste form.','Riktig film vid huset. Tills dess: närbilden på räcket ur PXL_20260702.'],
+  ['7.4','2:56','2 s','Nästa besökare','21','real','En sista blinkning.','En fågel på taket. Skärmen visar VERIFIERAR…','Helbild.','Samma ljus.','Skärmen pulserar.','Klipp till svart på tredje pipet.','Ingen röst.','Tre pip. Svart.','Riktig film om det går, annars 3D med pappfågeln'],
+ ]],
+];
+// nr -> kort notering om vilken version filmen är
+const FILM = {
+ "0.1": "Ny version, v5: skärmen har synliga pixlar.", "0.2": "Ur öppning v2, godkänd bild. Din provinspelning som röst.", "0.3": "Ny version, v5: magasinet fullt, tilt ner i slutet.", "0.4": "Ny version, v5: övergångar in och ut.", "0.5": "Ny version, v5: pixlar, punkter på pipen, inåkning i pixlarna.", "0.6": "Ny version: titeln i skärmens pixelrutnät.",
+ "1.1": "Ur del 1 v1, klippt efter din inspelning.", "1.2": "Ur del 1 v1, klippt efter din inspelning.", "1.3": "Ur del 1 v3. Namnskylten kommer tidigare och ligger kvar in i nästa klipp.", "1.4": "Ur del 1, med frysning och inzoomning på nöten i slutet.",
+ "2.1": "Ny version, v6: börjar tätt på en nöt.", "2.2": "Ur v3, oförändrad.", "2.3": "Ur v3, oförändrad.", "2.4": "Ur v3, oförändrad.", "2.5": "Ny version, v5: nej-signalen slår ner i fatet, som snurrar ut med ett porslinsklirr.", "2.6": "Ny version, v6: nötterna vilar, kameran lyfter i slutet.",
+ "6.1": "Första renderingen, v1.", "6.2": "Första renderingen, v1.", "6.3": "Första renderingen, v1.", "3.1": "Ny version, v5: börjar uppifrån mörkret.", "3.2": "Ny version, v4: snabb panorering i slutet.",
+ "4.1": "Ny version, v5: landar ur panoreringen.", "4.2": "Ny version, v5: in i rullens nav i slutet.", "5.2": "Platshållare: utskriftsväggen med dina tre stillbilder.", "5.3": "Platshållare: utskriftsväggen med dina tre stillbilder."
+};
+const key = no => no.replace('.', '_');
+const SRC = { cg: ['cg', '3D'], real: ['real', 'Autentiskt'], mix: ['mix', 'Blandat'], title: ['mix', 'Grafik'] };
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+document.getElementById('clips').innerHTML = ACTS.map(([name, tc, status, clips]) => `
+  <div class="act-head"><h3>${name}</h3><span class="tc">${tc}</span><span class="tc" style="color:var(--wait)">${status}</span></div>
+  ${clips.map(([no, t, len, title, fr, src, pur, pic, cam, lit, mov, tr, vo, snd, mat]) => `
+  <article class="clip" id="k${key(no)}" data-no="${no}" data-len="${parseFloat(len.replace(',', '.'))}" data-title="${esc(title)}">
+    <div class="shot">
+      <div class="frame">${FILM[no] ? `<video src="clips/${key(no)}.mp4" ${fr ? `poster="frames/${fr}.jpg" preload="none"` : `preload="metadata"`} controls playsinline aria-label="${esc(title)}"></video><span class="film">Film</span>` : fr ? `<img src="frames/${fr}.jpg" alt="${esc(title)}" loading="lazy">` : `<div class="titlecard"><b>PROJEKT LENNART</b><i>VERIFIERAR…</i></div>`}
+        <span class="no">${no}</span><span class="src ${SRC[src][0]}">${SRC[src][1]}</span></div>
+      <h3>${esc(title)}</h3>
+      <div class="meta"><span><b>${t}</b></span><span>${len}</span></div>
+      <p class="vo ${vo.startsWith('"') ? '' : 'none'}">${esc(vo)}</p>
+      ${FILM[no] ? `<div class="filmnote">${esc(FILM[no])}</div>` : ''}
+    </div>
+    <div class="side">
+    <div class="adjust"><button type="button" class="adj">Justera scen</button><div class="mynote" hidden></div></div>
+    <dl>
+      <dt>Syfte</dt><dd class="pur">${esc(pur)}</dd>
+      <dt>Bild</dt><dd>${esc(pic)}</dd>
+      <dt>Kamera</dt><dd>${esc(cam)}</dd>
+      <dt>Ljus</dt><dd>${esc(lit)}</dd>
+      <dt>Rörelse</dt><dd>${esc(mov)}</dd>
+      <dt>Övergång</dt><dd class="tr">→ ${esc(tr)}</dd>
+      <dt>Ljud</dt><dd>${esc(snd)}</dd>
+      <dt>Material</dt><dd>${esc(mat)}</dd>
+    </dl>
+    </div>
+  </article>`).join('')}`).join('');
+document.getElementById('script').innerHTML = ACTS.map(([name, tc, status, clips]) => {
+  const lines = clips.filter(c => c[12].includes('"')).map(c => `<div class="cue">${c[0]} · ${esc(c[3])} · ${esc(c[7].split('. ')[0].replace(/\.$/, ''))}</div><p>${esc((c[12].match(/"[^"]*"/g) || []).map(x => x.slice(1, -1)).join(' … '))}</p>`).join('');
+  return lines ? `<h3 style="margin-top:10px">${name} <span class="muted" style="font:13px var(--mono)">${tc}</span></h3>${lines}` : '';
+}).join('');
+
+// ---- Justera scen: noter per klipp. Sparas i artifactens databas, annars i webbläsaren.
+const $ = id => document.getElementById(id), LS = 'lennart-noter';
+const clipEls = [...document.querySelectorAll('.clip')];
+let notes = {}, store = null;
+try { notes = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) {}
+const keep = () => { try { localStorage.setItem(LS, JSON.stringify(notes)); } catch (e) {} };
+function paintNotes() {
+  clipEls.forEach(el => {
+    const t = notes[el.dataset.no], box = el.querySelector('.mynote'), btn = el.querySelector('.adj');
+    box.hidden = !t; box.innerHTML = ''; btn.textContent = t ? 'Ändra not' : 'Justera scen';
+    if (t) { const h = document.createElement('small'); h.textContent = 'Din not'; box.append(h, document.createTextNode(t)); }
+  });
+  $('copynotes').hidden = !Object.keys(notes).length;
+}
+paintNotes();
+(async () => {
+  try {
+    const db = window.claude && await window.claude.use('db');
+    if (!db) return;
+    store = db.collection('noter');
+    store.onSnapshot(snap => {
+      const fresh = {};
+      snap.docs.forEach(d => { const v = d.data(); if (v && v.text) fresh[v.no || d.id.replace('_', '.')] = String(v.text); });
+      notes = fresh; keep(); paintNotes();
+    }, () => {});
+  } catch (e) {}
+})();
+const dlg = $('dlg'); let editing = null;
+document.getElementById('clips').addEventListener('click', e => {
+  const b = e.target.closest('.adj'); if (!b) return;
+  const el = b.closest('.clip'); editing = el.dataset.no;
+  $('dlgno').textContent = 'Justera scen ' + editing; $('dlgtitle').textContent = el.dataset.title;
+  $('dlgtext').value = notes[editing] || ''; $('dlgdel').hidden = !notes[editing];
+  dlg.showModal(); $('dlgtext').focus();
+});
+async function saveNote(no, text) {
+  if (text) notes[no] = text; else delete notes[no];
+  keep(); paintNotes();
+  if (!store) return;
+  try { const ref = store.doc(key(no)); if (text) await ref.set({ no, text, at: new Date().toISOString() }); else await ref.delete(); }
+  catch (e) { $('what').textContent = 'Noten kunde inte sparas på servern. Den finns kvar i den här webbläsaren.'; }
+}
+$('dlgform').addEventListener('submit', () => saveNote(editing, $('dlgtext').value.trim()));
+$('dlgcancel').addEventListener('click', () => dlg.close());
+$('dlgdel').addEventListener('click', () => { saveNote(editing, ''); dlg.close(); });
+$('copynotes').addEventListener('click', async () => {
+  const txt = clipEls.filter(el => notes[el.dataset.no]).map(el => el.dataset.no + ' ' + el.dataset.title + ': ' + notes[el.dataset.no]).join('\n\n');
+  try { await navigator.clipboard.writeText(txt); $('copynotes').textContent = 'Kopierat'; } catch (e) { $('copynotes').textContent = 'Gick inte att kopiera'; }
+  setTimeout(() => { $('copynotes').textContent = 'Kopiera noter'; }, 1800);
+});
+
+// ---- Arbetskopian: kapitelknappar och "justera den här scenen"
+const CUTS = [["0.1",0,"Skärmen","Kallöppning",1],["0.2",4.2,"Gluggen och linsen","Kallöppning",1],["0.3",6.92,"Nötens väg","Kallöppning",1],["0.4",9.28,"Fyrtioåtta delar","Kallöppning",1],["0.5",12.68,"Verifierar","Kallöppning",1],["0.6",15.28,"Titel","Kallöppning",1],["1.1",17.08,"Balkongen i juli","1 · Lennart",1],["1.2",22,"Nästan varje dag","1 · Lennart",1],["1.3",25.92,"Namnet","1 · Lennart",1],["1.4",28.92,"Nötter och vatten","1 · Lennart",1],["2.1",37.08,"Fåglarna","2 · Problemet och planen",1],["2.2",42.28,"Den länsade buffén","2 · Problemet och planen",1],["2.3",46.68,"Idén","2 · Problemet och planen",1],["2.4",57.4,"Frågan till molnet","2 · Problemet och planen",1],["2.5",68.16,"Nej","2 · Problemet och planen",1],["2.6",72.84,"Ja","2 · Problemet och planen",1],["3.1",81.52,"Ritningen på pappret","3 · Designen",1],["3.2",91.12,"Huset reser sig ur ritningen","3 · Designen",1],["4.1",101.52,"Uppläggningen","4 · Inköpen",1],["4.2",111.84,"Filamentet","4 · Inköpen",1],["5.1",120.12,"Slicern","5 · Utskriften",0],["5.2",123.12,"Utskriftsväggen","5 · Utskriften",1],["5.3",127.12,"Alla blir klara","5 · Utskriften",1],["6.1",133.12,"Sprängskissen","6 · Monteringen",1],["6.2",137.12,"Delarna hittar hem","6 · Monteringen",1],["6.3",151.12,"Färdig","6 · Monteringen",1],["7.1",155.12,"Fågeln, på riktigt","7 · På riktigt",0],["7.2",160.12,"Lennart, på riktigt","7 · På riktigt",0],["7.3",167.12,"Cirkeln sluten","7 · På riktigt",0],["7.4",178.64,"Nästa besökare","7 · På riktigt",0]];
+const wk = $('wk'), mmss = t => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
+const parts = []; CUTS.forEach(c => { if (!parts.length || parts[parts.length - 1][0] !== c[3]) parts.push([c[3], c[1]]); });
+$('wkch').innerHTML = parts.map(([n, t], i) => '<button type="button" data-t="' + t + '" data-i="' + i + '">' + esc(n) + '<small>' + mmss(t) + '</small></button>').join('');
+const curCut = () => { let k = 0; CUTS.forEach((c, i) => { if (wk.currentTime >= c[1] - 0.02) k = i; }); return CUTS[k]; };
+function paintWork() {
+  const c = curCut(); if (!c) return;
+  $('wknow').innerHTML = '<b>' + c[0] + '</b> ' + esc(c[2]) + (c[4] ? '' : ' <span class="still">· stillbild, inte producerad än</span>');
+  let pi = 0; parts.forEach((p, i) => { if (wk.currentTime >= p[1] - 0.02) pi = i; });
+  [...$('wkch').children].forEach((b, i) => b.classList.toggle('on', i === pi));
+}
+wk.addEventListener('timeupdate', paintWork); wk.addEventListener('seeked', paintWork);
+$('wkch').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; wk.currentTime = +b.dataset.t + 0.03; wk.play().catch(() => {}); });
+$('wkadj').addEventListener('click', () => { const c = curCut(); wk.pause(); document.querySelector('#k' + key(c[0]) + ' .adj').click(); });
+$('wkgo').addEventListener('click', () => { const c = curCut(); wk.pause(); document.getElementById('k' + key(c[0])).scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+
+// ---- Spela alla: film där den finns, annars stillbilden i sin planerade längd
+let idx = -1, timer = null, raf = null, running = false;
+const vidOf = el => el.querySelector('video');
+function progress(frac) { $('prog').style.width = (Math.max(0, Math.min(1, frac)) * 100).toFixed(1) + '%'; }
+function clearCur() {
+  clearTimeout(timer); cancelAnimationFrame(raf);
+  const el = clipEls[idx]; if (!el) return;
+  el.classList.remove('now'); const v = vidOf(el); if (v) { v.onended = null; v.pause(); }
+}
+function stopAll(msg) {
+  clearCur(); running = false; idx = -1; progress(0);
+  $('playall').textContent = '▶ Spela alla'; $('stopall').hidden = true;
+  $('what').textContent = msg || 'Stoppad.';
+}
+function playAt(i) {
+  clearCur();
+  if (i >= clipEls.length) return stopAll('Slut. Det var alla ' + clipEls.length + ' klipp.');
+  idx = i; const el = clipEls[i], v = vidOf(el);
+  el.classList.add('now');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  $('what').innerHTML = '<b>' + el.dataset.no + '</b> ' + esc(el.dataset.title) + (v ? '' : ' · stillbild');
+  if (v) {
+    v.currentTime = 0; v.onended = () => playAt(i + 1);
+    const tick = () => { if (v.duration) progress(v.currentTime / v.duration); raf = requestAnimationFrame(tick); };
+    v.play().then(tick).catch(() => stopAll('Filmen kunde inte startas. Tryck på Spela alla igen.'));
+  } else {
+    const ms = (+el.dataset.len || 3) * 1000, t0 = performance.now();
+    const tick = () => { progress((performance.now() - t0) / ms); raf = requestAnimationFrame(tick); };
+    tick(); timer = setTimeout(() => playAt(i + 1), ms);
+  }
+}
+$('playall').addEventListener('click', () => {
+  if (!running) { running = true; $('playall').textContent = '⏮ Från början'; $('stopall').hidden = false; }
+  playAt(0);
+});
+$('stopall').addEventListener('click', () => stopAll());
+// spelar man ett klipp själv ska de andra tystna
+document.getElementById('clips').addEventListener('play', e => {
+  document.querySelectorAll('.clip video').forEach(v => { if (v !== e.target) v.pause(); });
+  if (running && clipEls[idx] && vidOf(clipEls[idx]) !== e.target) stopAll('Stoppad, du startade ett annat klipp.');
+}, true);
+wk.addEventListener('play', () => { document.querySelectorAll('.clip video').forEach(v => v.pause()); if (running) stopAll('Stoppad, arbetskopian spelas.'); });
+document.getElementById('clips').addEventListener('play', () => wk.pause(), true);
+</script>

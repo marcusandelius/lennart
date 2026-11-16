@@ -1,0 +1,168 @@
+0
+00:00:00,000 --> 00:00:08,000
+Okej, så det här är ett helt vanligt autonomt säkerhetssystem med artspecifik åtkomstkontroll, motoriserad precision.
+
+1
+00:00:07,999 --> 00:00:11,999
+och 48 väldigt noggrant tillväckade komponenter.
+
+2
+00:00:11,999 --> 00:00:13,999
+Inget konstigt.
+
+3
+00:00:13,999 --> 00:00:15,999
+Det vaktar 0.
+
+4
+00:00:15,998 --> 00:00:19,998
+Men lite bakgrund först. I somras börjar en äckhår hälsa på hemma hos oss.
+
+5
+00:00:23,998 --> 00:00:27,598
+Först var det lite då och då, men numera dyker han upp nästan varje dag.
+
+6
+00:00:28,098 --> 00:00:29,638
+Han fick namnet Lennart.
+
+7
+00:00:30,138 --> 00:00:32,838
+Redan från första besöket har vi sett att Lennart har en
+
+8
+00:00:31,999 --> 00:00:33,279
+till att bjuda honom på nötter.
+
+9
+00:00:33,279 --> 00:00:37,279
+Och sen dess har ni alltid haft tillgång till både käk och vatten utanför oss.
+
+10
+00:00:39,279 --> 00:00:40,279
+Problem?
+
+11
+00:00:39,999 --> 00:00:43,239
+Tänk att fåglarna också har upptäckt vår lilla uteservering.
+
+12
+00:00:43,239 --> 00:00:47,239
+Ibland kommer stackars lännart fram till en helt lentsad buffet.
+
+13
+00:00:47,239 --> 00:00:49,239
+Så ja, vi har en liten lännsad buffé.
+
+14
+00:00:47,999 --> 00:00:50,999
+Det är rätt uppenbart att vi har ett problem som behöver lösas.
+
+15
+00:00:50,999 --> 00:00:52,999
+Men då slog det mig.
+
+16
+00:00:52,999 --> 00:00:55,999
+Tänk om matstationen själv kunde se vem det är som kommer.
+
+17
+00:00:55,999 --> 00:01:01,999
+Själva tanken är enkel. När någon kommer fram, ta kameran en bild och skicka den till molnet.
+
+18
+00:01:01,999 --> 00:01:05,999
+Målen gör som moln brukar, svaret är inte så svårt att göra.
+
+19
+00:01:03,999 --> 00:01:05,999
+Jag ska svara på frågan, är det här en äckkårre?
+
+20
+00:01:05,999 --> 00:01:07,999
+Är svaret nej?
+
+21
+00:01:07,999 --> 00:01:09,999
+Ja då händer ingenting.
+
+22
+00:01:09,999 --> 00:01:11,999
+Är svaret ja?
+
+23
+00:01:11,999 --> 00:01:13,999
+Då finns det plötsligt mat.
+
+24
+00:01:14,999 --> 00:01:16,999
+Så jag satte mig med klåd och började bolla lite.
+
+25
+00:01:16,999 --> 00:01:18,999
+Det ena ledde fram till det andra.
+
+26
+00:01:18,999 --> 00:01:20,999
+Först älskar jag.
+
+27
+00:01:19,999 --> 00:01:24,999
+En vis, sen en ritning och sen halv i plötsligt en hel 3D-modell, redo för utskrift.
+
+28
+00:01:24,999 --> 00:01:27,999
+En röd liten stuga med vita knutar.
+
+29
+00:01:27,999 --> 00:01:29,679
+State of the art sacred system.
+
+30
+00:01:32,039 --> 00:01:34,559
+För att bygga det här behöver vi såklart köpa en del prylar.
+
+31
+00:01:35,039 --> 00:01:35,959
+En Raspberry Pi.
+
+32
+00:01:35,999 --> 00:01:43,999
+En kameramodul, en ledskärm, servomotorer, kablar, skruvar, nötter och en massa filament.
+
+33
+00:01:43,999 --> 00:01:49,999
+klåd satte ihop inköpslistan och sen var det bara för mig att länna och hosta upp pengarna.
+
+34
+00:01:51,999 --> 00:01:55,999
+Sen skrev vi ut allt med vår 3D-skrivare.
+
+35
+00:01:55,999 --> 00:01:58,999
+Alla utskrifter tog några dagar.
+
+36
+00:02:00,000 --> 00:02:02,500
+att det ska bli rätt första gången. Det känns lite okult.
+
+37
+00:02:06,200 --> 00:02:08,080
+Så här ser det ut. Jag nämnde att det var många
+
+38
+00:02:07,999 --> 00:02:12,999
+Men det var viktigt för Lennart, framförallt stupränderna och blomblådorna. De var viktiga för honom.
+
+39
+00:02:15,999 --> 00:02:22,259
+Så ja, då var cirkeln slut. Nu har även Ekorar på sätt och vis tillgång till dagens verktyg.
+
+40
+00:02:22,919 --> 00:02:24,219
+AI-verktyg då.
+
+41
+00:02:23,999 --> 00:02:26,999
+Och lär natt få ha sin mat i fred.
+
