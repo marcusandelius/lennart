@@ -177,12 +177,37 @@ def s_inkop():
     for i, c in enumerate([(0.635, 0.227, 0.172), (0.93, 0.92, 0.89), (0.35, 0.37, 0.38)]): prim('torus', mat('spole%d' % i, c, 0.5), (-0.19 + i * 0.105, -0.06, 0.016), major_radius=0.034, minor_radius=0.016)
     for i in range(10): prim('cyl', stl, (0.11 + (i % 5) * 0.014, -0.045 - (i // 5) * 0.02, 0.002), (0.0022, 0.0022, 0.002), radius=1, depth=2)
     nut((0.23, 0.07, 0.009)); camera((0, -0.08, 1.0), (0.01, 0.005, 0), 48)
-def s_slicer():
-    show(['kropp', 'kropp_vit']); cut(['kropp', 'kropp_vit'], 0.105); override(['kropp', 'kropp_vit'], mat('sl', (0.6, 0.62, 0.66), 0.8))
-    world((0.02, 0.024, 0.03)); light((-0.6, -0.7, 0.9), (0, 0.07, 0.05), 50, 0.9)
-    prim('plane', mat('grid', (0.05, 0.055, 0.065), 0.8), (0, 0.075, 0), size=0.256)
-    prim('plane', mat('lager', (1.0, 0.45, 0.05), 1, emit=3.0, alpha=0.5), (0, 0.075, 0.1052), size=0.2)
-    camera((0.5, -0.75, 0.45), (0, 0.07, 0.07), 70)
+def lagermat(name, col):   # utskriven plast med synliga lagerlinjer (overdrivna, 1 mm, for att synas pa avstand)
+    m = mat(name, col, 0.45); nt = m.node_tree; p = nt.nodes['Principled BSDF']; geo = nt.nodes.new('ShaderNodeNewGeometry'); sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+    mul = nt.nodes.new('ShaderNodeMath'); mul.operation = 'MULTIPLY'; mul.inputs[1].default_value = 2 * math.pi / 0.001
+    sin_ = nt.nodes.new('ShaderNodeMath'); sin_.operation = 'SINE'; bump = nt.nodes.new('ShaderNodeBump'); bump.inputs['Strength'].default_value = 0.35; bump.inputs['Distance'].default_value = 0.0002
+    nt.links.new(geo.outputs['Position'], sep.inputs[0]); nt.links.new(sep.outputs['Z'], mul.inputs[0]); nt.links.new(mul.outputs[0], sin_.inputs[0])
+    nt.links.new(sin_.outputs[0], bump.inputs['Height']); nt.links.new(bump.outputs['Normal'], p.inputs['Normal']); return m
+def bit(n, z0, z1, m):   # en kopia av delen, bara mellan hojderna z0 och z1
+    o = PARTS[n]; c = add(bpy.data.objects.new(n + '_bit', o.data.copy())); c.matrix_world = o.matrix_world.copy(); bm = bmesh.new(); bm.from_mesh(c.data); inv = c.matrix_world.inverted()
+    if z0 is not None: bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=inv @ Vector((0, 0, z0)), plane_no=(0, 0, 1), clear_inner=True)
+    if z1 is not None: bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=inv @ Vector((0, 0, z1)), plane_no=(0, 0, 1), clear_outer=True)
+    bm.to_mesh(c.data); bm.free(); c.data.materials.clear(); c.data.materials.append(m); return c
+def s_slicer():   # 5.1 lager for lager: stugans kropp halvvags utskriven, resten som en svag forhandsvisning, det aktuella lagret gloder dar munstycket ar
+    names = ['kropp', 'kropp_vit']; show(names)
+    pts = [PARTS[n].matrix_world @ Vector(c) for n in names for c in PARTS[n].bound_box]; z0, z1 = min(p.z for p in pts), max(p.z for p in pts)
+    mid = sum(pts, Vector()) / len(pts); zc = z0 + 0.46 * (z1 - z0)
+    col = {n: tuple(ORIG_MAT[n].node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value[:3]) for n in names}
+    ghost = mat('forhand', (0.55, 0.72, 0.95), 0.5, emit=0.25, alpha=0.13); glow = mat('lagret', (1.0, 0.42, 0.08), 0.5, emit=9.0)
+    band = []
+    for n in names: bit(n, zc, None, ghost); band.append(bit(n, zc - 0.0012, zc, glow))
+    cut(names, zc)
+    for n in names: override([n], lagermat('lager_' + n, col[n]))
+    vs = [b.matrix_world @ v.co for b in band for v in b.data.vertices]; tip = max(vs, key=lambda v: v.x - v.y) + Vector((0, 0, 0.0006))
+    prim('cube', mat('badd', (0.035, 0.035, 0.04), 0.5), (mid.x, mid.y, z0 - 0.002), (0.13, 0.13, 0.002))
+    brass = mat('massing', (0.85, 0.6, 0.25), 0.25, metal=1.0); steel = mat('stal', (0.12, 0.12, 0.13), 0.4, metal=1.0)
+    prim('cone', brass, (tip.x, tip.y, tip.z + 0.004), radius1=0.0006, radius2=0.004, depth=0.008, vertices=48, rot=(math.pi, 0, 0))
+    prim('cube', brass, (tip.x + 0.003, tip.y, tip.z + 0.011), (0.006, 0.005, 0.003))                     # varmeblocket
+    prim('cyl', steel, (tip.x + 0.003, tip.y, tip.z + 0.022), (0.0055, 0.0055, 0.016), radius=1, depth=1)       # kylflansen
+    prim('cube', mat('kapa', (0.05, 0.05, 0.055), 0.5), (tip.x + 0.021, tip.y, tip.z + 0.042), (0.022, 0.012, 0.012))   # armen ut at hoger, bort fran stugan
+    l = bpy.data.lights.new('spets', 'POINT'); l.energy = 0.6; l.color = (1, 0.5, 0.15); l.shadow_soft_size = 0.002; lo = add(bpy.data.objects.new('spets', l)); lo.location = tip + Vector((0, 0, 0.002))
+    world((0.008, 0.03, 0.036)); light((-0.6, -0.7, 0.9), (mid.x, mid.y, zc), 40, 0.9, (1, 0.95, 0.88)); light((0.7, 0.6, 0.5), (mid.x, mid.y, zc), 14, 0.4, (0.5, 0.75, 1.0))
+    tgt = Vector((mid.x, mid.y, z0 + 0.42 * (z1 - z0))); camera(tgt + Vector((0.46, -0.7, 0.34)), tgt + Vector((0, 0, 0.012)), 62, 5.6)
 def s_makro():
     show(['kropp', 'kropp_vit']); cut(['kropp', 'kropp_vit'], 0.105); tip = (0.0842, 0.062, 0.1054); printer(0.105, tip)
     world((0.003, 0.003, 0.004)); light((0.35, -0.25, 0.3), tip, 6, 0.12, (1, 0.9, 0.8)); light((-0.2, 0.3, 0.2), tip, 2, 0.2, (0.5, 0.7, 1))

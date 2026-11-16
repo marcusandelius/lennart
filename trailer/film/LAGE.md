@@ -22,7 +22,7 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 | 2 Problemet och planen | Fat, skata, kamera i sladd, moln, ja och nej | Klar. Landar ur panoreringen från 1.4, fatet snurrar vid nej, nötterna vilar på riktigt. |
 | 3 Designen | Claude-fönstret ritar huset, huset reser sig | Klar |
 | 4 Inköpen | Komponenterna på blå yta, filamentet | Klar |
-| 5 Utskriften | Slicern (5.1) och utskriftsväggen (5.2–5.3) | 5.1 är en stillbild. Väggen visar platshållare tills de riktiga timelapse-klippen finns. |
+| 5 Utskriften | Lager för lager (5.1) och utskriftsväggen (5.2–5.3) | 5.1 är en stillbild ur 3D. Väggen visar platshållare tills de riktiga timelapse-klippen finns. |
 | 6 Monteringen | Sprängskiss, delarna hittar hem | Första renderingen. Elektroniken från inköpen saknas. |
 | 7 På riktigt | Huset ute, fågel nekas, Lennart får en nöt | Väntar på riktig film. Stillbilder tills dess. |
 
@@ -45,13 +45,17 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 1. Timelapse-klippen från skrivaren (10–13 st) i `timelapse/`, sedan renderas `akt_utskrift.py` om med dem.
 2. Riktig film till del 7 när huset står ute.
 3. Elektroniken i monteringen (del 6).
-4. Slicern (5.1) som rörlig bild i stället för stillbild.
+4. 5.1 som rörlig bild i stället för stillbild, gärna en skärminspelning från slicern eller ett närklipp på munstycket.
 5. Storyboardens röstspalt har fortfarande den gamla manustexten, inte orden i inspelningen.
 
 ## Att kontrollera före publicering
 
 - Sunos villkor för musiken med Marcus abonnemang [verifiera].
 - Claude-logotypen i del 3 är en egen ritad tolkning. Om Anthropics logotyp får användas så [verifiera].
+
+## Vattenstämpeln
+
+Scener som väntar på riktigt material står i listan `VANTAR` i `storyboard/storyboard.html`. De får texten VÄNTAR PÅ MATERIAL i storyboarden och i filmen (`verktyg/arbetskopia.mjs`). Ta bort en scen ur listan när dess material är på plats.
 
 ## Hur saker är gjorda
 

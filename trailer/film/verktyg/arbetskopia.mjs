@@ -12,21 +12,24 @@ const HERE = dirname(fileURLToPath(import.meta.url)), P = resolve(HERE, '..', '.
 rmSync(TMP, { recursive: true, force: true }); mkdirSync(TMP, { recursive: true });
 const html = readFileSync(join(SB, 'storyboard.html'), 'utf8');
 const grab = (a, b) => { const i = html.indexOf(a) + a.length; return html.slice(i, html.indexOf(b, i)); };
-const ACTS = new Function('return ' + grab('const ACTS = ', '\n];') + ']')(), FILM = new Function('return ' + grab('const FILM = ', ';\n'))();
+const ACTS = new Function('return ' + grab('const ACTS = ', '\n];') + ']')(), FILM = new Function('return ' + grab('const FILM = ', ';\n'))(), VANTAR = new Function('return ' + grab('const VANTAR = ', ';\n'))();
 const ff = (args, cwd = HERE) => execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args], { cwd, stdio: ['ignore', 'inherit', 'inherit'] });
 const probe = (f, what) => execFileSync('ffprobe', ['-v', 'error', ...what, '-of', 'csv=p=0', f]).toString().trim();
 const HEL = process.argv.includes('--hel'), [VW, VH] = HEL ? [1280, 720] : [960, 540];
 const CRF = HEL ? '18' : (process.argv.find(a => /^\d+$/.test(a)) || '27'), V = ['-r', '25', '-c:v', 'libx264', '-crf', CRF, '-preset', 'medium', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '96k', '-ar', '48000', '-ac', '1'];
+// vattenstampeln pa scener som vantar pa material: ett morkt band med text mitt i bilden
+const FONT = [join(P, 'film', 'typsnitt', 'consolab.ttf'), 'C:/Windows/Fonts/consolab.ttf', '/System/Library/Fonts/Menlo.ttc', '/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf'].find(f => existsSync(f));
+const WM = ',drawbox=x=0:y=ih*0.43:w=iw:h=ih*0.14:color=black@0.45:t=fill,drawtext=' + (FONT ? "fontfile='" + FONT.replace(/\\/g, '/').replace(/:/g, '\\:') + "':" : '') + "text='VÄNTAR PÅ MATERIAL':fontsize=h*0.055:fontcolor=white@0.9:x=(w-tw)/2:y=(h-th)/2";
 const cuts = []; let t = 0, n = 0; const list = [];
 for (const [name, , , clips] of ACTS) for (const c of clips) {
   const [no, , len, title, fr] = c, key = no.replace('.', '_'), clip = join(SB, 'clips', key + '.mp4'), out = join(TMP, String(n).padStart(2, '0') + '.mp4'), film = !!FILM[no] && existsSync(clip);
   let d;
   if (film) {
     d = +probe(clip, ['-show_entries', 'format=duration']); const hasA = probe(clip, ['-select_streams', 'a', '-show_entries', 'stream=index']) !== '';
-    ff(['-i', clip, '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=mono', '-filter_complex', `[0:v]scale=${VW}:${VH}[v]`, '-map', '[v]', '-map', hasA ? '0:a' : '1:a', '-t', d.toFixed(3), ...V, out]);
+    ff(['-i', clip, '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=mono', '-filter_complex', `[0:v]scale=${VW}:${VH}${VANTAR.includes(no) ? WM : ''}[v]`, '-map', '[v]', '-map', hasA ? '0:a' : '1:a', '-t', d.toFixed(3), ...V, out]);
   } else {
     d = parseFloat(len.replace(',', '.')) || 3; const still = fr ? join(SB, 'frames', fr + '.jpg') : null;
-    ff([...(still ? ['-loop', '1', '-i', still] : ['-f', 'lavfi', '-i', `color=c=black:s=${VW}x${VH}:r=25`]), '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=mono', '-filter_complex', `[0:v]scale=${VW}:${VH}:force_original_aspect_ratio=increase,crop=${VW}:${VH},eq=saturation=0.55:brightness=-0.04[v]`, '-map', '[v]', '-map', '1:a', '-t', d.toFixed(3), ...V, out]);
+    ff([...(still ? ['-loop', '1', '-i', still] : ['-f', 'lavfi', '-i', `color=c=black:s=${VW}x${VH}:r=25`]), '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=mono', '-filter_complex', `[0:v]scale=${VW}:${VH}:force_original_aspect_ratio=increase,crop=${VW}:${VH},eq=saturation=0.55:brightness=-0.04${VANTAR.includes(no) ? WM : ''}[v]`, '-map', '[v]', '-map', '1:a', '-t', d.toFixed(3), ...V, out]);
   }
   d = +probe(out, ['-show_entries', 'format=duration']); cuts.push([no, +t.toFixed(2), title, name, film ? 1 : 0]); t += d; list.push(`file '${out.replace(/\\/g, '/')}'`); n++;
 }
