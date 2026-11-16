@@ -9,7 +9,7 @@ from mathutils import Vector, Matrix
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 a = sys.argv[sys.argv.index('--') + 1:]; OUT, WIDTH, SAMPLES, TIMES = os.path.abspath(a[0]), int(a[1]), int(a[2]), [float(x) for x in a[3:]]
 os.makedirs(OUT, exist_ok=True); FPS, END = 25, 18.6
-T = dict(pi=3.35, kamera=4.7, skarm=6.25, servo=7.3, kablar=8.4, skruvar=8.95, notter=9.4, pan=(10.3, 12.6), rullar=10.5, push=12.4, snurr=16.2)   # efter inspelningen "full recording.m4a": scenens tid = inspelningens tid - 91,7 s
+T = dict(pi=3.35, kamera=4.7, skarm=5.9, servo=7.3, kablar=8.4, skruvar=8.95, notter=9.4, pan=(10.3, 12.6), rullar=10.5, push=12.4, snurr=16.2)   # efter inspelningen "full recording.m4a": scenens tid = inspelningens tid - 91,7 s
 
 def typsnitt(*namn):   # letar upp ett typsnitt pa den har datorn; annars Blenders inbyggda (texten blir da i ett annat typsnitt)
     import glob
@@ -141,7 +141,7 @@ def place(key, obj, t0, frm): P[key] = (obj, Vector(obj.location), t0, Vector(fr
 place('dator', computer((0, 0.008, 0)), T['pi'], (0, 0.45, 0)); label('dator', 'RASPBERRY PI', (-0.082, -0.012))
 place('kamera', camera_module((-0.125, 0.055, 0)), T['kamera'], (-0.4, 0, 0.3))   # in ovanfor sakerna i kanten; label('kamera', 'KAMERAMODUL', (-0.125, 0.075))
 SCR, SCR_P = screen((0.135, 0.052, 0)); place('skarm', SCR, T['skarm'], (0.4, 0, 0.3)); label('skarm', 'LED-SKÄRM', (0.139, 0.082))
-place('servo1', servo((-0.158, -0.05, 0)), T['servo'], (-0.4, 0, 0.3)); S2 = servo((-0.1, -0.048, 0)); S2.scale = (1.75, 1.75, 1.75); place('servo2', S2, T['servo'] + 0.2, (-0.4, 0, 0.3)); label('servo2', 'SERVOMOTORER', (-0.129, -0.022))   # en mikroservo och en storre
+place('servo1', servo((-0.168, -0.05, 0)), T['servo'], (-0.4, 0, 0.3)); S2 = servo((-0.096, -0.048, 0)); S2.scale = (1.75, 1.75, 1.75); place('servo2', S2, T['servo'] + 0.2, (-0.4, 0, 0.3)); label('servo2', 'SERVOMOTORER', (-0.132, -0.022))   # en mikroservo och en storre
 label('kablar', 'KABLAR', (0.035, 0.094))
 for i in range(10): place('skruv%d' % i, screw((-0.054 + i * 0.012, -0.128, 0)), T['skruvar'] + i * 0.04, (0, -0.3, 0))
 label('skruv9', 'SKRUVAR', (0, -0.147))
@@ -271,8 +271,8 @@ for i, (key, obj, sida) in enumerate(GREJER): place(key, obj, 0.6 + 0.2 * i, (0.
 
 wires([(-0.125, 0.044), (-0.125, 0.008), (-0.0415, 0.008)], [(i - 6.5) * 0.0011 for i in range(14)], 0.00052, [M['beige']] * 14, 0.0052, T['kablar'], T['kablar'] + 0.6, 0.012)        # kamerans flatkabel
 wires([(0.103, 0.052), (0.078, 0.052), (0.078, 0.078), (-0.0085, 0.078), (-0.0085, 0.036)], [(i - 3.5) * 0.00254 for i in range(8)], 0.00075, RAINBOW, 0.0068, T['kablar'] + 0.1, T['kablar'] + 0.8, 0.012)   # skarmens ledare
-wires([(-0.158, -0.062), (-0.158, -0.098), (-0.011, -0.098), (-0.011, -0.02)], [(i - 1) * 0.0013 for i in range(3)], 0.00058, SERVOW, 0.0052, T['kablar'] + 0.15, T['kablar'] + 0.8)   # yttre sladden till den yttre stiften, sa att de inte korsar varandra
-wires([(-0.1, -0.066), (-0.1, -0.088), (-0.021, -0.088), (-0.021, -0.02)], [(i - 1) * 0.0013 for i in range(3)], 0.00058, SERVOW, 0.0052, T['kablar'] + 0.25, T['kablar'] + 0.85)
+wires([(-0.168, -0.062), (-0.168, -0.098), (-0.011, -0.098), (-0.011, -0.02)], [(i - 1) * 0.0013 for i in range(3)], 0.00058, SERVOW, 0.0052, T['kablar'] + 0.15, T['kablar'] + 0.8)   # yttre sladden till den yttre stiften, sa att de inte korsar varandra
+wires([(-0.096, -0.066), (-0.096, -0.088), (-0.021, -0.088), (-0.021, -0.02)], [(i - 1) * 0.0013 for i in range(3)], 0.00058, SERVOW, 0.0052, T['kablar'] + 0.25, T['kablar'] + 0.85)
 
 # ---------- konturer: under den forsta meningen ritas en streckad kontur upp dar varje del ska landa. Nar delen landar lyser konturen till och tonar ner ----------
 bpy.context.view_layer.update()
