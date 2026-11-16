@@ -89,15 +89,11 @@ const FX = [
   ...Array.from({ length: 10 }, (_, i) => ['4.1', 9.35 + i * 0.04, 'impactMetal_light_00' + (i % 5), -28, { pan: (i - 4.5) / 6 }]),                             // skruvarna
   ...Array.from({ length: 7 }, (_, i) => ['4.1', 9.8 + i * 0.06, 'knack', -24, { pitch: 1.1 + i * 0.05 }]),                                       // notterna
   ['4.2', 0.63, 'duns', -22], ['4.2', 0.93, 'duns', -22], ['4.2', 1.23, 'duns', -22], ['4.2', 5.9, 'svep', -28, { dur: 2.3, pitch: 0.9 }],        // filamentrullarna, rullen snurrar
-  // overgangarna mellan scenerna: ett sus per kamerarorelse (langd och tonhojd efter rorelsen), titelns pixlar tands med sma klick
-  ['0.3', 1.95, 'svep', -31, { dur: 0.45, pitch: 0.8 }], ['0.4', 2.25, 'svep', -32, { dur: 1.1, pitch: 0.9 }],
-  ['0.5', 1.95, 'svep', -27, { dur: 0.7, pitch: 1.25 }],
+  // titelns pixlar tands med sma klick (overgangarna har inga egna sus, Marcus ville inte ha dem)
   ...Array.from({ length: 18 }, (_, i) => ['0.6', 0.22 + ((i * 7) % 18) / 18 * 0.5, 'tick', -33 + (i % 3), { pitch: 0.8 + (i * 5 % 7) * 0.08, pan: ((i * 3) % 7 - 3) * 0.12 }]),
-  ['1.4', 7.3, 'svep', -30, { dur: 0.85, pitch: 0.75 }], ['2.6', 7.33, 'svep', -31, { dur: 1.35, pitch: 0.6 }],
-  ['3.2', 10.06, 'svep', -24, { dur: 0.5, pitch: 1.4, pan: 0.5 }], ['4.2', 7.5, 'svep', -29, { dur: 0.75, pitch: 0.7 }],
-  // utskriftsvaggen (akt_utskrift.py): ett latt klick per ruta som dyker fram (1.9 + 0.11 n s in i 5.2), en klang nar alla blir klara (9.1 s = 5.1 s in i 5.3), ett sus nar rutorna glider isar
+  // utskriftsvaggen (akt_utskrift.py): ett latt klick per ruta som dyker fram (1.9 + 0.11 n s in i 5.2), en klang nar alla blir klara (9.1 s = 5.1 s in i 5.3)
   ...Array.from({ length: 11 }, (_, n) => { const t = 1.9 + 0.11 * (n + 1) + 0.25; return t < 4 ? ['5.2', t, 'klick', -27, { pitch: 0.8 + (n * 5 % 7) * 0.07, pan: ((n * 3) % 5 - 2) * 0.2 }] : ['5.3', t - 4, 'klick', -27, { pitch: 0.8 + (n * 5 % 7) * 0.07, pan: ((n * 3) % 5 - 2) * 0.2 }]; }),
-  ['5.2', 1.7, 'svep', -30, { dur: 2.4, pitch: 0.7 }], ['5.3', 5.1, 'klang', -23], ['5.3', 5.25, 'svep', -27, { dur: 0.8, pitch: 0.9 }],
+  ['5.3', 5.1, 'klang', -23],
   // monteringen: varje del klickar pa plats 0,75 s efter att den borjat aka hem (tider ur STEPS i akt_montering.py, raknat fran 6.1)
   ...[4.0, 4.35, 4.7, 5.1, 5.45, 6.0, 6.3, 6.6, 7.3, 7.55, 7.8, 8.5, 9.1, 9.7, 10.3, 10.6, 10.9, 11.15, 11.6, 12.0, 12.5, 13.1, 13.5, 13.85, 14.1, 14.9, 15.3, 15.55, 16.1, 16.5, 17.1]
     .flatMap((t, i) => [6.6, 15.3, 15.55].includes(t) ? [['6.1', t + 0.75, 'duns', -19], ['6.1', t + 0.75, 'impactPlate_medium_00' + (i % 5), -20]] : [['6.1', t + 0.75, 'impactPlate_light_00' + (i * 3 % 5), -22, { pan: (i % 3 - 1) * 0.3 }]]),

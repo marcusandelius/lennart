@@ -8,6 +8,7 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 - Huset får inte visas före del 3. Del 0 visar bara skärmen, gluggen, mekaniken i genomskärning och delarna utspridda på golvet.
 - Luckan öppnas först, sedan rullar nöten.
 - I filmen visas bildigenkänningen som ett moln. Var den faktiskt körs är fortfarande ett öppet beslut, se `docs/beslut/bildigenkanning.md`. Ändras beslutet behöver del 2 ändras.
+- Inga sus eller swoosh-ljud på övergångarna.
 - Inga toningar mellan klipp. Övergångarna bärs av kamerarörelser, matchklipp och former som fortsätter in i nästa bild.
 - Rekonstruktioner i 3D märks som sådana. Inga påhittade konstruktionsdetaljer visas som verkliga.
 - Klippens längder följer rösten. Ändras en scen ska dess klipp ha samma längd, annars hamnar rösten fel. Tiderna står i `SEG` i `verktyg/ljudmix.mjs`.
@@ -30,7 +31,7 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 | Skarv | Hur |
 |---|---|
 | 0.3 → 0.4 | Snabb tilt nerför skålen, 0.4 börjar med en tilt upp från golvet |
-| 0.4 → 0.5 | Kameran lägger sig ovanför skärmramen på golvet, i samma utsnitt som skärmen i 0.5 |
+| 0.4 → 0.5 | Genom ramen: kameran åker ner genom skärmramens öppning på golvet, 0.5 backar ut ur den släckta skärmen som tänds |
 | 0.5 → 0.6 | In i skärmens pixlar, titeln tänds i samma rutnät (`verktyg/titel.py`) |
 | 1.4 → 2.1 | Matchklipp: nöten i tassarna blir en 3D-hasselnöt på samma plats i bilden |
 | 2.6 → 3.1 | Kameran tittar upp förbi molnet, 3.1 kommer uppifrån ner mot fönstret |

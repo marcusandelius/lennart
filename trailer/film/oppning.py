@@ -263,15 +263,19 @@ def state(t):
         for o in CAMPARTS: o.hide_render = True
         SCREEN.hide_render = True; tgt = mix((-0.3, 0.12, -0.01), (0.3, 0.02, -0.01), k); eye = mix((-0.95, -0.5, 0.1), (0.5, -0.66, 0.15), k)
         rise = 1 - out(t, T_D, T_D + 0.45, 2.0); tgt = tgt + Vector((0, -0.25, -0.3)) * rise                       # overgang in: tilten fortsatter, nu uppat fran golvet
-        crane = sm(t, T_E - 1.15, T_E - 0.02)                                                                    # overgang ut: rakt ovanfor skarmramen, som skarmen i 0.5
+        crane = sm(t, T_E - 1.45, T_E - 0.45); dive = acc(t, T_E - 0.8, T_E - 0.02, 2.0)                        # overgang ut: upp over skarmramen pa golvet och rakt ner genom dess oppning
         lens = 36 + 49 * crane
-        if crane > 0: tgt = mix(tgt, RAM_C, crane); eye = mix(eye, RAM_C + Vector((0.0001, -0.0001, 0.30)), crane)
-        camera(eye, tgt, lens, 2.0 + 3.6 * crane, roll=(RAM_ROLL + math.radians(2.5)) * crane)
+        if crane > 0: tgt = mix(tgt, RAM_C, crane); eye = mix(eye, RAM_C + Vector((0.0001, -0.0001, 0.30 - 0.255 * dive)), crane)
+        camera(eye, tgt, lens, 2.0 + 3.6 * crane)
+        if crane > 0:    # nar kameran tittar rakt ner styrs upp-riktningen sjalv (mot +Y), sa att ramen ligger rak och still hela vagen ner
+            f_ = (Vector(tgt) - Vector(eye)).normalized(); u_ = Vector((0, crane, 1 - crane)).normalized(); rt_ = f_.cross(u_).normalized(); up_ = rt_.cross(f_)
+            CAM.rotation_euler = (Matrix((rt_, up_, -f_)).transposed() @ Matrix.Rotation(math.radians(2.5) * crane, 3, 'Z')).to_euler()
     else:            # 0.5 tatt pa skarmen: VERIFIERAR...
-        lights('makro'); k = out(t, T_E, END, 1.8); SCREEN.data.materials[0] = SCR['av' if t >= END - 0.06 else dots(t)]
+        lights('makro'); k = out(t, T_E, END, 1.8); SCREEN.data.materials[0] = SCR['av' if (t >= END - 0.06 or t < T_E + 0.3) else dots(t)]
+        ent = out(t, T_E, T_E + 1.1, 2.6)       # overgang in fran 0.4: borjar tatt mot den slackta skarmen och backar ut ur den, skarmen tands
         push = acc(t, 14.5, END - 0.08, 2.2)    # overgang till titeln: kameran aker in tills skarmens pixlar fyller bilden (ca 80 pixlar over bildbredden, samma som titelns rutnat)
         for b in BUMPS: b.inputs['Strength'].default_value = 0.35
-        camera(orbit(S, (16 - 16 * k) * (1 - push), (0.3 - 0.075 * k) * (1 - push) + 0.058 * push, 0.004 * (1 - push)), S + Vector((0.004 * push, 0.0034 * push, 0)), 85, 2.8 + 9 * push, focus=S + Vector((0, 0.0034, 0)), roll=math.radians(2.5 * (1 - k)) * (1 - push))
+        camera(orbit(S, (16 - 16 * k) * (1 - push) * ent, 0.045 + ((0.3 - 0.075 * k) * (1 - push) + 0.058 * push - 0.045) * ent, 0.004 * (1 - push) * ent), S + Vector((0.004 * push, 0.0034 * max(push, 1 - ent), 0)), 85, 2.8 + 9 * push + 6 * (1 - ent), focus=S + Vector((0, 0.0034, 0)), roll=math.radians(2.5 * (1 - k)) * (1 - push) * ent)
 
 # Omtajmning: par av (ny tid, ursprunglig tid) vid varje fras, linjart daremellan
 WARP = [(0.0, 0.0), (15.2, 15.2)]   # ingen omtajmning: tiderna foljer den egna inspelningen av introt. Tajmas om nar den riktiga rosten ar inspelad.
