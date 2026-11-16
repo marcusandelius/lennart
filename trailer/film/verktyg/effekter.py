@@ -18,6 +18,9 @@ def tick(p=1.0, **k): t = tt(0.012); return np.sin(2 * np.pi * 3200 * p * t) * n
 def duns(p=1.0, **k): t = tt(0.3); return np.sin(2 * np.pi * (75 * p) * t * (1 + 0.6 * np.exp(-t * 40))) * np.exp(-t * 16) + 0.25 * hp(rng.normal(0, 1, len(t)), 800) * np.exp(-t * 180)
 def knack(p=1.0, **k): t = tt(0.09); return (np.sin(2 * np.pi * 420 * p * t) + 0.6 * np.sin(2 * np.pi * 930 * p * t) + 0.3 * np.sin(2 * np.pi * 1710 * p * t)) * np.exp(-t * 70)
 def pop(p=1.0, **k): t = tt(0.09); f = 320 * p * (1 + 2.2 * t / 0.09); return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 38) * np.minimum(1, t / 0.002)
+def stans(p=1.0, **k):     # en stans genom kartong: ett torrt klipp och en liten duns i kroppen
+    t = tt(0.16); brus = rng.normal(0, 1, len(t))
+    return 0.8 * lp(hp(brus, 1800), 6500) * np.exp(-t * 160) + 0.7 * np.sin(2 * np.pi * 150 * p * t * (1 + 0.4 * np.exp(-t * 60))) * np.exp(-t * 30) + 0.3 * lp(hp(brus, 400), 1500) * np.exp(-t * 60)
 def svep(p=1.0, dur=1.0, **k):       # mjukt sus som stiger i ton
     t = tt(dur); x = rng.normal(0, 1, len(t)); u = t / dur; f = 500 * p * (1 + 3.5 * u); ph = np.cumsum(f) / SR
     return (lp(hp(x, 300), 2500 * p) * 0.9 + 0.25 * np.sin(2 * np.pi * ph)) * np.sin(np.pi * u) ** 1.5
@@ -39,7 +42,7 @@ def tallrik(p=1.0, dur=1.4, **k):   # ett porslinsfat som snurrar ut som ett myn
         y[i0:] += amp * part * (0.75 + 0.5 * rng.random())
     hum = lp(rng.normal(0, 1, len(t)), 900) * np.minimum(1, t / 0.05) * np.clip(1 - t / dur, 0, 1) ** 1.6 * 0.08   # mycket svagt rullande sus under (starkare lat blasigt)
     return y + hum
-S = dict(tallrik=tallrik, pip=pip, klick=klick, tick=tick, duns=duns, knack=knack, pop=pop, svep=svep, slutare=slutare, nej=nej, ja=ja, klang=klang, servo=servo)
+S = dict(tallrik=tallrik, pip=pip, klick=klick, tick=tick, duns=duns, knack=knack, pop=pop, stans=stans, svep=svep, slutare=slutare, nej=nej, ja=ja, klang=klang, servo=servo)
 import os
 FXD = sys.argv[4] if len(sys.argv) > 4 else ''
 def fil(name):      # inspelat ljud (wav, mono, 48 kHz) ur mappen fx

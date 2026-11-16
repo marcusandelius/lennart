@@ -68,27 +68,28 @@ const LAT = join(P, 'System Online.mp3'), egen = existsSync(LAT);
 if (egen) ff(['-i', LAT, '-af', `volume=-5dB,apad=whole_dur=${TOT.toFixed(3)},afade=t=out:st=${(TOT - 3).toFixed(3)}:d=3`, '-t', TOT.toFixed(3), '-ar', '48000', '-ac', '2', '-c:a', 'pcm_s16le', MU]);
 else execFileSync(PYX, [join(HERE, 'musik.py'), MU, TOT.toFixed(2), at('1.1').toFixed(2)], { stdio: 'inherit' });
 
-// 3b. ljudeffekterna: [klipp, sekunder in i klippet, ljud, niva i dB, {dur, pitch, pan}]. Tiderna foljer scenernas egna tidtabeller. Ljud med korta namn (pip, svep, pop ...) syntetiseras i effekter.py. Ovriga namn ar filer ur Kenneys ljudpaket (CC0, kenney.nl) i film/ljud/kenney.
+// 3b. ljudeffekterna: [klipp, sekunder in i klippet, ljud, niva i dB, {dur, pitch, pan}]. Tiderna foljer scenernas egna tidtabeller. Ljud med korta namn (pip, pop, klang ...) syntetiseras i effekter.py. Ovriga namn ar filer ur Kenneys ljudpaket (CC0, kenney.nl) i film/ljud/kenney.
 const FX = [
   ['0.3', 1.93, 'knack', -20],                                                                                                    // noten landar i skalen (inget servoljud)
   ['0.5', 1.70, 'pip', -24], ['0.5', 1.95, 'pip', -24], ['0.5', 2.20, 'pip', -24], ['0.6', 0.0, 'duns', -14],
+  ['1.4', 7.36, 'stans', -22],                                                                                                    // Lennart stansas ut ur bilden
   ['2.1', 2.5, 'impactWood_light_000', -22], ['2.1', 3.3, 'impactWood_light_002', -22], ['2.1', 4.1, 'impactWood_light_001', -22],          // skatan pickar
-  ['2.3', 3.2, 'klang', -27, { pitch: 0.75 }], ['2.3', 5.7, 'svep', -27, { dur: 1.7, pitch: 0.6 }], ['2.3', 7.7, 'klick', -22],                // molnet, kameran sanks ner
-  ['2.4', 5.3, 'slutare', -18], ['2.4', 6.3, 'svep', -26, { dur: 1.6 }], ['2.4', 8.9, 'pip', -25], ['2.4', 9.1, 'pip', -25], ['2.4', 9.3, 'pip', -25],
-  ['2.5', 0.2, 'error_004', -21], ['2.5', 0.4, 'svep', -30, { dur: 1.1, pitch: 0.6 }],
+  ['2.3', 3.2, 'klang', -27, { pitch: 0.75 }], ['2.3', 7.7, 'klick', -22],                // molnet, kameran sanks ner
+  ['2.4', 5.3, 'slutare', -18], ['2.4', 8.9, 'pip', -25], ['2.4', 9.1, 'pip', -25], ['2.4', 9.3, 'pip', -25],
+  ['2.5', 0.2, 'error_004', -21],
   ['2.5', 1.6, 'tallrik', -25, { dur: 1.4, pan: -0.15 }],                                                                            // nej-signalen slar ner i fatet, som snurrar ut (32,7 s i planen = 1,6 s in i 2.5)
-  ['2.6', 1.95, 'slutare', -18], ['2.6', 2.05, 'svep', -26, { dur: 0.95 }], ['2.6', 3.7, 'confirmation_001', -20], ['2.6', 3.85, 'svep', -29, { dur: 0.8, pitch: 1.2 }],
+  ['2.6', 1.95, 'slutare', -18], ['2.6', 3.7, 'confirmation_001', -20],
   ...Array.from({ length: 9 }, (_, i) => ['2.6', 4.65 + i * 0.075, 'pop', -19, { pitch: 1 + i * 0.09, pan: (i % 3 - 1) * 0.4 }]),                // notterna poppar upp
   ['3.1', 4.1, 'click_002', -25],   // fragan skickas
   ...Array.from({ length: 36 }, (_, i) => ['3.1', 0.9 + i / 12, ['tick_001', 'tick_002', 'tick_004'][i * 5 % 3], -27 + (i * 7 % 5) * 0.8, { pitch: 0.8 + (i * 13 % 7) * 0.06 }]),          // fragan skrivs
   ...Array.from({ length: 11 }, (_, i) => ['3.1', 4.8 + i / 10, 'tick_002', -31]),                                                   // svaret skrivs
-  ['3.1', 6.0, 'klang', -27], ['3.1', 6.0, 'svep', -31, { dur: 3.3, pitch: 0.8 }],                                                               // ritningen projiceras
-  ['3.2', 0.2, 'svep', -29, { dur: 3.9, pitch: 0.7 }], ['3.2', 8.6, 'klang', -24],                                                               // huset reser sig, skarmen tands
+  ['3.1', 6.0, 'klang', -27],                                                               // ritningen projiceras
+  ['3.2', 8.6, 'klang', -24],                                                               // huset reser sig, skarmen tands
   ['4.1', 3.75, 'impactGeneric_light_000', -19], ['4.1', 5.1, 'impactGeneric_light_001', -20], ['4.1', 6.65, 'impactGeneric_light_002', -19], ['4.1', 7.7, 'impactGeneric_light_003', -21], ['4.1', 7.9, 'impactGeneric_light_004', -21],   // Pi, kamera, skarm, servon
-  ['4.1', 8.4, 'svep', -28, { dur: 0.85 }], ['4.1', 9.2, 'klang', -28],                                                                          // kablarna, skarmen tands
+  ['4.1', 9.2, 'klang', -28],                                                                          // kablarna, skarmen tands
   ...Array.from({ length: 10 }, (_, i) => ['4.1', 9.35 + i * 0.04, 'impactMetal_light_00' + (i % 5), -28, { pan: (i - 4.5) / 6 }]),                             // skruvarna
   ...Array.from({ length: 7 }, (_, i) => ['4.1', 9.8 + i * 0.06, 'knack', -24, { pitch: 1.1 + i * 0.05 }]),                                       // notterna
-  ['4.2', 0.63, 'duns', -22], ['4.2', 0.93, 'duns', -22], ['4.2', 1.23, 'duns', -22], ['4.2', 5.9, 'svep', -28, { dur: 2.3, pitch: 0.9 }],        // filamentrullarna, rullen snurrar
+  ['4.2', 0.63, 'duns', -22], ['4.2', 0.93, 'duns', -22], ['4.2', 1.23, 'duns', -22],        // filamentrullarna, rullen snurrar
   // titelns pixlar tands med sma klick (overgangarna har inga egna sus, Marcus ville inte ha dem)
   ...Array.from({ length: 18 }, (_, i) => ['0.6', 0.22 + ((i * 7) % 18) / 18 * 0.5, 'tick', -33 + (i % 3), { pitch: 0.8 + (i * 5 % 7) * 0.08, pan: ((i * 3) % 7 - 3) * 0.12 }]),
   // utskriftsvaggen (akt_utskrift.py): ett latt klick per ruta som dyker fram (1.9 + 0.11 n s in i 5.2), en klang nar alla blir klara (9.1 s = 5.1 s in i 5.3)

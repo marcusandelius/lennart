@@ -103,6 +103,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Musiken "System Online" | `trailer/System Online.mp3` | Gjord av Marcus i Suno. Licens för spridning beror på abonnemanget [verifiera]. |
 | Claude-logotypen i trailerns del 3 | Ritad i `trailer/film/akt_design.py` | Egen tolkning av Anthropics logotyp, ritad i kod. Om logotypen får användas så [verifiera]. |
 | Videoklipp på Lennart | `trailer/PXL_*.mp4`, `trailer/1000007512.mp4`, `trailer/VID-20261114-WA0000~3.mp4` | Marcus mobilklipp. VID-klippet kom via WhatsApp, vem som filmade det [verifiera]. Marcus är den enda personen i bild. |
+| Den utstansade Lennart (kartongfiguren i början av del 2) | `trailer/film/lennart-utstansad.png` | Bildruta 184 ur `trailer/1000007512.mp4` (Marcus mobilklipp), med bara ekorren utstansad och färgerna justerade för 3D-scenen. |
 
 ## Hjälp från personer och AI-sessioner
 

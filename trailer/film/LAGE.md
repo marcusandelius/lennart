@@ -18,8 +18,8 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 | Del | Innehåll | Läge |
 |---|---|---|
 | 0 Öppningen | Skärmen, gluggen, nötens väg, 48 delar, VERIFIERAR, titeln | Klar. Fullt nötmagasin, pixlar på skärmen, punkterna tänds på pipen. |
-| 1 Lennart | Riktiga mobilklipp | Klar. Klipp 1.4 fryser och zoomar in på nöten i slutet. |
-| 2 Problemet och planen | Fat, skata, kamera i sladd, moln, ja och nej | Klar. Fatet snurrar vid nej, nötterna vilar på riktigt. |
+| 1 Lennart | Riktiga mobilklipp | Klar. Klipp 1.4 slutar med att Lennart stansas ut ur bilden. |
+| 2 Problemet och planen | Fat, skata, kamera i sladd, moln, ja och nej | Klar. Börjar med den utstansade Lennart, fatet snurrar vid nej, nötterna vilar på riktigt. |
 | 3 Designen | Claude-fönstret ritar huset, huset reser sig | Klar |
 | 4 Inköpen | Komponenterna på blå yta, filamentet | Klar |
 | 5 Utskriften | Slicern (5.1) och utskriftsväggen (5.2–5.3) | 5.1 är en stillbild. Väggen visar platshållare tills de riktiga timelapse-klippen finns. |
@@ -33,7 +33,7 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 | 0.3 → 0.4 | Snabb tilt nerför skålen, 0.4 börjar med en tilt upp från golvet |
 | 0.4 → 0.5 | Genom ramen: kameran åker ner genom skärmramens öppning på golvet, 0.5 backar ut ur den släckta skärmen som tänds |
 | 0.5 → 0.6 | In i skärmens pixlar, titeln tänds i samma rutnät (`verktyg/titel.py`) |
-| 1.4 → 2.1 | Matchklipp: nöten i tassarna blir en 3D-hasselnöt på samma plats i bilden |
+| 1.4 → 2.1 | Lennart stansas ut ur sista bildrutan med vit kant och bakgrunden faller bort. Han står kvar som kartongfigur i 3D, vänder sig och blir den ritade figuren när skatan kommer (`verktyg/utstansning.py`, `verktyg/overgang_14.py`) |
 | 2.6 → 3.1 | Kameran tittar upp förbi molnet, 3.1 kommer uppifrån ner mot fönstret |
 | 3.2 → 4.1 | Snabb panorering, gjord i efterhand på bildrutorna |
 | 4.2 → 5.1 | In i filamentrullens svarta nav |
@@ -58,5 +58,6 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 - **Rösten:** `verktyg/rost.py` jämnar ut nivån fras för fras och sänker andetag. Sedan `ljud/rostkedja.txt` i ffmpeg: klickborttagning, EQ, de-esser, multibandkompressor, kompressorer, lätt mättnad och limiter. Rösten ligger runt −19 LUFS och mixen runt −15 LUFS.
 - **Musiken:** viker i mellanregistret när rösten talar (`sidechaincompress` per band).
 - **Effekterna:** syntetiseras i `verktyg/effekter.py`, eller hämtas ur Kenneys ljudpaket (CC0). Tiderna står i `FX` i `ljudmix.mjs`, räknat från varje klipps början.
+- **Utstansningen i 1.4:** `verktyg/utstansning.py` tar fram masken ur bildruta 184 (pälsens varma färg), `verktyg/utstansning_kalibrera.py` justerar färgerna så att kartongfiguren i 3D ser ut som filmrutan, och `verktyg/overgang_14.py` bygger de sista 20 rutorna i 1.4 ovanpå första rutan i 2.1. Ändras början av 2.1 ska de tre köras om i den ordningen.
 - **Nötterna:** platserna räknas fram mot modellens riktiga form (`verktyg/notmagasin.py`, `verktyg/notfat.py`).
 - **Bildrutor:** när bara en del av en scen ändras renderas bara de bildrutorna om. Bildrutorna finns inte i repot, så ta fram de övriga ur scenens mp4 med `ffmpeg -i "Lennart - del 3 designen v5.mp4" ut/%04d.jpg` först.

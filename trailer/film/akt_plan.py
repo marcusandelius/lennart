@@ -91,6 +91,34 @@ def standee(name, png, h, sink):
     return e
 BIRD = standee('skata', 'dekal-skata.png', 0.3, 0.135); SQ = standee('lennart', 'dekal-lennart.png', 0.22, 0.085)
 
+# ---------- overgangen in fran 1.4: den riktiga Lennart, utstansad ur sista bildrutan (verktyg/utstansning.py), star som kartongfigur i scenen ----------
+# Kameran borjar vinkelratt mot figuren pa precis det avstand dar bilden fyller rutan, sa forsta bildrutan ar samma bild som sista rutan i 1.4.
+import numpy as np
+FOTO_H = 0.20; FOTO_W = FOTO_H * 16 / 9; FOTO_LINS = 60.0; FOTO_TID = dict(vand=1.2, hopp=1.45)
+_m = np.load(os.path.join(HERE, 'utstansning.npz'))['inre']; FOTO_U = float(np.nonzero(_m)[1].mean()) / _m.shape[1]   # ekorrens mitt i sidled, 0..1
+FOTO_D = Vector((0.31 - 0.47, -0.14 + 1.12, 0)).normalized()               # samma riktning som kamerans helbild
+FOTO_PHI = math.atan2(-FOTO_D.x, FOTO_D.y); FOTO_R = Vector((math.cos(FOTO_PHI), math.sin(FOTO_PHI), 0))
+FOTO_P = Vector((0.33, -0.2, GROUND))                                       # dar ekorren star (mitten av ekorren, pa golvet)
+FOTO_MID = FOTO_P + FOTO_R * ((0.5 - FOTO_U) * FOTO_W) + Vector((0, 0, FOTO_H / 2))   # mitten av bilden
+FOTO_EYE = FOTO_MID - FOTO_D * (FOTO_W * FOTO_LINS / 36.0)
+def foto_figur(name, png, w, h, uc, sq_h):
+    e = link(bpy.data.objects.new(name, None)); img = bpy.data.images.load(os.path.join(HERE, png))
+    def layer_mat(front):
+        m = bpy.data.materials.new(name + ('_f' if front else '_k')); m.use_nodes = True; n2 = m.node_tree; p = n2.nodes['Principled BSDF']; t = n2.nodes.new('ShaderNodeTexImage'); t.image = img; t.extension = 'CLIP'
+        n2.links.new(t.outputs['Alpha'], p.inputs['Alpha']); p.inputs['Roughness'].default_value = 0.55
+        if front: n2.links.new(t.outputs['Color'], p.inputs['Base Color']); n2.links.new(t.outputs['Color'], p.inputs['Emission Color']); p.inputs['Emission Strength'].default_value = FOTO_EMIT
+        else: p.inputs['Base Color'].default_value = (0.62, 0.52, 0.4, 1)
+        return m
+    mf, mk = layer_mat(True), layer_mat(False)
+    for i in range(6):
+        me = bpy.data.meshes.new('fq'); x0 = -uc * w; me.from_pydata([(x0, 0, 0), (x0 + w, 0, 0), (x0 + w, 0, h), (x0, 0, h)], [], [(0, 1, 2, 3)]); me.uv_layers.new()
+        for j, c in enumerate([(0, 0), (1, 0), (1, 1), (0, 1)]): me.uv_layers[0].data[j].uv = c
+        me.materials.append(mf if i == 0 else mk); o = link(bpy.data.objects.new(name + str(i), me)); o.location = (0, 0.0006 * i, 0); o.parent = e
+    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=1, depth=1, location=(0, 0.0015, 0.0015)); b = bpy.context.active_object; b.scale = (sq_h * 0.2, sq_h * 0.11, 0.003); b.data.materials.append(mat(name + '_fot', (0.62, 0.52, 0.4), 0.7)); b.parent = e
+    return e
+FOTO_EMIT = 0.6
+FOTO = foto_figur('lennart_foto', 'lennart-utstansad.png', FOTO_W, FOTO_H, FOTO_U, 0.22)
+
 # ---------- fatet och hasselnotterna ----------
 PLATE = link(bpy.data.objects.new('fat', None)); PLATE.location = (0.2, -0.14, GROUND); cer = mat('porslin', (0.86, 0.85, 0.82), 0.25, coat=0.6)
 bpy.ops.mesh.primitive_cylinder_add(vertices=96, radius=0.075, depth=0.005, location=(0, 0, 0.0025)); o = bpy.context.active_object; o.data.materials.append(cer); o.parent = PLATE
@@ -239,6 +267,17 @@ def state(t):
         x, z, ln_ = hops(t, T['sq2_in'], [0.98, 0.78, 0.6, 0.44]); face = 1
         if t >= T['sq_bowl']: x, z, ln_ = hops(t, T['sq_bowl'], [0.44, 0.39, 0.345], 0.3, 0.06, 0.035); ln_ += -0.16 * sm(t, T['sq_bowl'] + 0.8, T['sq_bowl'] + 1.3)
     place(SQ, x, -0.14, z, ln_, face)
+    # i borjan: den utstansade Lennart star vid fatet, ser skatan komma, vander sig (bilden blir den ritade figuren) och hoppar undan at vanster
+    v0, h0 = FOTO_TID['vand'], FOTO_TID['hopp']; c_ = math.cos(math.pi * sm(t, v0, v0 + 0.24))
+    FOTO.location = FOTO_P; FOTO.rotation_euler = (0, 0.05 * pulse(t, 0.88, 0.34), FOTO_PHI); FOTO.scale = (max(c_, 0.0), 1, 1)
+    for o_ in [FOTO] + list(FOTO.children): o_.hide_render = c_ <= 0 or t > h0
+    if t < h0 + 1.1:
+        pts = [FOTO_P, Vector((0.24, -0.06, GROUND)), Vector((0.08, -0.04, GROUND)), Vector((-0.2, -0.03, GROUND))]   # bakom fatet och skalen, ut till vanster
+        k_, z, ln_ = hops(t, h0, [0.0, 1.0, 2.0, 3.0], 0.3, 0.05); i_ = min(int(k_), 2); p_ = pts[i_].lerp(pts[i_ + 1], k_ - i_)
+        place(SQ, p_.x, p_.y, z, -ln_, max(-c_, 0.0)); SQ.rotation_euler.z = FOTO_PHI * (1 - sm(t, h0, h0 + 0.5))
+        for o_ in [SQ] + list(SQ.children): o_.hide_render = c_ > 0
+    else:
+        for o_ in [SQ] + list(SQ.children): o_.hide_render = False
     # molnet, fragan och signalen
     think = (T['up1'][1] - 0.15 <= t < T['no']) or (T['up2'][1] - 0.15 <= t < T['yes'])
     if t >= T['yes']: col, es = (0.25, 0.95, 0.5), 0.35 + 1.0 * (1 - sm(t, T['yes'], T['yes'] + 1.5)) + 0.25
@@ -273,14 +312,14 @@ def state(t):
     wide = sm(t, 9.8, 15.6); close = sm(t, 40.3, END - 0.2)
     eye = mix(mix((0.47, -1.12, 0.16), (0.32, -1.52, 0.27), wide), (0.31, -0.84, 0.2), close) + Vector((0.05 * t / END, 0, 0))
     tgt = mix(mix((0.31, -0.14, 0.075), (0.24, -0.05, 0.165), wide), (0.27, -0.14, 0.06), close)
-    # overgang in: matchklipp pa notten. Kameran borjar 14 cm fran den framsta notten (som fyller ungefar en femtedel av bildbredden, som tassarna i 1.4) och backar ut
-    if t < 1.9:
-        nut = Vector((NUT_REST[5][0], NUT_REST[5][1], GROUND + NUT_REST[5][3])); pb = sm(t, 0.0, 1.9); dv = eye - nut; d_ = 0.14 * (dv.length / 0.14) ** pb
-        eye = nut + dv.normalized() * d_; tgt = mix(nut, tgt, pb)
+    # overgang in: kameran borjar vinkelratt mot den utstansade Lennart (bilden fyller rutan som i 1.4) och glider ut till helbilden
+    fok = None
+    if t < 2.2:
+        pb = sm(t, 0.0, 2.2); eye = mix(FOTO_EYE, eye, pb); tgt = mix(FOTO_MID, tgt, pb); fok = mix(FOTO_MID, tgt, sm(t, 1.2, 2.2))
     # overgang ut: kameran lyfter och tittar upp forbi molnet, ut i det tomma morkret (3.1 fortsatter nerat mot Claude-fonstret)
     up = sm(t, END - 1.35, END) ** 1.4; tgt0 = tgt.copy()     # skarpan stannar pa fatet medan kameran tittar upp
     if up > 0: eye = eye + Vector((0, -0.08, 0.22)) * up; tgt = tgt + Vector((0.1, 0.25, 1.1)) * up
-    CAM.location = eye; CAM.rotation_euler = (tgt - eye).to_track_quat('-Z', 'Y').to_euler(); cam_d.lens = 60 - 5 * wide; cam_d.dof.aperture_fstop = 5.6; cam_d.dof.focus_distance = (tgt0 - eye).length
+    CAM.location = eye; CAM.rotation_euler = (tgt - eye).to_track_quat('-Z', 'Y').to_euler(); cam_d.lens = 60 - 5 * wide; cam_d.dof.aperture_fstop = 5.6; cam_d.dof.focus_distance = ((fok if fok is not None else tgt0) - eye).length
 
 frames = sorted({round(t * FPS) for t in TIMES}) if TIMES else range(int(END * FPS))
 for f in frames:
