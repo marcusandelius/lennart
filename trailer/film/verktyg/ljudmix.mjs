@@ -72,7 +72,6 @@ else execFileSync(PYX, [join(HERE, 'musik.py'), MU, TOT.toFixed(2), at('1.1').to
 const FX = [
   ['0.3', 1.93, 'knack', -20],                                                                                                    // noten landar i skalen (inget servoljud)
   ['0.5', 1.70, 'pip', -24], ['0.5', 1.95, 'pip', -24], ['0.5', 2.20, 'pip', -24], ['0.6', 0.0, 'duns', -14],
-  ['1.4', 7.36, 'stans', -22],                                                                                                    // Lennart stansas ut ur bilden
   ['2.1', 2.5, 'impactWood_light_000', -22], ['2.1', 3.3, 'impactWood_light_002', -22], ['2.1', 4.1, 'impactWood_light_001', -22],          // skatan pickar
   ['2.3', 3.2, 'klang', -27, { pitch: 0.75 }], ['2.3', 7.7, 'klick', -22],                // molnet, kameran sanks ner
   ['2.4', 5.3, 'slutare', -18], ['2.4', 8.9, 'pip', -25], ['2.4', 9.1, 'pip', -25], ['2.4', 9.3, 'pip', -25],
