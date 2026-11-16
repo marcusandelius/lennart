@@ -9,7 +9,7 @@ from mathutils import Vector, Matrix
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 a = sys.argv[sys.argv.index('--') + 1:]; OUT, WIDTH, SAMPLES, TIMES = os.path.abspath(a[0]), int(a[1]), int(a[2]), [float(x) for x in a[3:]]
 os.makedirs(OUT, exist_ok=True); FPS, END = 25, 18.6
-T = dict(pi=3.35, kamera=4.7, skarm=5.9, servo=7.3, kablar=8.4, skruvar=8.95, notter=9.4, pan=(10.3, 12.6), rullar=10.5, push=12.4, snurr=16.2)   # efter inspelningen "full recording.m4a": scenens tid = inspelningens tid - 91,7 s
+T = dict(pi=3.35, kamera=4.7, skarm=5.9, servo=6.85, kablar=8.4, skruvar=8.95, notter=9.4, pan=(10.3, 12.6), rullar=10.5, push=12.4, snurr=16.2)   # efter inspelningen "full recording.m4a": scenens tid = inspelningens tid - 91,7 s
 
 def typsnitt(*namn):   # letar upp ett typsnitt pa den har datorn; annars Blenders inbyggda (texten blir da i ett annat typsnitt)
     import glob
