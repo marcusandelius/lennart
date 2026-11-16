@@ -176,6 +176,50 @@ bme = bpy.data.meshes.new('fana'); bme.from_pydata(src + dst, [], [(i, (i + 1) %
 bpy.ops.mesh.primitive_cube_add(size=1); SCAN = bpy.context.active_object; SCAN.scale = (0.005, PH, 0.0006); SCAN_M = lys('svep', (1.0, 0.45, 0.2), 9.0); SCAN.data.materials.append(SCAN_M); SCAN.visible_shadow = False
 sd = bpy.data.lights.new('proj', 'SPOT'); sd.spot_size = math.radians(40); sd.spot_blend = 0.8; sd.color = (1.0, 0.6, 0.38); sd.shadow_soft_size = 0.02; SPOT = link(bpy.data.objects.new('proj', sd)); SPOT.location = WM @ Vector((0, -0.03, -WH / 2))
 SPOT.rotation_euler = (PC - SPOT.location).to_track_quat('-Z', 'Y').to_euler()
+# munstycket: ett litet orange munstycke fälls ut ur chattrutans underkant strax innan projektionen och vrider sig efter svepet, som ett skrivarhuvud. Ljuset kommer ur spetsen.
+NOZ_ON = os.environ.get('LENNART_MUNSTYCKE', '1') == '1'
+# Varianter (LENNART_MUNSTYCKE_VARIANT): A kon, B lins, C skrivarhuvud, D kapsel (vald). A-C är gråa, D har Claudes orange.
+VAR = os.environ.get('LENNART_MUNSTYCKE_VARIANT', 'D')
+NM = mat('munstycke', (0.3, 0.3, 0.31), 0.38); P_(NM).inputs['Metallic'].default_value = 0.3                  # grå, matt metall
+NR = mat('munstycke_led', (0.13, 0.13, 0.135), 0.45); P_(NR).inputs['Metallic'].default_value = 0.2           # mörkare grå led
+NL_ = mat('munstycke_ljus', (0.55, 0.55, 0.56), 0.35); P_(NL_).inputs['Metallic'].default_value = 0.2        # ljusgrå
+NOR = mat('munstycke_orange', C_OR, 0.32, 0.3, C_OR, 0.35)                                                   # Claudes orange, lyser svagt som knappen
+NOR2 = mat('munstycke_orange_mork', tuple(c * 0.45 for c in C_OR), 0.4)
+G_NOZ = 1.6   # G_NOZ: hela munstyckets storlek
+TIPM = lys('munstycke_spets', (1.0, 0.55, 0.3), 0.0)
+def del_(o, m, parent, loc, rot=(0, 0, 0)): o.data.materials.append(m); o.parent = parent; o.location = loc; o.rotation_euler = rot; [setattr(p, 'use_smooth', True) for p in o.data.polygons]; return o
+FASTE = link(bpy.data.objects.new('munstycke_faste', None)); child(FASTE, 0, -WH / 2 + 0.002, 0)          # fästet sitter i rutans underkant
+bpy.ops.mesh.primitive_cube_add(size=1); pl = bpy.context.active_object; pl.scale = (0.036, 0.016, 0.005); bv = pl.modifiers.new('b', 'BEVEL'); bv.width = 0.002; bv.segments = 4; del_(pl, NM, FASTE, (0, 0, -0.0025)); WOBJ.append(pl)
+NOZ = link(bpy.data.objects.new('munstycke', None)); NOZ.parent = FASTE; NOZ.location = (0, 0, -0.005); WOBJ.append(NOZ)   # leden: allt under den vrids mot svepet
+def bit(o, m, loc, rot=(0, 0, 0)): WOBJ.append(del_(o, m, NOZ, loc, rot)); return o
+def ny(): return bpy.context.active_object
+if VAR == 'A':     # kon: en enkel avsmalnande kon under en kula
+    NL = 0.032
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=0.006); bit(ny(), NR, (0, 0, 0))
+    bpy.ops.mesh.primitive_cone_add(vertices=48, radius1=0.0075, radius2=0.0016, depth=0.028); bit(ny(), NM, (0, 0, -0.017), (math.pi, 0, 0))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=0.0078, depth=0.0016); bit(ny(), NL_, (0, 0, -0.0035))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.0017, depth=0.002); TIP = bit(ny(), TIPM, (0, 0, -NL + 0.0012))
+elif VAR == 'B':   # lins: en kort tub med en lysande lins i änden, som en liten projektor
+    NL = 0.024
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=0.0065); bit(ny(), NR, (0, 0, 0))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=0.0082, depth=0.018); bit(ny(), NM, (0, 0, -0.012))
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.0078, minor_radius=0.0016, major_segments=48, minor_segments=12); bit(ny(), NL_, (0, 0, -0.0215))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=0.0062, depth=0.0012); TIP = bit(ny(), TIPM, (0, 0, -NL + 0.0016))
+elif VAR == 'C':   # skrivarhuvud: ett litet rundat block med en kort spets
+    NL = 0.03
+    bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.0045, depth=0.02, rotation=(0, math.pi / 2, 0)); bit(ny(), NR, (0, 0, 0), (0, math.pi / 2, 0))
+    bpy.ops.mesh.primitive_cube_add(size=1); o = ny(); o.scale = (0.018, 0.012, 0.016); m_ = o.modifiers.new('b', 'BEVEL'); m_.width = 0.003; m_.segments = 5; bit(o, NM, (0, 0, -0.011))
+    bpy.ops.mesh.primitive_cube_add(size=1); o = ny(); o.scale = (0.0185, 0.0125, 0.0018); m_ = o.modifiers.new('b', 'BEVEL'); m_.width = 0.0008; m_.segments = 3; bit(o, NL_, (0, 0, -0.0135))
+    bpy.ops.mesh.primitive_cone_add(vertices=48, radius1=0.0042, radius2=0.0014, depth=0.0095); bit(ny(), NL_, (0, 0, -0.0238), (math.pi, 0, 0))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.0015, depth=0.002); TIP = bit(ny(), TIPM, (0, 0, -NL + 0.0012))
+else:              # kapsel: en avlång, mjuk droppe utan synlig led
+    NL = 0.027
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=0.0062); o = ny(); o.scale = (1, 1, 2.1); bit(o, NOR, (0, 0, -0.0135))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=0.0064, depth=0.0012); bit(ny(), NOR2, (0, 0, -0.008))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.0019, depth=0.0016); TIP = bit(ny(), TIPM, (0, 0, -NL + 0.0007))
+for o in [pl, NOZ, FASTE] + [c for c in NOZ.children]: o.visible_shadow = True
+if not NOZ_ON:
+    for o in [FASTE, pl, NOZ] + list(NOZ.children): o.hide_render = True; WOBJ.remove(o) if o in WOBJ else None
 
 bpy.ops.mesh.primitive_plane_add(size=10, location=(0, 0, GROUND)); bpy.context.active_object.data.materials.append(mat('golv', (0.016, 0.02, 0.022), 0.34))
 def light(loc, target, power, size, col):
@@ -208,6 +252,15 @@ def state(t):
     for i, (dx, dy) in enumerate([(-1, -1), (1, -1), (1, 1), (-1, 1)]): bme.vertices[4 + i].co = (sx + dx * 0.004, PC.y + dy * PH / 2, PC.z + 0.002)
     bme.update(); SCAN.location = (sx, PC.y, PC.z + 0.0022)
     proj = sm(t, 5.9, 6.2) * (1 - sm(t, 9.3, 9.6)); PRJ.outputs[0].default_value = proj; BEAM.hide_render = proj < 0.01; SCAN.hide_render = proj < 0.01; sd.energy = 2.5 * proj
+    if NOZ_ON:   # munstycket fälls ut 5,3-5,9 (med en liten översvängning), siktar på svepet och fälls in igen 9,4-9,9. Fanan och spotten utgår från spetsen.
+        u = min(1.0, max(0.0, (t - 5.3) / 0.6)); ut = (1 + 2.2 * (u - 1) ** 3 + 1.2 * (u - 1) ** 2 if u > 0 else 0.0) * (1 - sm(t, 9.4, 9.9))
+        FASTE.scale = (G_NOZ, G_NOZ, G_NOZ * max(ut, 0.001)); FASTE.hide_render = ut < 0.01
+        for o in [pl] + list(NOZ.children): o.hide_render = ut < 0.01 or away > 0.99
+        bpy.context.view_layer.update(); j = NOZ.matrix_world.translation; d = (Vector((sx, PC.y, PC.z)) - j).normalized() if proj > 0.001 else (Vector((PC.x, PC.y, PC.z)) - j).normalized()
+        dl = (NOZ.parent.matrix_world.to_3x3().normalized().inverted() @ d); NOZ.rotation_euler = dl.to_track_quat('-Z', 'X').to_euler()
+        bpy.context.view_layer.update(); tip = NOZ.matrix_world @ Vector((0, 0, -NL)); P_(TIPM).inputs['Emission Strength'].default_value = 0.6 * ut + 14 * proj
+        for i, (dx, dy) in enumerate([(-1, -1), (1, -1), (1, 1), (-1, 1)]): bme.vertices[i].co = tip + Vector((dx * 0.0015, dy * 0.0015, 0))
+        bme.update(); SPOT.location = tip
     SPOT.rotation_euler = (Vector((sx, PC.y, PC.z)) - SPOT.location).to_track_quat('-Z', 'Y').to_euler()
     DRAW.outputs[0].default_value = -0.02 + 1.15 * sm(t, 6.0, 9.4) ** 0.9 if t > 6.0 else -0.1; GLOW.outputs[0].default_value = 0.5 * sm(t, 9.2, 9.9) * (1 - sm(t, 11.5, 13.5))
     KEY.energy = 46 * (0.45 + 0.55 * sm(t, 9.6, 12.0)); RIM.energy = 22 * (0.5 + 0.5 * sm(t, 9.6, 12.0))
