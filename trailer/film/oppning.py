@@ -1,6 +1,6 @@
 # Projekt Lennart - kalloppningen v2 (klipp 0.1-0.5), 0-15.2 s. Titeln (0.6) laggs pa i klippningen.
 # Kor:  blender -b -P oppning.py -- <ut-mapp (absolut)> <bredd> <samples> [tider i sekunder ...]   (utan tider: alla rutor, fardiga hoppas over)
-# v4: huset avslojas inte i oppningen. 0.3 visar bara mekaniken i farg (resten ar morkt glas, luckan oppnas fore noten), 0.4 visar alla delar utlagda pa golvet, 0.5 ligger tatt pa skarmen.
+# v4: huset avslojas inte i oppningen. 0.3 visar bara mekaniken i farg (resten ar morkt glas, luckan oppnas fore noten), 0.4 visar alla delar utlagda pa golvet, 0.5 ligger tatt pa skarmen. v5: 0.4 ar en ordnad upplaggning med elektroniken och borjar inne i husets stomme.
 # v2: kameralins i gluggen, hasselnot som foljer hjulet och faller ut i skalen (genomskarning), rorligare kamera, morkt petroleumbla bakgrund.
 # Antaganden att bekrafta: kameran ar ritad som en liten kameramodul med fyra fasthal (halbilden i kamerafaste ar ca 21 x 12 mm).
 import bpy, bmesh, sys, os, math, json
@@ -156,15 +156,30 @@ for n, d in CUT.items():
         for i in range(len(d.materials)): d.materials[i] = gh
 sc.cycles.transparent_max_bounces = 64
 
-# 0.4: alla delar utlagda pa golvet, sorterade efter storlek, de storsta langst bak
+# 0.4: alla delar utlagda pa golvet som en ordnad upplaggning. Varje los bit ligger plant i sin tunnaste riktning med langsidan langs x, och delarna ar sorterade i grupper
+# (stomme, tak, bas, skal, elektronik, inredning) fran vanster till hoger. Husets stomme ligger pa rygg langst till vanster, som ett ror; 0.4 borjar inne i den.
+# Elektroniken ar samma generiska modeller som i inkopen (film/elektronik.blend, gors med verktyg/elektronik_export.py). Numren 01-48 bredvid husets delar stangs av med LENNART_NUMMER=0.
+import numpy as _np
 GROUND = -0.037; bpy.ops.mesh.primitive_plane_add(size=12, location=(0, 0, GROUND)); FLOOR = bpy.context.active_object; FLOOR.data.materials.append(mat('golv', (0.016, 0.02, 0.022), 0.55))
-_it = []; LAYR = {}; LAYD = {}
-for n, o in PARTS.items():
-    pts = [ORIG_M[n] @ v.co for v in ORIG_DATA[n].vertices]; cands = [Matrix.Identity(4)] + [Matrix.Rotation(math.radians(a_), 4, ax) for ax, a_ in (('X', -90), ('Y', 90), ('Y', 45), ('Y', -45), ('Y', 40), ('Y', -40), ('Y', 50), ('Y', -50))]
-    def hz_(R): zs = [(R @ p).z for p in pts]; return max(zs) - min(zs)
-    LAYR[n] = min(cands, key=lambda R: round(hz_(R), 3))   # varje del laggs i sin plattaste riktning, sa att husets form inte avslojas
-    # delen bakas i sitt liggande lage, och varje los bit (t.ex. vart och ett av fonstren) sanks ner sa att den vilar pa golvet
-    d = ORIG_DATA[n].copy(); bm = bmesh.new(); bm.from_mesh(d); bm.transform(LAYR[n] @ ORIG_M[n]); seen = set()
+def _oar(pts):   # plattaste riktningen: den sida av holjet som ger lagst hojd laggs mot golvet, sedan vrids langsidan langs x (minsta omskrivna rektangel)
+    P_ = _np.array([tuple(p) for p in pts]); bm = bmesh.new(); vs = [bm.verts.new(p) for p in pts]
+    try: res = bmesh.ops.convex_hull(bm, input=vs); fs = [g for g in res['geom'] if isinstance(g, bmesh.types.BMFace)]
+    except Exception: fs = []
+    best = None
+    for f in fs:
+        f.normal_update(); n = f.normal.copy()
+        if n.length < 0.5: continue
+        d_ = P_ @ _np.array(tuple(n)); k = (round(float(d_.max() - d_.min()), 4), -f.calc_area())
+        if best is None or k < best[0]: best = (k, n)
+    bm.free(); n = best[1] if best else Vector((0, 0, -1))
+    R = n.rotation_difference(Vector((0, 0, -1))).to_matrix().to_4x4(); Q = P_ @ _np.array(R.to_3x3()).T; bA = None
+    for k in range(90):
+        a_ = math.radians(k * 2); c, s = math.cos(a_), math.sin(a_); xs = c * Q[:, 0] - s * Q[:, 1]; ys = s * Q[:, 0] + c * Q[:, 1]; w, d = float(_np.ptp(xs)), float(_np.ptp(ys))
+        if bA is None or w * d < bA[0] - 1e-9: bA = (w * d, a_, w, d)
+    return Matrix.Rotation(bA[1] + (0 if bA[2] >= bA[3] else math.pi / 2), 4, 'Z') @ R
+def _oar_fast(pts): return _oar(pts if len(pts) < 6000 else pts[::max(1, len(pts) // 6000)])
+def _islands(bm):
+    seen = set(); out_ = []
     for v0 in bm.verts:
         if v0.index in seen: continue
         isl, stack = [], [v0]; seen.add(v0.index)
@@ -173,21 +188,86 @@ for n, o in PARTS.items():
             for e in v.link_edges:
                 w = e.other_vert(v)
                 if w.index not in seen: seen.add(w.index); stack.append(w)
-        dz = GROUND - min(v.co.z for v in isl)
-        for v in isl: v.co.z += dz
-    pts = [v.co.copy() for v in bm.verts]; bm.to_mesh(d); bm.free(); LAYD[n] = d
-    lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts))); hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts))); _it.append((n, lo, hi))
-_it.sort(key=lambda it: -(it[2].x - it[1].x) * (it[2].y - it[1].y)); LAY = {}; RW, GAP = 1.5, 0.03; x_, y_, rd = 0.0, 0.0, 0.0
-for n, lo, hi in _it:
-    w, d = hi.x - lo.x, hi.y - lo.y
-    if x_ + w > RW: x_ = 0.0; y_ -= rd + GAP; rd = 0.0
-    LAY[n] = Vector((x_ - lo.x - RW / 2, y_ - d - lo.y, 0)); x_ += w + GAP; rd = max(rd, d)
-LAY_DEPTH = -(y_ - rd)
-for n in LAY: LAY[n].y += LAY_DEPTH * 0.55
+        out_.append(isl)
+    return out_
+def _bb(cos): a_ = _np.array([tuple(c) for c in cos]); return Vector(a_.min(0)), Vector(a_.max(0))
+LAY = {n: Vector((0, 0, 0)) for n in PARTS}; LAYD = {}; _BM = {}; BLOCK = {}   # BLOCK: namn -> (bredd, djup) i blockets egna koordinater (horn i origo)
+KROPP_R = Matrix.Rotation(math.radians(-90), 4, 'Z') @ Matrix.Rotation(math.radians(-90), 4, 'X')   # stommen pa rygg: roret (dess hojd) langs +x, framsidan uppat
+for n in PARTS:
+    bm = bmesh.new(); bm.from_mesh(ORIG_DATA[n]); bm.transform(ORIG_M[n]); bm.verts.ensure_lookup_table(); isl = _islands(bm)
+    if n == 'kropp': bm.transform(KROPP_R); pieces = [list(bm.verts)]
+    else:
+        pieces = isl if 2 <= len(isl) <= 12 else [list(bm.verts)]
+        for pc in pieces:
+            M_ = _oar_fast([v.co for v in pc])
+            for v in pc: v.co = M_ @ v.co
+    # bitarna i en rad (bryts efter 0,3 m), storst forst, med lika avstand
+    info = sorted([(pc, *_bb([v.co for v in pc])) for pc in pieces], key=lambda it: -(it[2].x - it[1].x) * (it[2].y - it[1].y))
+    x_, y_, rd, W_ = 0.0, 0.0, 0.0, 0.0
+    for pc, lo, hi in info:
+        w, d = hi.x - lo.x, hi.y - lo.y
+        if x_ > 0 and x_ + w > 0.3: x_ = 0.0; y_ += rd + 0.008; rd = 0.0
+        sh = Vector((x_ - lo.x, y_ - lo.y, GROUND - lo.z))
+        for v in pc: v.co += sh
+        x_ += w + 0.008; rd = max(rd, d); W_ = max(W_, x_ - 0.008)
+    _BM[n] = bm; BLOCK[n] = (W_, y_ + rd)
+# elektroniken
+ELEK_ALL, ELEK = [], []
+_EP = os.path.join(HERE, 'elektronik.blend')
+if os.path.exists(_EP):
+    with bpy.data.libraries.load(_EP) as (_src, _dst): _dst.objects = list(_src.objects)
+    for o in _dst.objects:
+        if o is None: continue
+        sc.collection.objects.link(o); ELEK_ALL.append(o)
+    bpy.context.view_layer.update()
+    for o in ELEK_ALL:
+        if o.parent is None and o.name.startswith('E_'):
+            cos = [m_.matrix_world @ v.co for m_ in [o] + list(o.children_recursive) if m_.type == 'MESH' for v in m_.data.vertices]
+            lo, hi = _bb(cos); ELEK.append(o); BLOCK[o.name] = (hi.x - lo.x, hi.y - lo.y); o['lo'] = tuple(lo)
+GRUPPER = [('Kropp', [n for n in PARTS if GROUP.get(n) == 'Kropp' and n != 'kropp']), ('Tak', grp('Tak')), ('Bas', grp('Bas')), ('Skål', grp('Skål')),
+           ('Elektronik', [o.name for o in ELEK]), ('Inredning', grp('Inredning'))]
+GAP, GGAP, GW = 0.028, 0.07, 0.5
+RADER = [['Kropp', 'Tak', 'Bas'], ['Skål', 'Elektronik', 'Inredning']]   # bakre raden och framre raden; kameran sveper over den framre fran vanster och slutar vid skarmramen
+GD = dict(GRUPPER); PK = {}; SZ = {}; POS = {}; GX = {}
+for g, names in GRUPPER:   # varje grupp packas for sig i rader, storst forst
+    x_, y_, rd, gw = 0.0, 0.0, 0.0, 0.0
+    for n in sorted(names, key=lambda n: -BLOCK[n][0] * BLOCK[n][1]):
+        w, d = BLOCK[n]
+        if x_ > 0 and x_ + w > GW: x_ = 0.0; y_ += rd + GAP; rd = 0.0
+        PK[n] = (x_, -y_ - d); x_ += w + GAP; rd = max(rd, d); gw = max(gw, x_ - GAP)
+    SZ[g] = (gw, y_ + rd)
+COLW = [max(SZ[RADER[r][c]][0] for r in range(2)) for c in range(3)]; ROWD = [max(SZ[g][1] for g in rad) for rad in RADER]
+LAYOUT_X0 = -(sum(COLW) + 2 * GGAP) / 2; Y_TOP = (sum(ROWD) + GGAP) / 2 + 0.06; y0 = Y_TOP
+for r, rad in enumerate(RADER):
+    x0 = LAYOUT_X0
+    for c, g in enumerate(rad):
+        for n in GD[g]: POS[n] = Vector((x0 + PK[n][0], y0 + PK[n][1], 0))
+        GX[g] = (round(x0, 2), round(y0, 2)); x0 += COLW[c] + GGAP
+    y0 -= ROWD[r] + GGAP
+LAYOUT_X1 = LAYOUT_X0 + sum(COLW) + 2 * GGAP; LAYOUT_Y0 = min(p.y for p in POS.values()); LAYOUT_Y1 = Y_TOP; FRAMRAD_Y = Y_TOP - ROWD[0] - GGAP - ROWD[1] / 2
+# stommen: roret ligger framfor forsta gruppen, med oppningen mot delarna
+_kb = _bb([v.co for v in _BM['kropp'].verts]); KL = _kb[1].x - _kb[0].x; KD = _kb[1].y - _kb[0].y; KH = _kb[1].z - _kb[0].z
+POS['kropp'] = Vector((LAYOUT_X0 - 0.07 - KL, FRAMRAD_Y - KD / 2, 0)); BLOCK['kropp'] = (KL, KD)
+for n, bm in _BM.items():
+    lo = _bb([v.co for v in bm.verts])[0] if n == 'kropp' else Vector((0, 0, 0)); sh = POS[n] - Vector((lo.x, lo.y, 0)) + (Vector((0, 0, GROUND - lo.z)) if n == 'kropp' else Vector())
+    for v in bm.verts: v.co += sh
+    d = ORIG_DATA[n].copy(); bm.to_mesh(d); bm.free(); LAYD[n] = d
+for o in ELEK:
+    lo = Vector(o['lo']); o.location = Vector(o.location) + POS[o.name] - Vector((lo.x, lo.y, 0)) + Vector((0, 0, GROUND - lo.z))
+_kc = _bb([v.co for v in LAYD['kropp'].vertices]); K_X0, K_X1 = _kc[0].x, _kc[1].x; K_Y = (_kc[0].y + _kc[1].y) / 2; K_Z = (_kc[0].z + _kc[1].z) / 2
+print('KNOLL', 'x', round(LAYOUT_X0, 3), round(LAYOUT_X1, 3), 'y', round(LAYOUT_Y0, 3), round(LAYOUT_Y1, 3), 'stomme', round(K_X0, 3), round(K_X1, 3), round(K_Y, 3), round(K_Z, 3), {g: (round(a_, 2), round(b_, 2)) for g, (a_, b_) in GX.items()}, flush=True)
+# nummer 01-48 bredvid husets delar, som i en monteringsanvisning (valbart)
+NUMMER = []
+if os.environ.get('LENNART_NUMMER', '1') == '1':
+    _f = bpy.data.fonts.load('C:/Windows/Fonts/consola.ttf') if os.path.exists('C:/Windows/Fonts/consola.ttf') else None; _nm = mat('nummer', (0.35, 0.37, 0.38), 0.6)
+    _ord = ['kropp'] + [n for g, names in GRUPPER if g != 'Elektronik' for n in sorted(names, key=lambda n: (-POS[n].y, POS[n].x))]
+    for i, n in enumerate(_ord):
+        cu = bpy.data.curves.new('nr%d' % i, 'FONT'); cu.body = '%02d' % (i + 1); cu.size = 0.011
+        if _f: cu.font = _f
+        o = link(bpy.data.objects.new('nr%d' % i, cu)); o.data.materials.append(_nm); o.location = (POS[n].x, POS[n].y - 0.014, GROUND + 0.0002); NUMMER.append(o)
 _rp = [v.co for v in LAYD['skarmram'].vertices]; RAM_C = LAY['skarmram'] + Vector((sum(p.x for p in _rp) / len(_rp), sum(p.y for p in _rp) / len(_rp), max(p.z for p in _rp)))   # skarmramens mitt pa golvet
-import numpy as _np; _xy = _np.array([(p.x, p.y) for p in _rp]); _xy -= _xy.mean(0); _ev = _np.linalg.eigh(_xy.T @ _xy)[1][:, -1]; RAM_A = math.atan2(_ev[1], _ev[0])   # ramens langsida pa golvet
+_xy = _np.array([(p.x, p.y) for p in _rp]); _xy -= _xy.mean(0); _ev = _np.linalg.eigh(_xy.T @ _xy)[1][:, -1]; RAM_A = math.atan2(_ev[1], _ev[0])   # ramens langsida pa golvet
 RAM_A = (RAM_A + math.pi / 2) % math.pi - math.pi / 2; RAM_ROLL = math.radians(-23); print('RAMEN', RAM_C, math.degrees(RAM_A), flush=True)
-print('UTLAGGNING djup', round(LAY_DEPTH, 3), [(n, round(lo.z, 3), round(hi.z, 3)) for n, lo, hi in _it if hi.z - lo.z > 0.09], flush=True)
 
 def light(name, loc, target, power, size, col):
     d = bpy.data.lights.new(name, 'AREA'); d.energy = power; d.size = size; d.color = col; o = link(bpy.data.objects.new(name, d)); o.location = loc
@@ -231,6 +311,7 @@ def nut_path(t):   # noten ligger i hjulets ficka, foljer med 130 grader framat 
     return p, th + acc(t, 8.15, 8.85, 1.5) * 5.5
 
 def state(t):
+    for o in ELEK_ALL + NUMMER: o.hide_render = not (T_D <= t < T_E)   # elektroniken och numren finns bara i 0.4
     for n, o in PARTS.items(): o.matrix_world = ORIG_M[n]; o.data = ORIG_DATA[n]; o.hide_render = False
     SCREEN.hide_render = False; SCREEN.data.materials[0] = SCR['vantar']; FLOOR.hide_render = True
     for o in NUTS: o.hide_render = True
@@ -256,17 +337,22 @@ def state(t):
         k = out(t, T_C, 8.3, 2.6); follow = sm(t, 8.1, 8.85); tgt = mix((0, 0.05, 0.088), (0, 0.006, 0.03), follow)
         dive = acc(t, 8.95, T_D, 2.0); tgt = tgt + Vector((0, -0.01, -0.09)) * dive     # overgang ut: snabb tilt nerat forbi skalen
         camera(mix((0.62, 0.02, 0.135), (0.36, -0.075, 0.10), k) + Vector((0, -0.05, -0.05)) * follow + Vector((0, 0, -0.02)) * dive, tgt, 60, 5.6, (0.0, tgt.y, tgt.z))
-    elif t < T_E:    # 0.4 alla delar utlagda pa golvet, kameran sveper lagt forbi dem
-        lights('golv'); FLOOR.hide_render = False; k = sm(t, T_D - 0.4, T_E + 0.4)
+    elif t < T_E:    # 0.4 ordnad upplaggning: borjar inne i stommen (roret), aker ut genom oppningen, stiger och sveper over grupperna, sedan ner genom skarmramen
+        lights('golv'); FLOOR.hide_render = False; u = t - T_D
         for b in BUMPS: b.inputs['Strength'].default_value = 0.2
         for n, o in PARTS.items(): o.data = LAYD[n]; o.matrix_world = Matrix.Translation(LAY[n])
         for o in CAMPARTS: o.hide_render = True
-        SCREEN.hide_render = True; tgt = mix((-0.3, 0.12, -0.01), (0.3, 0.02, -0.01), k); eye = mix((-0.95, -0.5, 0.1), (0.5, -0.66, 0.15), k)
-        rise = 1 - out(t, T_D, T_D + 0.45, 2.0); tgt = tgt + Vector((0, -0.25, -0.3)) * rise                       # overgang in: tilten fortsatter, nu uppat fran golvet
+        SCREEN.hide_render = True
+        ext = sm(u, 0.0, 1.15); rise = sm(u, 0.55, 2.0); pan = sm(u, 0.6, 2.6)
+        e_in = Vector((K_X0 + 0.04 + (K_X1 + 0.16 - K_X0 - 0.04) * ext, K_Y, K_Z + 0.03 * ext))
+        t_in = Vector((K_X1 + 0.7, K_Y + 0.05, GROUND + 0.01 + 0.3 * (1 - out(u, 0, 0.6, 2.0))))      # overgang in: tilten fran 0.3 fortsatter nerat, inne i roret
+        px = LAYOUT_X0 + 0.3 + (LAYOUT_X1 - 0.75 - LAYOUT_X0 - 0.3) * pan
+        e_ov = Vector((px - 0.05, LAYOUT_Y0 - 0.38, 0.58)); t_ov = Vector((px + 0.1, (LAYOUT_Y0 + LAYOUT_Y1) / 2 - 0.05, GROUND))
+        eye = mix(e_in, e_ov, rise); tgt = mix(t_in, t_ov, rise)
         crane = sm(t, T_E - 1.45, T_E - 0.45); dive = acc(t, T_E - 0.8, T_E - 0.02, 2.0)                        # overgang ut: upp over skarmramen pa golvet och rakt ner genom dess oppning
-        lens = 36 + 49 * crane
+        lens = (20 + 16 * rise) * (1 - crane) + 85 * crane
         if crane > 0: tgt = mix(tgt, RAM_C, crane); eye = mix(eye, RAM_C + Vector((0.0001, -0.0001, 0.30 - 0.255 * dive)), crane)
-        camera(eye, tgt, lens, 2.0 + 3.6 * crane)
+        camera(eye, tgt, lens, (4.0 - 1.6 * rise) * (1 - crane) + 5.6 * crane)
         if crane > 0:    # nar kameran tittar rakt ner styrs upp-riktningen sjalv (mot +Y), sa att ramen ligger rak och still hela vagen ner
             f_ = (Vector(tgt) - Vector(eye)).normalized(); u_ = Vector((0, crane, 1 - crane)).normalized(); rt_ = f_.cross(u_).normalized(); up_ = rt_.cross(f_)
             CAM.rotation_euler = (Matrix((rt_, up_, -f_)).transposed() @ Matrix.Rotation(math.radians(2.5) * crane, 3, 'Z')).to_euler()
