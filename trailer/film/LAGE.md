@@ -32,7 +32,7 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 |---|---|
 | 0.3 → 0.4 | Snabb tilt nerför skålen, 0.4 börjar inne i husets stomme och tiltar vidare nedåt innan kameran åker ut genom öppningen |
 | 0.4 → 0.5 | Genom ramen: kameran åker ner genom skärmramens öppning på golvet, 0.5 backar ut ur den släckta skärmen som tänds |
-| 0.5 → 0.6 | In i skärmens pixlar, titeln tänds i samma rutnät (`verktyg/titel.py`) |
+| 0.5 → 0.6 | In i skärmens pixlar, titeln tänds i samma rutnät (`verktyg/titel.py`). En hasselnöt i pixlar står till vänster om texten och tänds strax före den. |
 | 1.4 → 2.1 | Snabb panorering åt höger, dit Lennart tittar. Klippet sker mitt i rörelseoskärpan och 2.1 landar ur samma panorering (`verktyg/panorering_14.py`) |
 | 2.6 → 3.1 | Kameran tittar upp förbi molnet, 3.1 kommer uppifrån ner mot fönstret |
 | 3.2 → 4.1 | Snabb panorering, gjord i efterhand på bildrutorna |
