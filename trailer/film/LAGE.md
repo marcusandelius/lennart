@@ -21,7 +21,7 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 | 1 Lennart | Riktiga mobilklipp | Klar. Klipp 1.4 slutar med en snabb panorering åt höger. |
 | 2 Problemet och planen | Fat, skata, kamera i sladd, moln, ja och nej | Klar. Landar ur panoreringen från 1.4, fatet snurrar vid nej, nötterna vilar på riktigt. |
 | 3 Designen | Claude-fönstret ritar huset, huset reser sig | Klar |
-| 4 Inköpen | Komponenterna på blå yta, filamentet | Klar |
+| 4 Inköpen | Komponenterna på blå yta, filamentet | Klar. Allt annat som köptes landar längs kanterna, konturer visar var huvuddelarna ska ligga, fem filamentfärger. |
 | 5 Utskriften | Lager för lager (5.1) och utskriftsväggen (5.2–5.3) | 5.1 är en stillbild ur 3D. Väggen visar platshållare tills de riktiga timelapse-klippen finns. |
 | 6 Monteringen | Sprängskiss, delarna hittar hem | Första renderingen. Elektroniken från inköpen saknas. |
 | 7 På riktigt | Huset ute, fågel nekas, Lennart får en nöt | Väntar på riktig film. Stillbilder tills dess. |
@@ -63,5 +63,6 @@ Scener som väntar på riktigt material står i listan `VANTAR` i `storyboard/st
 - **Musiken:** viker i mellanregistret när rösten talar (`sidechaincompress` per band).
 - **Effekterna:** syntetiseras i `verktyg/effekter.py`, eller hämtas ur Kenneys ljudpaket (CC0). Tiderna står i `FX` i `ljudmix.mjs`, räknat från varje klipps början.
 - **Panoreringen 1.4 → 2.1:** `akt_plan.py` vrider kameran åt vänster i början av 2.1 (`PAN_GRAD`, `PAN_TID`) och `verktyg/panorering_14.py` lägger på rörelseoskärpan och bygger de sista åtta rutorna i 1.4. Ändras början av 2.1 ska skriptet köras om.
+- **Inköpen:** sakerna i kanterna av 4.1 och de fem filamentfärgerna kommer från kvittot och Marcus egen lista. Alla delar är generiska modeller. Panoreringen in från 3.2 läggs på de första sju rutorna med `verktyg/panorering_41.py` efter renderingen.
 - **Nötterna:** platserna räknas fram mot modellens riktiga form (`verktyg/notmagasin.py`, `verktyg/notfat.py`).
 - **Bildrutor:** när bara en del av en scen ändras renderas bara de bildrutorna om. Bildrutorna finns inte i repot, så ta fram de övriga ur scenens mp4 med `ffmpeg -i "Lennart - del 3 designen v5.mp4" ut/%04d.jpg` först.

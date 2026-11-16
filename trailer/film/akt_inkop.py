@@ -139,9 +139,9 @@ bpy.ops.mesh.primitive_plane_add(size=6, location=(0.3, 0, 0)); bpy.context.acti
 P = {}   # namn -> (objekt, viloplats, starttid, riktning in i bild)
 def place(key, obj, t0, frm): P[key] = (obj, Vector(obj.location), t0, Vector(frm))
 place('dator', computer((0, 0.008, 0)), T['pi'], (0, 0.45, 0)); label('dator', 'RASPBERRY PI', (-0.082, -0.012))
-place('kamera', camera_module((-0.125, 0.055, 0)), T['kamera'], (-0.4, 0, 0)); label('kamera', 'KAMERAMODUL', (-0.125, 0.075))
-SCR, SCR_P = screen((0.135, 0.052, 0)); place('skarm', SCR, T['skarm'], (0.4, 0, 0)); label('skarm', 'LED-SKÄRM', (0.139, 0.082))
-place('servo1', servo((-0.15, -0.05, 0)), T['servo'], (-0.4, 0, 0)); place('servo2', servo((-0.105, -0.05, 0)), T['servo'] + 0.2, (-0.4, 0, 0)); label('servo2', 'SERVOMOTORER', (-0.127, -0.028))
+place('kamera', camera_module((-0.125, 0.055, 0)), T['kamera'], (-0.4, 0, 0.3))   # in ovanfor sakerna i kanten; label('kamera', 'KAMERAMODUL', (-0.125, 0.075))
+SCR, SCR_P = screen((0.135, 0.052, 0)); place('skarm', SCR, T['skarm'], (0.4, 0, 0.3)); label('skarm', 'LED-SKÄRM', (0.139, 0.082))
+place('servo1', servo((-0.158, -0.05, 0)), T['servo'], (-0.4, 0, 0.3)); S2 = servo((-0.1, -0.048, 0)); S2.scale = (1.75, 1.75, 1.75); place('servo2', S2, T['servo'] + 0.2, (-0.4, 0, 0.3)); label('servo2', 'SERVOMOTORER', (-0.129, -0.022))   # en mikroservo och en storre
 label('kablar', 'KABLAR', (0.035, 0.094))
 for i in range(10): place('skruv%d' % i, screw((-0.054 + i * 0.012, -0.128, 0)), T['skruvar'] + i * 0.04, (0, -0.3, 0))
 label('skruv9', 'SKRUVAR', (0, -0.147))
@@ -166,16 +166,145 @@ n0.data.materials.append(nm)
 NUTP = [(0.0, 0.0, 35), (0.019, 0.004, 110), (-0.018, 0.007, 250), (0.008, -0.017, 180), (-0.011, -0.014, 70), (0.028, -0.013, 300), (-0.03, -0.008, 150)]
 for i, (dx, dy, rz) in enumerate(NUTP):
     n_ = n0 if i == 0 else link(bpy.data.objects.new('not%d' % i, n0.data)); n_.scale = (0.0085,) * 3; n_.rotation_euler = (math.radians(68 + (i * 37) % 30), 0, math.radians(rz)); n_.location = (0.15 + dx, -0.055 + dy, 0.008)
-    place('not%d' % i, n_, T['notter'] + i * 0.06, (0.3, 0, 0))
+    place('not%d' % i, n_, T['notter'] + i * 0.06, (0, -0.3, 0))   # nedifran, sa att de inte glider over sakerna i hogerkanten
 label('not6', 'NÖTTER', (0.15, -0.092))
-SPOOLS = [spool((0.5 + i * 0.215, 0.0, 0), c, 'rulle%d' % i) for i, c in enumerate([(0.635, 0.227, 0.172), (0.93, 0.92, 0.89), (0.35, 0.37, 0.38)])]
+# filamentet som kopts: rod, gron, vit, gra och svart. Den roda (stugans farg) ligger forst, och det ar i dess nav kameran aker in i slutet
+SPOOLS = [spool(p, c, 'rulle%d' % i) for i, (p, c) in enumerate([((0.5, 0.0, 0), (0.635, 0.227, 0.172)), ((0.72, 0.0, 0), (0.07, 0.38, 0.13)), ((0.61, 0.212, 0), (0.93, 0.92, 0.89)),
+                                                                  ((0.94, 0.0, 0), (0.13, 0.14, 0.15)), ((0.83, 0.212, 0), (0.025, 0.025, 0.028))])]
 for i, s_ in enumerate(SPOOLS): place('rulle%d' % i, s_, T['rullar'] + i * 0.3, (0.75, 0, 0))
-label('rulle0', 'FILAMENT', (0.5, -0.118))
+label('rulle0', 'FILAMENT', (0.72, -0.118))
+
+# ---------- "en hel del grejer": det som ocksa kopts men inte namns, generiska modeller langs bordets kanter. De landar under forsta meningen ----------
+def ljusring(loc):
+    e = empty('ljusring', loc); bpy.ops.mesh.primitive_torus_add(major_radius=0.0125, minor_radius=0.0045, major_segments=64, minor_segments=8, location=(0, 0, 0.0008)); o = bpy.context.active_object; o.scale = (1, 1, 0.16); o.data.materials.append(M['pcbk']); o.parent = e
+    led = mat('lysdiod', (0.95, 0.86, 0.55), 0.2, emit=(1.0, 0.85, 0.5))
+    for i in range(12): a = 2 * math.pi * i / 12; box(e, (0.0032, 0.0032, 0.0012), (0.0125 * math.cos(a), 0.0125 * math.sin(a), 0.0019), led, 0.0004, a)
+    box(e, (0.006, 0.0035, 0.0028), (0, -0.0185, 0.0016), M['white'], 0.0004)
+    return e
+def kamerakabel(loc):
+    e = empty('kamerakabel', loc); stark = mat('forstarkning', (0.05, 0.2, 0.65), 0.4)
+    for i in range(3):
+        box(e, (0.036, 0.011, 0.0005), (0, (i - 1) * 0.0045, 0.0004 + i * 0.0006), M['beige'], 0.0002)
+        cyl(e, 0.0003 + 0.0003 * i, 0.011, ((0.018 if i % 2 == 0 else -0.018), (i - 0.5) * 0.0045, 0.0007 + i * 0.0006), M['beige'], (math.pi / 2, 0, 0), 16)
+    box(e, (0.006, 0.0112, 0.0009), (-0.015, -0.0045, 0.0009), stark, 0.0002); box(e, (0.006, 0.0112, 0.0009), (0.015, 0.0045, 0.0021), stark, 0.0002)
+    return e
+KOND = mat('kondensator', (0.02, 0.03, 0.09), 0.35, coat=0.4)
+def kondensatorer(loc):
+    e = empty('kondensatorer', loc)
+    for k, x in enumerate((-0.0065, 0.0065)):
+        cyl(e, 0.005, 0.016, (x, 0, 0.005), KOND, (math.pi / 2, 0, 0)); cyl(e, 0.0049, 0.0012, (x, 0.0083, 0.005), M['steel'], (math.pi / 2, 0, 0))
+        for dx in (-0.0018, 0.0018): cyl(e, 0.0003, 0.012, (x + dx, -0.014, 0.004), M['steel'], (math.pi / 2, 0, 0), 12)
+    return e
+def kabelgenomforingar(loc):
+    e = empty('kabelgenomforingar', loc)
+    for x, y in ((-0.011, 0.007), (0.011, 0.007)): cyl(e, 0.0105, 0.004, (x, y, 0.002), M['blk'], verts=6); cyl(e, 0.0085, 0.009, (x, y, 0.0085), M['blk'], verts=32); cyl(e, 0.0042, 0.0016, (x, y, 0.0136), M['chip'], verts=32)
+    ligg = empty('liggande', (0.0, -0.014, 0.0105), e); ligg.rotation_euler = (math.pi / 2, 0, 0.35)
+    cyl(ligg, 0.0105, 0.004, (0, 0, -0.008), M['blk'], verts=6); cyl(ligg, 0.0085, 0.009, (0, 0, -0.0015), M['blk'], verts=32); cyl(ligg, 0.0042, 0.0016, (0, 0, 0.0036), M['chip'], verts=32)
+    return e
+# tuberna (superlim och silikon): vit tub som plattas ut mot en vikt ande, rafflad vit skruvkork, och en liten tryckt etikett utan marke
+def tubetikett(namn, falt, romber):   # etiketten runt tuben: ett fargat falt, roda varningsromber och gra smatext. Bildens x = langs tuben, y = runt tuben (0,25 = ovansidan)
+    import numpy as np
+    W_, H_ = 512, 256; px = np.ones((H_, W_, 4), np.float32); px[..., :3] = (0.9, 0.9, 0.88); yy, xx = np.mgrid[0:H_, 0:W_]
+    for (u0, u1, v0, v1, col) in falt: px[(xx >= u0 * W_) & (xx <= u1 * W_) & (yy >= v0 * H_) & (yy <= v1 * H_)] = (*col, 1)
+    for cx in romber:
+        cy = int(0.25 * H_); d = np.abs(xx - cx) + np.abs(yy - cy); R = 15
+        px[d <= R] = (0.95, 0.95, 0.93, 1); px[(d <= R) & (d >= R - 3)] = (0.8, 0.05, 0.04, 1)
+        px[(np.abs(xx - cx) <= 2) & (yy >= cy - 3) & (yy <= cy + 7)] = (0.02, 0.02, 0.02, 1); px[(np.abs(xx - cx) <= 2) & (yy >= cy - 8) & (yy <= cy - 5)] = (0.02, 0.02, 0.02, 1)
+    for r_, (x0, x1) in enumerate([(150, 450), (150, 420), (150, 440), (150, 300)]):    # smatext pa sidan mot kameran
+        y = int(0.31 * H_) + r_ * 6; px[(yy >= y) & (yy <= y + 1) & (xx >= x0) & (xx <= x1)] = (0.22, 0.22, 0.24, 1)
+    img = bpy.data.images.new(namn, W_, H_, alpha=True); img.pixels = px.ravel(); img.pack(); return img
+TUB_TYPSNITT = typsnitt('segoeuib.ttf', 'Helvetica.ttc', 'DejaVuSans-Bold.ttf')
+def tub(namn, loc, L, r, etikett, text, storlek, textfarg):
+    e = empty(namn, loc); N, S = 48, 28; vs, uvs, fs = [], [], []
+    for a_ in range(S + 1):
+        u = a_ / S; f = u ** 1.6; A, B = r * (1 + 0.5 * f), r * (1 - 0.9 * f); x = u * L
+        for b_ in range(N + 1):
+            th = 2 * math.pi * b_ / N; vs.append((x, A * math.cos(th), B * math.sin(th) + B)); uvs.append((u, b_ / N))
+    for a_ in range(S):
+        for b_ in range(N): k = a_ * (N + 1) + b_; fs.append((k, k + N + 1, k + N + 2, k + 1))
+    me = bpy.data.meshes.new(namn); me.from_pydata(vs, [], fs); me.uv_layers.new(); uv = me.uv_layers[0].data
+    for li, l in enumerate(me.loops): uv[li].uv = uvs[l.vertex_index]
+    for p in me.polygons: p.use_smooth = True
+    m = bpy.data.materials.new(namn + '_tub'); m.use_nodes = True; nt = m.node_tree; p = nt.nodes['Principled BSDF']; t = nt.nodes.new('ShaderNodeTexImage'); t.image = etikett
+    nt.links.new(t.outputs['Color'], p.inputs['Base Color']); p.inputs['Roughness'].default_value = 0.32; p.inputs['Metallic'].default_value = 0.15
+    me.materials.append(m); kropp = link(bpy.data.objects.new(namn + '_kropp', me)); kropp.parent = e
+    vit = mat(namn + '_vit', (0.9, 0.9, 0.88), 0.3, 0.15)
+    box(e, (0.006, 2 * r * 1.5, 0.0012), (L + 0.0025, 0, 0.0008 + r * 0.1), vit, 0.0004)                     # den vikta anden
+    bpy.ops.mesh.primitive_cone_add(vertices=48, radius1=r, radius2=r * 0.55, depth=r * 0.35, location=(-r * 0.17, 0, r), rotation=(0, -math.pi / 2, 0)); k = bpy.context.active_object; k.data.materials.append(vit); k.parent = e
+    for v in k.data.polygons: v.use_smooth = True
+    bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=r * 0.6, depth=r * 0.95, location=(-r * 0.35 - r * 0.47, 0, r), rotation=(0, math.pi / 2, 0)); c = bpy.context.active_object
+    for vi, v in enumerate(c.data.vertices):                                                                   # raffling: varannan kant lite indragen
+        if (vi // 2) % 2: v.co.x *= 0.92; v.co.y *= 0.92
+    c.data.materials.append(mat(namn + '_kork', (0.95, 0.95, 0.93), 0.45)); c.parent = e
+    # texten som sager vad det ar: platt text ovanfor tuben, projicerad ner pa den rundade ytan
+    cu = bpy.data.curves.new(namn + '_text', 'FONT'); cu.body = text; cu.font = TUB_TYPSNITT or cu.font; cu.size = storlek; cu.align_x = 'CENTER'; cu.align_y = 'CENTER'; cu.space_character = 1.05
+    cu.materials.append(mat(namn + '_textfarg', textfarg, 0.5)); to = link(bpy.data.objects.new(namn + '_text', cu)); to.parent = e; to.location = (0.47 * L, -0.0006 * r / 0.0055, 2 * r + 0.004)
+    bpy.context.view_layer.objects.active = to; to.select_set(True); bpy.ops.object.convert(target='MESH'); to = bpy.context.active_object; to.select_set(False)
+    sw = to.modifiers.new('ner', 'SHRINKWRAP'); sw.target = kropp; sw.wrap_method = 'PROJECT'; sw.use_project_z = True; sw.use_negative_direction = True; sw.use_positive_direction = False; sw.offset = 0.00012
+    return e
+SUPERLIM_ETIKETT = tubetikett('etikett_superlim', [(0.1, 0.92, 0.12, 0.17, (0.78, 0.06, 0.05)), (0.1, 0.92, 0.33, 0.38, (0.78, 0.06, 0.05))], [52, 84])
+SILIKON_ETIKETT = tubetikett('etikett_silikon', [(0.1, 0.9, 0.0, 1.0, (0.95, 0.74, 0.08))], [56])
+def superlim(loc): return tub('superlim', loc, 0.034, 0.0055, SUPERLIM_ETIKETT, 'SUPERLIM', 0.0042, (0.05, 0.05, 0.06))
+def silikon(loc): return tub('silikon', loc, 0.07, 0.011, SILIKON_ETIKETT, 'SILIKON', 0.0072, (0.05, 0.05, 0.06))
+def kylare(loc):
+    e = empty('kylare', loc); alu = mat('aluminium', (0.55, 0.56, 0.58), 0.35, 1.0); box(e, (0.03, 0.03, 0.002), (0, 0, 0.001), alu, 0.0003)
+    for i in range(9): box(e, (0.0012, 0.03, 0.006), (-0.0135 + i * 0.0034, 0, 0.005), alu, 0.0001)
+    cyl(e, 0.0115, 0.0012, (0.002, 0, 0.0084), M['blk']); cyl(e, 0.004, 0.0014, (0.002, 0, 0.0088), M['chip'])
+    return e
+def omvandlare(loc, col):
+    e = empty('omvandlare', loc); pcb = mat('omv%.2f' % col[2], col, 0.4, coat=0.5); box(e, (0.032, 0.019, 0.0014), (0, 0, 0.0007), pcb, 0.0003)
+    box(e, (0.009, 0.009, 0.0055), (-0.004, 0, 0.0042), M['chip'], 0.0008); box(e, (0.004, 0.003, 0.001), (0.006, 0.004, 0.0019), M['chip'], 0.0002)
+    for x in (-0.0125, 0.0125): box(e, (0.006, 0.01, 0.0075), (x, 0, 0.0052), mat('plint', (0.03, 0.18, 0.5), 0.4), 0.0005)
+    return e
+def dckontakt(loc):
+    e = empty('dckontakt', loc); cyl(e, 0.0042, 0.016, (-0.004, 0, 0.0042), M['blk'], (0, math.pi / 2, 0)); box(e, (0.009, 0.01, 0.009), (0.008, 0, 0.0045), mat('gronplint', (0.05, 0.32, 0.12), 0.45), 0.0006)
+    return e
+def servotestare(loc):
+    e = empty('servotestare', loc); box(e, (0.03, 0.024, 0.0014), (0, 0, 0.0007), M['pcb'], 0.0003); cyl(e, 0.005, 0.006, (0.006, 0.002, 0.0044), M['white']); cyl(e, 0.0012, 0.0045, (0.006, 0.002, 0.0085), M['white'])
+    box(e, (0.012, 0.0026, 0.006), (-0.007, -0.008, 0.0044), M['blk'], 0.0002); box(e, (0.004, 0.004, 0.002), (-0.008, 0.006, 0.0024), M['white'], 0.0004)
+    return e
+GREJER = [('ljusring', ljusring((-0.218, 0.075, 0)), -1), ('kamerakabel', kamerakabel((-0.218, 0.033, 0)), -1), ('kondensatorer', kondensatorer((-0.218, -0.007, 0)), -1),
+          ('kylare', kylare((0.222, 0.075, 0)), 1), ('omvandlare1', omvandlare((0.222, 0.036, 0), (0.012, 0.16, 0.07)), 1), ('omvandlare2', omvandlare((0.222, 0.0, 0), (0.02, 0.05, 0.3)), 1),
+          ('kabelgenomforingar', kabelgenomforingar((-0.218, -0.05, 0)), -1), ('dckontakt', dckontakt((0.224, -0.036, 0)), 1), ('servotestare', servotestare((0.222, -0.074, 0)), 1),
+          ('superlim', superlim((-0.214, -0.097, 0)), -1), ('silikon', silikon((-0.15, -0.128, 0)), -1)]
+for i, (key, obj, sida) in enumerate(GREJER): place(key, obj, 0.6 + 0.2 * i, (0.3 * sida, 0, 0))
 
 wires([(-0.125, 0.044), (-0.125, 0.008), (-0.0415, 0.008)], [(i - 6.5) * 0.0011 for i in range(14)], 0.00052, [M['beige']] * 14, 0.0052, T['kablar'], T['kablar'] + 0.6, 0.012)        # kamerans flatkabel
 wires([(0.103, 0.052), (0.078, 0.052), (0.078, 0.078), (-0.0085, 0.078), (-0.0085, 0.036)], [(i - 3.5) * 0.00254 for i in range(8)], 0.00075, RAINBOW, 0.0068, T['kablar'] + 0.1, T['kablar'] + 0.8, 0.012)   # skarmens ledare
-wires([(-0.15, -0.062), (-0.15, -0.098), (-0.02, -0.098), (-0.02, -0.02)], [(i - 1) * 0.0013 for i in range(3)], 0.00058, SERVOW, 0.0052, T['kablar'] + 0.15, T['kablar'] + 0.8)
-wires([(-0.105, -0.062), (-0.105, -0.088), (-0.012, -0.088), (-0.012, -0.02)], [(i - 1) * 0.0013 for i in range(3)], 0.00058, SERVOW, 0.0052, T['kablar'] + 0.25, T['kablar'] + 0.85)
+wires([(-0.158, -0.062), (-0.158, -0.098), (-0.011, -0.098), (-0.011, -0.02)], [(i - 1) * 0.0013 for i in range(3)], 0.00058, SERVOW, 0.0052, T['kablar'] + 0.15, T['kablar'] + 0.8)   # yttre sladden till den yttre stiften, sa att de inte korsar varandra
+wires([(-0.1, -0.066), (-0.1, -0.088), (-0.021, -0.088), (-0.021, -0.02)], [(i - 1) * 0.0013 for i in range(3)], 0.00058, SERVOW, 0.0052, T['kablar'] + 0.25, T['kablar'] + 0.85)
+
+# ---------- konturer: under den forsta meningen ritas en streckad kontur upp dar varje del ska landa. Nar delen landar lyser konturen till och tonar ner ----------
+bpy.context.view_layer.update()
+def fotavtryck(keys, pad=0.004):
+    ps = [c.matrix_world @ Vector(v) for k in keys for c in [P[k][0]] + list(P[k][0].children_recursive) if c.type == 'MESH' for v in c.bound_box]
+    return min(p.x for p in ps) - pad, min(p.y for p in ps) - pad, max(p.x for p in ps) + pad, max(p.y for p in ps) + pad
+def kontur(namn, rect, r=0.003, streck=0.003, lucka=0.002, bredd=0.0006):
+    x0, y0, x1, y1 = rect; pts = []
+    for cx, cy, a0 in ((x1 - r, y0 + r, -90), (x1 - r, y1 - r, 0), (x0 + r, y1 - r, 90), (x0 + r, y0 + r, 180)):   # rundade horn, moturs
+        for i in range(7): a = math.radians(a0 + 15 * i); pts.append(Vector((cx + r * math.cos(a), cy + r * math.sin(a))))
+    pts.append(pts[0]); L = [0.0]
+    for i in range(1, len(pts)): L.append(L[-1] + (pts[i] - pts[i - 1]).length)
+    def at(s):
+        for i in range(1, len(pts)):
+            if L[i] >= s: u = (s - L[i - 1]) / max(L[i] - L[i - 1], 1e-9); return pts[i - 1].lerp(pts[i], u)
+        return pts[-1]
+    vs, fs, uvs = [], [], []; s = 0.0
+    while s < L[-1] - 1e-6:
+        e = min(s + streck, L[-1]); a, b = at(s), at(e); d = (b - a).normalized() if (b - a).length > 1e-9 else Vector((1, 0)); n = Vector((-d.y, d.x)) * bredd / 2
+        k = len(vs); vs += [(a.x - n.x, a.y - n.y, 0.00025), (b.x - n.x, b.y - n.y, 0.00025), (b.x + n.x, b.y + n.y, 0.00025), (a.x + n.x, a.y + n.y, 0.00025)]; fs.append((k, k + 1, k + 2, k + 3))
+        uvs += [s / L[-1]] * 4; s = e + lucka
+    me = bpy.data.meshes.new(namn); me.from_pydata(vs, [], fs); me.uv_layers.new(); uv = me.uv_layers[0].data
+    for i, l in enumerate(me.loops): uv[i].uv = (uvs[l.vertex_index], 0)
+    m = bpy.data.materials.new(namn); m.use_nodes = True; nt = m.node_tree; nt.nodes.remove(nt.nodes['Principled BSDF']); outp = nt.nodes['Material Output']
+    em = nt.nodes.new('ShaderNodeEmission'); em.inputs['Color'].default_value = (0.55, 0.8, 0.82, 1); tr = nt.nodes.new('ShaderNodeBsdfTransparent'); mx = nt.nodes.new('ShaderNodeMixShader')
+    tc = nt.nodes.new('ShaderNodeUVMap'); sx = nt.nodes.new('ShaderNodeSeparateXYZ'); lt = nt.nodes.new('ShaderNodeMath'); lt.operation = 'LESS_THAN'; lt.inputs[1].default_value = 0.0
+    nt.links.new(tc.outputs['UV'], sx.inputs[0]); nt.links.new(sx.outputs['X'], lt.inputs[0]); nt.links.new(lt.outputs[0], mx.inputs['Fac']); nt.links.new(tr.outputs[0], mx.inputs[1]); nt.links.new(em.outputs[0], mx.inputs[2]); nt.links.new(mx.outputs[0], outp.inputs['Surface'])
+    me.materials.append(m); link(bpy.data.objects.new(namn, me)); return lt.inputs[1], em.inputs['Strength']
+KONTURER = []   # (hur langt den ritats, styrka, tid da den borjar ritas, tid da delen landar)
+for i, (keys, t_land) in enumerate([(['dator'], T['pi']), (['kamera'], T['kamera']), (['skarm'], T['skarm']), (['servo1'], T['servo']), (['servo2'], T['servo'] + 0.2),
+                                    (['skruv%d' % j for j in range(10)], T['skruvar']), (['not%d' % j for j in range(7)], T['notter'])]):
+    KONTURER.append((*kontur('kontur%d' % i, fotavtryck(keys)), 0.55 + 0.32 * i, t_land + 0.45))
 
 def light(loc, target, power, size, col):
     d = bpy.data.lights.new('l', 'AREA'); d.energy = power; d.size = size; d.color = col; o = link(bpy.data.objects.new('l', d)); o.location = loc
@@ -192,11 +321,17 @@ def state(t):
         for c in [o] + list(o.children_recursive): c.hide_render = not vis
         if key in LABELS: LABELS[key].hide_render = t < t0 + 0.3
     LABELS['kablar'].hide_render = t < T['kablar'] + 0.3
+    for ritad, styrka, t0, t_land in KONTURER:
+        ritad.default_value = 1.001 * out(t, t0, t0 + 0.8, 2.0)                                    # strecken ritas runt konturen
+        blink = math.exp(-max(0.0, t - t_land) * 6.0) if t >= t_land else 0.0                      # lyser till nar delen landar
+        styrka.default_value = 0.55 * (1 - 0.6 * sm(t, t_land, t_land + 0.8)) + 2.2 * blink
     for o, t0, t1 in WIRES: o.data.bevel_factor_end = sm(t, t0, t1); o.hide_render = t <= t0
     SCR_P.inputs['Emission Strength'].default_value = 2.0 * sm(t, T['kablar'] + 0.8, T['kablar'] + 1.1)
     for i, s in enumerate(SPOOLS): s.rotation_euler = (0, 0, -3.0 * (1 - out(t, T['rullar'] + i * 0.3, T['rullar'] + 0.9 + i * 0.3)) + (2.2 * max(0, t - T['snurr']) ** 2 if i == 0 else 0))
     pan = sm(t, *T['pan']); push = sm(t, T['push'], END)
-    tgt = mix((0.0, -0.025, 0.0), (0.5, 0.0, 0.03), pan); eye = mix(mix((0.0, -0.2, 0.66), (0.5, -0.3, 0.62), pan), (0.5, -0.215, 0.2), push) + Vector((0.02 * t / END, 0, -0.03 * out(t, 0, T['pan'][0], 1.5) * (1 - push)))
+    vid = 1.13 - 0.05 * sm(t, 0.0, T['pan'][0]); e0 = Vector((0.0, -0.025, 0.0)) + Vector((0.0, -0.175, 0.66)) * vid
+    # panoreringen landar over alla fem rullarna, sedan aker kameran in mot den roda
+    tgt = mix(mix((0.0, -0.025, 0.0), (0.7, 0.06, 0.03), pan), (0.5, 0.0, 0.03), push); eye = mix(mix(e0, (0.7, -0.43, 0.98), pan), (0.5, -0.215, 0.2), push) + Vector((0.02 * t / END, 0, -0.03 * out(t, 0, T['pan'][0], 1.5) * (1 - push)))
     hub = Vector((0.5, 0.009, 0.0625)); dive = min(1.0, max(0.0, (t - (END - 0.75)) / 0.71)) ** 2.2     # overgang ut: in i rullens svarta nav tills bilden ar svart
     if dive > 0: eye = mix(eye, hub + (eye - hub).normalized() * 0.014, dive); tgt = mix(tgt, hub, dive)
     CAM.location = eye; CAM.rotation_euler = (tgt - eye).to_track_quat('-Z', 'Y').to_euler(); cam_d.dof.aperture_fstop = 5.6 - 2.8 * push; cam_d.dof.focus_distance = (tgt - eye).length

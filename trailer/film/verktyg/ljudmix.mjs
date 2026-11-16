@@ -85,6 +85,7 @@ const FX = [
   ['3.1', 6.0, 'klang', -27],                                                               // ritningen projiceras
   ['3.2', 8.6, 'klang', -24],                                                               // huset reser sig, skarmen tands
   ['4.1', 3.75, 'impactGeneric_light_000', -19], ['4.1', 5.1, 'impactGeneric_light_001', -20], ['4.1', 6.65, 'impactGeneric_light_002', -19], ['4.1', 7.7, 'impactGeneric_light_003', -21], ['4.1', 7.9, 'impactGeneric_light_004', -21],   // Pi, kamera, skarm, servon
+  ...Array.from({ length: 11 }, (_, i) => ['4.1', 0.6 + 0.2 * i + 0.4, 'tick', -32 + (i % 3) * 0.7, { pitch: 0.85 + (i * 7 % 5) * 0.06, pan: [3, 4, 5, 9].includes(i) || i === 7 || i === 8 ? 0.45 : -0.45 }]),   // "en hel del grejer": ett svagt tick per sak i kanterna (akt_inkop.py, GREJER)
   ['4.1', 9.2, 'klang', -28],                                                                          // kablarna, skarmen tands
   ...Array.from({ length: 10 }, (_, i) => ['4.1', 9.35 + i * 0.04, 'impactMetal_light_00' + (i % 5), -28, { pan: (i - 4.5) / 6 }]),                             // skruvarna
   ...Array.from({ length: 7 }, (_, i) => ['4.1', 9.8 + i * 0.06, 'knack', -24, { pitch: 1.1 + i * 0.05 }]),                                       // notterna
