@@ -20,6 +20,8 @@ sc.cycles.samples = SAMPLES; sc.cycles.use_denoising = True; sc.cycles.max_bounc
 sc.render.resolution_x = WIDTH; sc.render.resolution_y = WIDTH * 9 // 16; sc.render.image_settings.file_format = 'JPEG'; sc.render.image_settings.quality = 95
 try: sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
 except Exception as e: print('look', e)
+MASK = os.environ.get('LENNART_MASK') == '1'   # maskläge: bara husets alfa (genomskinlig bakgrund, PNG), för att kunna lägga byggklippen bakom huset (verktyg/byggklipp_6.py)
+if MASK: sc.render.film_transparent = True; sc.cycles.use_denoising = False; sc.cycles.max_bounces = 1; sc.render.image_settings.file_format = 'PNG'; sc.render.image_settings.color_mode = 'RGBA'
 sc.world = bpy.data.worlds.new('w'); sc.world.use_nodes = True; wn = sc.world.node_tree; bgn = wn.nodes['Background']
 tc = wn.nodes.new('ShaderNodeTexCoord'); sub = wn.nodes.new('ShaderNodeVectorMath'); sub.operation = 'SUBTRACT'; sub.inputs[1].default_value = (0.5, 0.46, 0)
 s2 = wn.nodes.new('ShaderNodeVectorMath'); s2.operation = 'MULTIPLY'; s2.inputs[1].default_value = (1.0, 0.62, 0); ln = wn.nodes.new('ShaderNodeVectorMath'); ln.operation = 'LENGTH'
@@ -88,6 +90,6 @@ def state(t):
 
 frames = sorted({round(t * FPS) for t in TIMES}) if TIMES else range(int(END * FPS))
 for f in frames:
-    p = os.path.join(OUT, f'{f:04d}.jpg')
+    p = os.path.join(OUT, f'{f:04d}.' + ('png' if MASK else 'jpg'))
     if os.path.exists(p) and os.path.getsize(p) > 0: continue
     state(f / FPS); bpy.context.view_layer.update(); sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)
