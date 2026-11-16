@@ -1,6 +1,6 @@
 # Byggklippen i monteringen (6.1-6.2): fyra klipp från bygget svävar i varsitt hörn bakom huset, i vita ramar med rundade hörn.
 # Klippen läggs bakom huset med husets mask (akt_montering.py i maskläge), så huset skymmer dem när det växer i bild.
-# De poppar upp med olika mellanrum i början av sprängskissen och krymper bort strax innan huset är färdigt (6.3). Inga övertoningar.
+# De poppar upp med olika mellanrum i början av sprängskissen och krymper bort innan kameran åker nära, allt i takt med musiken. Inga övertoningar.
 # Kör med Blenders python (har numpy):
 #   python byggklipp_6.py <rutor (jpg)> <mask (png)> <mapp med 1.mp4-4.mp4> <ut.mp4> [rutor att spara som jpg ...]
 import os, sys, math, subprocess
@@ -12,10 +12,18 @@ CW, CH, KANT, R_UT = 288, 162, 6, 15                  # klippets storlek, den vi
 OW, OH = CW + 2 * KANT, CH + 2 * KANT
 SKUGGA = (0, 10, 18, 0.5)                             # förskjutning x, y, oskärpa, styrka
 
+# Musikens slag i 6.1 ("System Online.mp3", ca 99 slag/min, uppmätt med spektralt flöde): 0,40 1,00 1,61 2,21 ... 7,65 8,25 8,85. Halvslag däremellan.
+# Korten når full storlek på ett slag och är helt borta på ett slag. De går innan kameran åker nära (ca 9 s), så själva monteringen står ensam.
+POP_IN, POP_UT, TOPP = 0.5, 0.35, 0.45                 # TOPP: andel av POP_IN då kortet först når full storlek
+def in_pa(slag): return slag - TOPP * POP_IN
+def ut_pa(slag): return slag - POP_UT
 # (hörn, mitt x, mitt y, dyker upp, försvinner, startpunkt i klippet s, fas)
-KORT = [(1, 212, 150, 0.45, 17.10, 0.0, 0.0), (4, 1068, 572, 0.70, 16.85, 0.5, 1.7),
-        (2, 1068, 150, 1.20, 17.35, 0.0, 3.1), (3, 212, 572, 1.40, 17.00, 1.0, 4.4)]
-POP_IN, POP_UT = 0.5, 0.35
+KORT = [(1, 212, 150, in_pa(0.40), ut_pa(8.25), 0.0, 0.0), (4, 1068, 572, in_pa(0.70), ut_pa(7.65), 0.5, 1.7),
+        (2, 1068, 150, in_pa(1.00), ut_pa(8.85), 0.0, 3.1), (3, 212, 572, in_pa(1.61), ut_pa(7.95), 1.0, 4.4)]
+# Djup och färg: klippen ligger bakom huset där kameran inte har fokus, så de är lite mjukare och mörkare än huset (ramen hålls skarp).
+# Färgen dras mot scenens kalla petroleumblå och mättnaden sänks, så att varma inomhusklipp hör hemma i bilden.
+KLIPP_VF = 'gblur=sigma=1.3,colortemperature=temperature=8200:mix=0.6,eq=saturation=0.72:contrast=0.94'
+KLIPP_LJUS, RAM_VIT = 0.8, (226, 228, 227)
 
 def back_out(u, c=1.7):  # växer fram med en liten översvängning
     if u <= 0: return 0.0
@@ -41,7 +49,7 @@ P = 40; SKUGG_A = np.zeros((OH + 2 * P, OW + 2 * P), np.float32); SKUGG_A[P:P + 
 def las_klipp(i, start, n):  # klippet som rgb-rutor i 25 bilder/s, beskuret till 16:9, utan ljud; loopas om det är för kort
     p = os.path.join(KLIPP, '%d.mp4' % i)
     cmd = ['ffmpeg', '-v', 'error', '-stream_loop', '-1', '-ss', str(start), '-i', p, '-an', '-vf',
-           'fps=%d,scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,setsar=1' % (FPS, CW, CH, CW, CH), '-frames:v', str(n), '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-']
+           'fps=%d,scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,setsar=1,%s' % (FPS, CW, CH, CW, CH, KLIPP_VF), '-frames:v', str(n), '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-']
     b = subprocess.run(cmd, capture_output=True, check=True).stdout
     return np.frombuffer(b, np.uint8).reshape(-1, CH, CW, 3)
 
@@ -69,7 +77,7 @@ def main():
                                                   '-c:v', 'libx264', '-crf', '16', '-pix_fmt', 'yuv420p', UT], stdin=subprocess.PIPE)
     bg = las_rutor(['ffmpeg', '-v', 'error', '-framerate', str(FPS), '-i', os.path.join(BG, '%04d.jpg'), '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], 3)
     mk = las_rutor(['ffmpeg', '-v', 'error', '-framerate', str(FPS), '-i', os.path.join(MASK, '%04d.png'), '-vf', 'alphaextract', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], 1)
-    vit = np.full((OH, OW, 3), (243, 242, 238), np.float32); svart = np.zeros(SKUGG_A.shape + (3,), np.float32)
+    vit = np.full((OH, OW, 3), RAM_VIT, np.float32); svart = np.zeros(SKUGG_A.shape + (3,), np.float32)
     for f, (b, m) in enumerate(zip(bg, mk)):
         t = f / FPS; hus = b.astype(np.float32); bild = hus.copy(); a = m[..., 0].astype(np.float32)[..., None] / 255
         djup = sm(t, 0, 15)                                   # kameran åker in: klippen glider lite utåt och växer, som om de låg bakom huset
@@ -78,7 +86,7 @@ def main():
             s = back_out((t - t_in) / POP_IN) * (1 - back_in((t - t_ut) / POP_UT)) * (1 + 0.06 * djup)
             x = cx + (cx - W / 2) * 0.05 * djup - 14 * djup + 2.5 * math.sin(t * 1.2 + fas); y = cy + (cy - H / 2) * 0.05 * djup + 4 * math.sin(t * 1.5 + fas * 1.3)
             lagg(bild, svart, SKUGG_A * SKUGGA[3], x + SKUGGA[0] * s, y + SKUGGA[1] * s, s)
-            kort = vit.copy(); kort[KANT:KANT + CH, KANT:KANT + CW] = vit[KANT:KANT + CH, KANT:KANT + CW] * (1 - INRE[..., None]) + klipp[i][min(int((t - t_in) * FPS), len(klipp[i]) - 1)] * 0.94 * INRE[..., None]
+            kort = vit.copy(); kort[KANT:KANT + CH, KANT:KANT + CW] = vit[KANT:KANT + CH, KANT:KANT + CW] * (1 - INRE[..., None]) + klipp[i][min(int((t - t_in) * FPS), len(klipp[i]) - 1)] * KLIPP_LJUS * INRE[..., None]
             lagg(bild, kort, YTTRE, x, y, s)
         bild = hus * a + bild * (1 - a)                       # huset överst
         o = np.clip(bild + 0.5, 0, 255).astype(np.uint8)
