@@ -11,11 +11,13 @@ pressas in uppifrån när taket är av.
 - `19_skarmklamma.stl`: samma ram och lister, plus två vågräta flikar som vilar på klackarna.
   M3 × 10 uppifrån. Hålen är avlånga (2 mm), så klämman kan backas om skärmen är tjockare än väntat.
   Utskrift: som förut, ramen mot plattan. Flikarna står upp.
-- `15_kamerafaste.stl`: ny kamerasläde. Camera Module 3 skruvas på fyra distanser (Ø2,2, M2 med mutter
-  på baksidan). Flikarna har 5 mm långa spår: skjut fram släden tills linsen nästan nuddar fönstret
-  och dra åt två M3 × 10. Utskrift: ramens baksida mot plattan, distanser och flikar uppåt.
+- `15_kamerafaste.stl` (version 9.1, skapas av `kamerasläde.py`): kamerasläde. Kameran lutar 35° nedåt
+  mot framgården, som i det ursprungliga fästet. Camera Module 3 skruvas på fyra distanser (Ø2,2, M2 med
+  mutter bakom). Flikarna har 5 mm långa spår: skjut fram släden tills linsen nästan nuddar fönstret och
+  dra åt två M3 × 10. Utskrift: den lutande plattans baksida mot byggplattan, inga stöd.
   Antaganden att kontrollera: linsens mitt ligger mitt mellan kortets hålrader (som i förra fästet),
   och linsen sticker ut 7–12 mm från kortet.
+  (Den första versionen av släden från `insatsklackar.py` höll kameran rakt och ska inte användas.)
 
 ## Version 8: magnetfästen för 6 × 3 mm
 
@@ -35,6 +37,7 @@ pressas in uppifrån när taket är av.
 | `magnetfasten_kropp.py` | Skriptet som gör ändringen. `python3 magnetfasten_kropp.py in.stl ut.stl 6.0` ger annan håldiameter |
 | `magnetfasten_tak.py` | Skriptet som ändrar takhalvorna (samma diameterargument) |
 | `magnettest.py` | Skriptet för provstycket |
-| `insatsklackar.py` | Skriptet för version 9: klackar, skärmklämma och kamerasläde |
+| `insatsklackar.py` | Skriptet för version 9: klackar och skärmklämma |
+| `kamerasläde.py` | Skriptet för kameraslädens version 9.1 (lutad 35°) |
 
 Takets hål ligger mitt över kroppens hål när huset är monterat (kontrollerat mot 3D-modellens montering, avvikelse ca 0,1 mm i sidled).
