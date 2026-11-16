@@ -2,7 +2,7 @@
 # Kor:  blender -b -P akt_design.py -- <ut-mapp (absolut)> <bredd> <samples> [tider i sekunder ...]
 # Kraver film/ritning.png (gors av ritning.py + ffmpeg).
 import bpy, sys, os, math
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Quaternion
 
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 a = sys.argv[sys.argv.index('--') + 1:]; OUT, WIDTH, SAMPLES, TIMES = os.path.abspath(a[0]), int(a[1]), int(a[2]), [float(x) for x in a[3:]]
@@ -176,15 +176,15 @@ bme = bpy.data.meshes.new('fana'); bme.from_pydata(src + dst, [], [(i, (i + 1) %
 bpy.ops.mesh.primitive_cube_add(size=1); SCAN = bpy.context.active_object; SCAN.scale = (0.005, PH, 0.0006); SCAN_M = lys('svep', (1.0, 0.45, 0.2), 9.0); SCAN.data.materials.append(SCAN_M); SCAN.visible_shadow = False
 sd = bpy.data.lights.new('proj', 'SPOT'); sd.spot_size = math.radians(40); sd.spot_blend = 0.8; sd.color = (1.0, 0.6, 0.38); sd.shadow_soft_size = 0.02; SPOT = link(bpy.data.objects.new('proj', sd)); SPOT.location = WM @ Vector((0, -0.03, -WH / 2))
 SPOT.rotation_euler = (PC - SPOT.location).to_track_quat('-Z', 'Y').to_euler()
-# munstycket: ett litet orange munstycke fälls ut ur chattrutans underkant strax innan projektionen och vrider sig efter svepet, som ett skrivarhuvud. Ljuset kommer ur spetsen.
+# munstycket: ett litet munstycke fälls ut ur chattrutans underkant strax innan projektionen och vrider sig efter svepet, som ett skrivarhuvud. Ljuset kommer ur spetsen.
 NOZ_ON = os.environ.get('LENNART_MUNSTYCKE', '1') == '1'
-# Varianter (LENNART_MUNSTYCKE_VARIANT): A kon, B lins, C skrivarhuvud, D kapsel (vald). A-C är gråa, D har Claudes orange.
+# Varianter (LENNART_MUNSTYCKE_VARIANT): A kon, B lins, C skrivarhuvud, D kapsel (vald). D är varmgrå som fönstret, med en tunn ring i Claudes orange.
 VAR = os.environ.get('LENNART_MUNSTYCKE_VARIANT', 'D')
-NM = mat('munstycke', (0.3, 0.3, 0.31), 0.38); P_(NM).inputs['Metallic'].default_value = 0.3                  # grå, matt metall
+NM = mat('munstycke', (0.3, 0.29, 0.27), 0.38); P_(NM).inputs['Metallic'].default_value = 0.3                  # grå, matt metall
 NR = mat('munstycke_led', (0.13, 0.13, 0.135), 0.45); P_(NR).inputs['Metallic'].default_value = 0.2           # mörkare grå led
 NL_ = mat('munstycke_ljus', (0.55, 0.55, 0.56), 0.35); P_(NL_).inputs['Metallic'].default_value = 0.2        # ljusgrå
 NOR = mat('munstycke_orange', C_OR, 0.32, 0.3, C_OR, 0.35)                                                   # Claudes orange, lyser svagt som knappen
-NOR2 = mat('munstycke_orange_mork', tuple(c * 0.45 for c in C_OR), 0.4)
+NVG = mat('munstycke_varmgra', (0.36, 0.345, 0.32), 0.36, 0.3); P_(NVG).inputs['Metallic'].default_value = 0.25    # varmgrå, några steg ljusare än fönstret
 G_NOZ = 1.6   # G_NOZ: hela munstyckets storlek
 TIPM = lys('munstycke_spets', (1.0, 0.55, 0.3), 0.0)
 def del_(o, m, parent, loc, rot=(0, 0, 0)): o.data.materials.append(m); o.parent = parent; o.location = loc; o.rotation_euler = rot; [setattr(p, 'use_smooth', True) for p in o.data.polygons]; return o
@@ -214,8 +214,8 @@ elif VAR == 'C':   # skrivarhuvud: ett litet rundat block med en kort spets
     bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.0015, depth=0.002); TIP = bit(ny(), TIPM, (0, 0, -NL + 0.0012))
 else:              # kapsel: en avlång, mjuk droppe utan synlig led
     NL = 0.027
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=0.0062); o = ny(); o.scale = (1, 1, 2.1); bit(o, NOR, (0, 0, -0.0135))
-    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=0.0064, depth=0.0012); bit(ny(), NOR2, (0, 0, -0.008))
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=0.0062); o = ny(); o.scale = (1, 1, 2.1); bit(o, NVG, (0, 0, -0.0135))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=0.0064, depth=0.0012); bit(ny(), NOR, (0, 0, -0.008))
     bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.0019, depth=0.0016); TIP = bit(ny(), TIPM, (0, 0, -NL + 0.0007))
 for o in [pl, NOZ, FASTE] + [c for c in NOZ.children]: o.visible_shadow = True
 if not NOZ_ON:
@@ -229,6 +229,7 @@ KEY = light((-0.8, -1.1, 1.2), (0.05, -0.05, 0.1), 46, 1.0, (1, 0.94, 0.86)); RI
 cam_d = bpy.data.cameras.new('cam'); CAM = link(bpy.data.objects.new('cam', cam_d)); sc.camera = CAM; cam_d.clip_start = 0.01; cam_d.dof.use_dof = True
 
 def sm(t, a, b): x = min(1, max(0, (t - a) / (b - a))); return x * x * (3 - 2 * x)
+def sms(t, a, b): x = min(1, max(0, (t - a) / (b - a))); return x * x * x * (x * (6 * x - 15) + 10)   # mjukare start och stopp
 def mix(p, q, k): return Vector(p) + (Vector(q) - Vector(p)) * k
 def typed(s, t, t0, cps): return s[:max(0, min(len(s), int((t - t0) * cps)))]
 IN_MAX = IW - 0.05                 # inmatningsrutan ar en rad: nar texten nar hoger kant rullar den at vanster, som i ett riktigt textfalt
@@ -252,12 +253,12 @@ def state(t):
     for i, (dx, dy) in enumerate([(-1, -1), (1, -1), (1, 1), (-1, 1)]): bme.vertices[4 + i].co = (sx + dx * 0.004, PC.y + dy * PH / 2, PC.z + 0.002)
     bme.update(); SCAN.location = (sx, PC.y, PC.z + 0.0022)
     proj = sm(t, 5.9, 6.2) * (1 - sm(t, 9.3, 9.6)); PRJ.outputs[0].default_value = proj; BEAM.hide_render = proj < 0.01; SCAN.hide_render = proj < 0.01; sd.energy = 2.5 * proj
-    if NOZ_ON:   # munstycket fälls ut 5,3-5,9 (med en liten översvängning), siktar på svepet och fälls in igen 9,4-9,9. Fanan och spotten utgår från spetsen.
-        u = min(1.0, max(0.0, (t - 5.3) / 0.6)); ut = (1 + 2.2 * (u - 1) ** 3 + 1.2 * (u - 1) ** 2 if u > 0 else 0.0) * (1 - sm(t, 9.4, 9.9))
-        FASTE.scale = (G_NOZ, G_NOZ, G_NOZ * max(ut, 0.001)); FASTE.hide_render = ut < 0.01
+    if NOZ_ON:   # munstycket växer mjukt fram 5,3-5,9 rakt nedåt, vrider sig 5,4-5,95 mot svepets startpunkt och följer sedan svepet. Vrids tillbaka 9,45-9,8 och krymper bort 9,55-9,95. Fanan och spotten utgår från spetsen.
+        ut = sms(t, 5.3, 5.9) * (1 - sms(t, 9.55, 9.95)); sikt = sms(t, 5.4, 5.95) * (1 - sms(t, 9.45, 9.8))
+        FASTE.scale = (G_NOZ * max(ut, 0.001),) * 3; FASTE.hide_render = ut < 0.01
         for o in [pl] + list(NOZ.children): o.hide_render = ut < 0.01 or away > 0.99
-        bpy.context.view_layer.update(); j = NOZ.matrix_world.translation; d = (Vector((sx, PC.y, PC.z)) - j).normalized() if proj > 0.001 else (Vector((PC.x, PC.y, PC.z)) - j).normalized()
-        dl = (NOZ.parent.matrix_world.to_3x3().normalized().inverted() @ d); NOZ.rotation_euler = dl.to_track_quat('-Z', 'X').to_euler()
+        bpy.context.view_layer.update(); NOZ.rotation_euler = (0, 0, 0); bpy.context.view_layer.update(); j = NOZ.matrix_world.translation; d = (Vector((sx, PC.y, PC.z)) - j).normalized()   # sx ligger still i papperets vänsterkant innan svepet
+        dl = (NOZ.parent.matrix_world.to_3x3().normalized().inverted() @ d); NOZ.rotation_euler = Quaternion().slerp(dl.to_track_quat('-Z', 'X'), sikt).to_euler()
         bpy.context.view_layer.update(); tip = NOZ.matrix_world @ Vector((0, 0, -NL)); P_(TIPM).inputs['Emission Strength'].default_value = 0.6 * ut + 14 * proj
         for i, (dx, dy) in enumerate([(-1, -1), (1, -1), (1, 1), (-1, 1)]): bme.vertices[i].co = tip + Vector((dx * 0.0015, dy * 0.0015, 0))
         bme.update(); SPOT.location = tip
