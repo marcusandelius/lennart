@@ -202,6 +202,15 @@ T = dict(bird_in=0.5, pecks=(2.5, 3.3, 4.1), bird_out=4.9, sq_in=5.5, sq_look=7.
          bird2_out=35.0, sq2_in=36.3, flash2=37.75, up2=(37.85, 38.8), yes=39.5, down2=(39.65, 40.45), pop=40.45, sq_bowl=41.6)
 
 PAN_GRAD, PAN_TID = 24.0, 0.36   # panoreringen in: vinkel vid forsta rutan, och hur lange den bromsar (sekunder)
+# Fallet: i stallet for panoreringen tappar Lennart noten i slutet av 1.4. Har faller den ovanifran, kameran foljer med ner
+# och noten landar bland de andra pa fatet med en liten studs. Det ar den ovre noten pa fatet som faller (FK), sa att skatan sedan ater den som vanligt.
+FALL = os.environ.get('LENNART_FALL', '1') == '1'   # LENNART_FALL=0 ger tillbaka panoreringen
+if FALL: PAN_GRAD = 0.0; bpy.app.handlers.frame_change_pre.append(lambda sc_, *_: state(sc_.frame_current_final / FPS) if sc_.render.use_motion_blur else None)
+FK = max(range(6), key=lambda i: NUT_REST[i][3]); F_TL, F_H, F_V0 = 0.6, 0.5, 0.6; F_A = 2 * (F_H - F_V0 * F_TL) / F_TL ** 2   # landar efter 0,6 s, faller 0,5 m
+def fall_nut(t):   # (forskjutning fran vilolaget, hur mycket av vridningen som ar kvar (1 -> 0), studsens vickning)
+    if t < F_TL: return Vector((0, 0, F_H - F_V0 * t - 0.5 * F_A * t * t)), (1 - t / F_TL) ** 1.5, 0.0
+    u = (t - F_TL) / 0.2; u2 = (t - F_TL - 0.2) / 0.12; z = 0.012 * 4 * u * (1 - u) if u < 1 else (0.003 * 4 * u2 * (1 - u2) if u2 < 1 else 0.0)
+    return Vector((0.006 * (1 - math.exp(-(t - F_TL) * 9)), 0, z)), 0.0, 0.35 * math.exp(-(t - F_TL) * 10) * math.sin((t - F_TL) * 30)
 PLATE_AT = PLATE.location.copy(); WOB_A, WOB_D = 6.0, 1.4      # fatets snurr: storsta lutning i grader, langd i sekunder
 def wob_phase(s): return 2 * math.pi * (2.2 * s + 3.0 * s * s)   # varvet gar fran 2 till 10 varv per sekund
 def state(t):
@@ -220,6 +229,12 @@ def state(t):
     else: PLATE.matrix_world = Matrix.Translation(PLATE_AT)
     for i, (x, y, rz, zr) in enumerate(NUT_REST):
         gone = t >= T['pecks'][i // 2]; NUTS[i].hide_render = gone; NUTS[i].matrix_world = Matrix.Translation((x, y, GROUND + zr)) @ Matrix.Rotation(rz, 4, 'Z') @ Matrix.Rotation(1.15 + 0.25 * math.sin(rz * 3), 4, 'X') @ Matrix.Scale(NR, 4)
+    if FALL and t < 2.0:
+        x, y, rz, zr = NUT_REST[FK]; p_, kvar, wob = fall_nut(t); th = 1.15 + 0.25 * math.sin(rz * 3)   # borjar uppratt med spetsen uppat (som i 1.4) och tumlar ner i sitt vilolage
+        NUTS[FK].matrix_world = Matrix.Translation(Vector((x, y, GROUND + zr)) + p_) @ Matrix.Rotation(rz * (1 - kvar), 4, 'Z') @ Matrix.Rotation(th * (1 - kvar) + wob, 4, 'X') @ Matrix.Rotation(-0.15 * th * kvar, 4, 'Y') @ Matrix.Scale(NR, 4)
+        if t > F_TL:   # de andra notterna rycker till nar den slar ner
+            for i in range(6):
+                if i != FK and not NUTS[i].hide_render: NUTS[i].matrix_world = NUTS[i].matrix_world @ Matrix.Rotation(0.06 * math.exp(-(t - F_TL) * 14) * math.sin((t - F_TL) * 45 + i * 1.7), 4, 'X')
     for i, (x, y, rz, zr) in enumerate(POP):   # notterna poppar upp ur fatet, en i taget
         u = (t - T['pop'] - i * 0.075) / 0.45; n_ = NUTS[6 + i]; n_.hide_render = u <= 0
         if u > 0:
@@ -277,6 +292,10 @@ def state(t):
     tgt = mix(mix((0.31, -0.14, 0.075), (0.24, -0.05, 0.165), wide), (0.27, -0.14, 0.06), close)
     # overgang in: slutet av en snabb panorering at hoger (1.4 panorerar at det hall Lennart tittar). Kameran ar vriden at vanster och bromsar in pa bilden.
     # Rorelseoskarpan laggs pa efterat (verktyg/panorering_14.py).
+    if FALL and t < 1.2:   # fallet: kameran aker ner med noten (noten star still i bilden) och bromsar in i den vanliga bilden strax innan noten landar
+        x, y, rz, zr = NUT_REST[FK]; h = max(0.0, fall_nut(t)[0].z) if t < F_TL else 0.0; xx = h - 0.06; k_ = 0.08
+        dz = max(0.0, 0.5 * (xx + math.sqrt(xx * xx + k_ * k_)) - 0.5 * (-0.06 + math.sqrt(0.06 ** 2 + k_ * k_))); c_ = min(1.0, dz / 0.25)
+        tgt = mix(tgt, Vector((x, y, tgt.z)), c_) + Vector((0, 0, dz)); eye = eye + (tgt - eye) * 0.6 * c_ + Vector((0, 0, dz))
     sving = math.radians(PAN_GRAD) * max(0.0, 1 - t / PAN_TID) ** 3
     if sving > 0: tgt = eye + Matrix.Rotation(sving, 3, 'Z') @ (tgt - eye)
     # overgang ut: kameran lyfter och tittar upp forbi molnet, ut i det tomma morkret (3.1 fortsatter nerat mot Claude-fonstret)
@@ -288,4 +307,7 @@ frames = sorted({round(t * FPS) for t in TIMES}) if TIMES else range(int(END * F
 for f in frames:
     p = os.path.join(OUT, f'{f:04d}.jpg')
     if os.path.exists(p) and os.path.getsize(p) > 0: continue
-    state(f / FPS); bpy.context.view_layer.update(); sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)
+    if FALL and f < 30:   # fallet: riktig rorelseoskarpa. Scenen raknas om vid varje delruta som Cycles fragar efter
+        sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.5; sc.frame_set(f); state(sc.frame_current_final / FPS)
+    else: sc.render.use_motion_blur = False; state(f / FPS)
+    bpy.context.view_layer.update(); sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)
