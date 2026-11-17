@@ -428,13 +428,13 @@ def state(t):
             crane = sm(t, T_E - 1.45, T_E - 0.45); dive = acc(t, T_E - 0.8, T_E - 0.02, 2.0)                        # overgang ut: upp over malet pa golvet och rakt ner
             MAL = RAM_C; hojd = 0.30 - 0.255 * dive
             if VAR04 == 'B' and SKARM_B:   # malet ar LED-skarmen bland elektroniken. Den tands, visar vantbilden och slocknar strax fore klippet (0.5 borjar pa den slackta skarmen)
-                MAL = SKARM_B.matrix_world.translation.copy(); hojd = 0.30 - 0.245 * dive
+                MAL = SKARM_B.matrix_world.translation + Vector((0, -0.011, 0)); hojd = 0.30 - 0.245 * dive   # slutar pa den morka delen under texten, som 0.5 borjar
                 pa = u > 2.25 and not (2.3 < u < 2.36)   # tands med ett litet flimmer och ar tand in i klippet; slutbilden ar skarmens morka pixlar, som i 0.5
                 SKARM_B.data.materials[0] = SCR['vantar'] if pa else SCR['av']
             if VAR04 == 'E':   # skanningen sveper fran vanster till skarmramen, en gron linje och ett smalt gront ljus
-                xs = LAYOUT_X0 - 0.1 + (RAM_C.x - LAYOUT_X0 + 0.1) * sm(u, 0.25, 2.35); my = (LAYOUT_Y0 + LAYOUT_Y1) / 2
+                xs = LAYOUT_X0 - 0.1 + (RAM_C.x + 0.45 - LAYOUT_X0 + 0.1) * sm(u, 0.25, 2.5); my = (LAYOUT_Y0 + LAYOUT_Y1) / 2   # passerar ramen och tonar ut innan kameran dyker
                 SCANB.location = (xs, my, GROUND + 0.0006); SCANL.location = (xs, my, GROUND + 0.22); SCANL.rotation_euler = (0, 0, 0)
-                SCAN_M.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 6.0 * sm(u, 0.15, 0.4) * (1 - sm(u, 2.9, 3.2)); SCANL.data.energy = 12 * sm(u, 0.15, 0.4) * (1 - sm(u, 2.9, 3.2))
+                SCAN_M.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 6.0 * sm(u, 0.15, 0.4) * (1 - sm(u, 2.35, 2.6)); SCANL.data.energy = 12 * sm(u, 0.15, 0.4) * (1 - sm(u, 2.35, 2.6))
             lens = (20 + 16 * rise) * (1 - crane) + 85 * crane
             if crane > 0: tgt = mix(tgt, MAL, crane); eye = mix(eye, MAL + Vector((0.0001, -0.0001, hojd)), crane)
             camera(eye, tgt, lens, (4.0 - 1.6 * rise) * (1 - crane) + 5.6 * crane)
