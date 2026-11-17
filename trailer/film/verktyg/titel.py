@@ -1,4 +1,4 @@
-# Projekt Lennart - titeln (0.6): PROJEKT LENNART och en hasselnot i skarmens pixelrutnat. Kameran i 0.5 aker in tills skarmens pixlar fyller bilden
+# Projekt Lennart - titeln (0.6): PROJEKT LENNART och ett ekollon i skarmens pixelrutnat. Kameran i 0.5 aker in tills skarmens pixlar fyller bilden
 # och slocknar; titeln fortsatter i samma rutnat (80 x 45 pixlar a 16 px), och bokstavernas pixlar tands i slumpvis ordning.
 # Kor:  <Blenders python> titel.py <ut-mapp> [langd i s]      (skriver 1280 x 720 jpg-rutor via ffmpeg)
 import sys, os, subprocess, numpy as np
@@ -9,10 +9,11 @@ F = {  # 5 x 7-typsnitt
  'E': ['11111', '10000', '10000', '11110', '10000', '10000', '11111'], 'K': ['10001', '10010', '10100', '11000', '10100', '10010', '10001'],
  'T': ['11111', '00100', '00100', '00100', '00100', '00100', '00100'], 'L': ['10000', '10000', '10000', '10000', '10000', '10000', '11111'],
  'N': ['10001', '11001', '10101', '10101', '10011', '10001', '10001'], 'A': ['01110', '10001', '10001', '11111', '10001', '10001', '10001']}
-# en hasselnot i pixlar (H1 vald, H2 ar mer droppformad; valj med LENNART_NOT) till vanster om texten, lika hog som de tva raderna (samma not som Lennart far i filmen): liten spets, rund kropp med en glans och den ljusa basen nertill
-NOTER = {'H1': ['.......#.......', '......#.#......', '....##...##....', '...#...#...#...', '..#...#.#...#..', '.#...#...#...#.', '.#..#.....#..#.', '#...#.....#...#', '#..#.......#..#', '#..#.......#..#', '#..#.......#..#', '.#...........#.', '.#...........#.', '..###########..', '..###########..', '...#.#.#.#.#...', '....#######....'],
+# en not i pixlar (EK ekollon, vald: kanns igen bast i pixlar. H1 och H2 ar hasselnotter; valj med LENNART_NOT) till vanster om texten, lika hog som de tva raderna (samma not som Lennart far i filmen): liten spets, rund kropp med en glans och den ljusa basen nertill
+NOTER = {'EK': ['.....##......', '......#......', '......#......', '..#########..', '.#.........#.', '#...........#', '#...........#', '#...........#', '.#.........#.', '..#########..', '..#.#####.#..', '..#.#####.#..', '..#.#####.#..', '...#.###.#...', '...#..#..#...', '....#...#....', '.....###.....'],
+         'H1': ['.......#.......', '......#.#......', '....##...##....', '...#...#...#...', '..#...#.#...#..', '.#...#...#...#.', '.#..#.....#..#.', '#...#.....#...#', '#..#.......#..#', '#..#.......#..#', '#..#.......#..#', '.#...........#.', '.#...........#.', '..###########..', '..###########..', '...#.#.#.#.#...', '....#######....'],
          'H2': ['.......#.......', '.......#.......', '......#.#......', '.....#.#.#.....', '....#..#..#....', '...#..#.#..#...', '..#..#...#..#..', '.#..#.....#..#.', '.#..#.....#..#.', '#..#.......#..#', '#..#.......#..#', '#..#.......#..#', '.#...........#.', '.#############.', '.#############.', '..#.#.#.#.#.#..', '...#########...']}
-NOT = NOTER[os.environ.get('LENNART_NOT', 'H1')]
+NOT = NOTER[os.environ.get('LENNART_NOT', 'EK')]
 NW, GAP_N, TW = len(NOT[0]), 3, 7 * 6 - 1; X_NOT = (GW - (NW + GAP_N + TW)) // 2; X_TXT = X_NOT + NW + GAP_N
 on = np.zeros((GH, GW), bool); not_ = np.zeros((GH, GW), bool)
 for r, row in enumerate(NOT):
