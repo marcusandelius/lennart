@@ -156,6 +156,31 @@ for n, d in CUT.items():
         for i in range(len(d.materials)): d.materials[i] = gh
 sc.cycles.transparent_max_bounces = 64
 
+# Varianter av 0.3 (LENNART_03, prov for Marcus): K = nuvarande genomskarning med glashuset, S = snittet: rakt fran sidan utan perspektiv, bara mekaniken,
+# snittytorna i varm orange; M = makro med fartramp: kort skarpedjup, slowmotion nar noten slapper ur hjulet; H = last vid hjulet: kameran snurrar med hjulet.
+VAR03 = os.environ.get('LENNART_03', 'K')
+if VAR03 == 'S':   # snittytorna far snittskraffering som pa en ritning: delens egen farg med tata diagonala linjer i en morkare ton
+    for n in MECH:
+        if len(CUT[n].materials) < 2: continue
+        col = ORIG_MAT[n].node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value[:3]
+        hm = mat('skraff_' + n, col, 0.8); ht = hm.node_tree; hp = ht.nodes['Principled BSDF']; tc_ = ht.nodes.new('ShaderNodeTexCoord'); sx_ = ht.nodes.new('ShaderNodeSeparateXYZ')
+        ad = ht.nodes.new('ShaderNodeMath'); ad.operation = 'ADD'; dv = ht.nodes.new('ShaderNodeMath'); dv.operation = 'DIVIDE'; dv.inputs[1].default_value = 0.0032
+        fr = ht.nodes.new('ShaderNodeMath'); fr.operation = 'FRACT'; lt = ht.nodes.new('ShaderNodeMath'); lt.operation = 'LESS_THAN'; lt.inputs[1].default_value = 0.16
+        mx = ht.nodes.new('ShaderNodeMixRGB'); mx.inputs['Color1'].default_value = (*col, 1); mx.inputs['Color2'].default_value = (col[0] * 0.5, col[1] * 0.42, col[2] * 0.36, 1)
+        ht.links.new(tc_.outputs['Object'], sx_.inputs[0]); ht.links.new(sx_.outputs['Y'], ad.inputs[0]); ht.links.new(sx_.outputs['Z'], ad.inputs[1]); ht.links.new(ad.outputs[0], dv.inputs[0])
+        ht.links.new(dv.outputs[0], fr.inputs[0]); ht.links.new(fr.outputs[0], lt.inputs[0]); ht.links.new(lt.outputs[0], mx.inputs['Fac']); ht.links.new(mx.outputs[0], hp.inputs['Base Color'])
+        CUT[n].materials[1] = hm
+def _pchip(ks):   # mjuk, monoton kurva genom punkterna (ny tid -> mekanikens tid)
+    xs = [k[0] for k in ks]; ys = [k[1] for k in ks]; d = [(ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i]) for i in range(len(ks) - 1)]
+    m = [d[0]] + [2 * d[i - 1] * d[i] / (d[i - 1] + d[i]) for i in range(1, len(d))] + [d[-1]]
+    def f(t):
+        if t <= xs[0]: return ys[0]
+        if t >= xs[-1]: return ys[-1]
+        i = max(j for j in range(len(xs) - 1) if xs[j] <= t); h = xs[i + 1] - xs[i]; u = (t - xs[i]) / h
+        return (2 * u ** 3 - 3 * u ** 2 + 1) * ys[i] + (u ** 3 - 2 * u ** 2 + u) * h * m[i] + (-2 * u ** 3 + 3 * u ** 2) * ys[i + 1] + (u ** 3 - u ** 2) * h * m[i + 1]
+    return f
+TAU_M = _pchip([(6.9, 6.9), (7.3, 7.55), (7.7, 8.08), (8.55, 8.33), (8.85, 8.85), (9.2, 9.2)])   # M: snabbt fram till slappet, slowmotion nar noten tippar ur fickan, snabbt ner i skalen
+
 # 0.4: alla delar utlagda pa golvet som en ordnad upplaggning. Varje los bit ligger plant i sin tunnaste riktning med langsidan langs x, och delarna ar sorterade i grupper
 # (stomme, tak, bas, skal, elektronik, inredning) fran vanster till hoger. Husets stomme ligger pa rygg langst till vanster, som ett ror; 0.4 borjar inne i den.
 # Elektroniken ar samma generiska modeller som i inkopen (film/elektronik.blend, gors med verktyg/elektronik_export.py). Numren 01-48 bredvid husets delar stangs av med LENNART_NUMMER=0.
@@ -381,7 +406,24 @@ def nut_path(t):   # noten ligger i hjulets ficka, foljer med 130 grader framat 
     if t > 8.85: p.z += 0.0035 * abs(math.sin((t - 8.85) * 16)) * max(0, 1 - (t - 8.85) / 0.35)   # liten studs
     return p, th + acc(t, 8.15, 8.85, 1.5) * 5.5
 
+def cam03(t, tm, p):   # kameran i varianterna av 0.3
+    if VAR03 == 'S':     # rakt fran sidan utan perspektiv. Foljer noten ner och fortsatter nerat ut i morkret
+        f_ = sm(t, 8.0, 8.9); dn = acc(t, 8.8, T_D, 1.8)
+        cy = 0.035 + (0.008 - 0.035) * f_; cz = 0.10 + (0.045 - 0.10) * f_ - 0.13 * dn
+        eye = Vector((0.6, cy, cz)); camera(eye, eye + Vector((-1, 0, 0)), 50, 32); cam_d.type = 'ORTHO'; cam_d.ortho_scale = 0.30 - 0.06 * sm(t, 7.2, 8.6); cam_d.dof.use_dof = False
+    elif VAR03 == 'M':   # makro: borjar pa hogen i magasinet, tiltar och drar skarpan till noten i fickan, kretsar under slowmotion, noten rullar mot kameran
+        pile = Vector((0.0, 0.074, 0.106)); tgt = mix(pile, p + (AXLE - p) * 0.25, sm(t, 6.95, 7.45)); tgt = mix(tgt, p, sm(t, 8.2, 8.75))
+        dive = acc(t, 8.95, T_D, 2.0); tgt = tgt + Vector((0, -0.006, -0.05)) * dive
+        az = math.radians(24 + 24 * sm(t, 7.6, 8.7)); el = math.radians(7 + 20 * sm(t, 8.45, 9.0) + 40 * dive); r = 0.25 - 0.06 * sm(t, 7.4, 8.5) + 0.04 * sm(t, 8.5, 9.0)
+        eye = tgt + r * Vector((math.cos(el) * math.cos(az), -math.cos(el) * math.sin(az), math.sin(el)))
+        camera(eye, tgt, 100, 2.4, mix(pile, p, sm(t, 7.0, 7.4)))   # skarpan flyttas fran hogen till noten och ligger sedan pa noten
+    elif VAR03 == 'H':   # last vid hjulet: kameran rullar med hjulet sa att hjulet och noten star still och resten snurrar, slapper sedan och foljer noten ner
+        rel = sm(t, 8.1, 8.95); roll = math.radians(wheel_angle(t)) * (1 - rel); D = 0.34 + 0.30 * sm(t, 7.05, 8.2)
+        tgt = mix(AXLE, Vector((0, -0.012, 0.028)), sm(t, 8.15, 8.9)); dive = acc(t, 8.9, T_D, 2.0); el = math.radians(55) * dive
+        eye = tgt + D * Vector((math.cos(el), 0, math.sin(el))); camera(eye, tgt + Vector((0, 0, -0.04)) * dive, 85, 4.0, tgt, roll=roll)
+
 def state(t):
+    cam_d.type = 'PERSP'; cam_d.dof.use_dof = True
     for o in ELEK_ALL + NUMMER + VAROBJ: o.hide_render = not (T_D <= t < T_E)   # elektroniken och numren finns bara i 0.4
     for n, o in PARTS.items(): o.matrix_world = ORIG_M[n]; o.data = ORIG_DATA[n]; o.hide_render = False
     SCREEN.hide_render = False; SCREEN.data.materials[0] = SCR['vantar']; FLOOR.hide_render = True
@@ -400,11 +442,16 @@ def state(t):
             o.hide_render = n not in CUT
             if n in CUT: o.data = CUT[n]
         for o in CAMPARTS: o.hide_render = True
-        for n in ('lucka', 'lucka_vit'): PARTS[n].matrix_world = ORIG_M[n] @ Matrix.Rotation(math.radians(hatch_angle(t)), 4, 'X')
-        SCREEN.hide_render = True; p, th = nut_path(t); PARTS['doserhjul'].matrix_world = ORIG_M['doserhjul'] @ Matrix.Rotation(math.radians(wheel_angle(t)), 4, 'X')
+        tm = TAU_M(t) if VAR03 == 'M' else t
+        if VAR03 in 'SM':
+            for n in CUT:
+                if n not in MECH: PARTS[n].hide_render = True
+        for n in ('lucka', 'lucka_vit'): PARTS[n].matrix_world = ORIG_M[n] @ Matrix.Rotation(math.radians(hatch_angle(tm)), 4, 'X')
+        SCREEN.hide_render = True; p, th = nut_path(tm); PARTS['doserhjul'].matrix_world = ORIG_M['doserhjul'] @ Matrix.Rotation(math.radians(wheel_angle(tm)), 4, 'X')
         NUTS[0].hide_render = False; NUTS[0].matrix_world = Matrix.Translation(p) @ Matrix.Rotation(-th, 4, 'X') @ Matrix.Scale(NR, 4)
         for i, (x, y, z, rx, ry, rz) in enumerate(PILE):   # resten av magasinet: en full hog ovanpa hjulet
             NUTS[i + 1].hide_render = False; NUTS[i + 1].matrix_world = Matrix.Translation((x, y, z)) @ Euler((rx, ry, rz)).to_matrix().to_4x4() @ Matrix.Scale(NR, 4)
+        if VAR03 != 'K': cam03(t, tm, p); return
         k = out(t, T_C, 8.3, 2.6); follow = sm(t, 8.1, 8.85); tgt = mix((0, 0.05, 0.088), (0, 0.006, 0.03), follow)
         dive = acc(t, 8.95, T_D, 2.0); tgt = tgt + Vector((0, -0.01, -0.09)) * dive     # overgang ut: snabb tilt nerat forbi skalen
         camera(mix((0.62, 0.02, 0.135), (0.36, -0.075, 0.10), k) + Vector((0, -0.05, -0.05)) * follow + Vector((0, 0, -0.02)) * dive, tgt, 60, 5.6, (0.0, tgt.y, tgt.z))
@@ -480,8 +527,11 @@ def warp(t):
     for (n0, o0), (n1, o1) in zip(WARP, WARP[1:]):
         if t <= n1: return o0 + (o1 - o0) * (t - n0) / (n1 - n0)
     return WARP[-1][1]
+bpy.app.handlers.frame_change_pre.append(lambda sc_, *_: state(sc_.frame_current_final / FPS) if sc_.render.use_motion_blur else None)
 frames = sorted({round(t * FPS) for t in TIMES}) if TIMES else range(int(WARP[-1][0] * FPS))
 for f in frames:
     p = os.path.join(OUT, f'{f:04d}.jpg')
     if os.path.exists(p) and os.path.getsize(p) > 0: continue
-    state(min(warp(f / FPS), END - 0.001)); bpy.context.view_layer.update(); sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)
+    if VAR03 != 'K' and T_C <= f / FPS < T_D: sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.5; sc.frame_set(f); state(sc.frame_current_final / FPS)
+    else: sc.render.use_motion_blur = False; state(min(warp(f / FPS), END - 0.001))
+    bpy.context.view_layer.update(); sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)
