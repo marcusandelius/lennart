@@ -158,7 +158,8 @@ sc.cycles.transparent_max_bounces = 64
 
 # Varianter av 0.3 (LENNART_03, prov for Marcus): K = nuvarande genomskarning med glashuset, S = snittet: rakt fran sidan utan perspektiv, bara mekaniken,
 # snittytorna i varm orange; M = makro med fartramp: kort skarpedjup, slowmotion nar noten slapper ur hjulet; H = last vid hjulet: kameran snurrar med hjulet.
-VAR03 = os.environ.get('LENNART_03', 'K')
+VAR03 = os.environ.get('LENNART_03', 'H')
+if VAR03 == 'H': ge.inputs['Color'].default_value = (0.25, 0.75, 0.5, 1)
 if VAR03 == 'S':   # snittytorna far snittskraffering som pa en ritning: delens egen farg med tata diagonala linjer i en morkare ton
     for n in MECH:
         if len(CUT[n].materials) < 2: continue
@@ -390,7 +391,17 @@ def out(t, a, b, p=2.4): x = min(1, max(0, (t - a) / (b - a))); return 1 - (1 - 
 def acc(t, a, b, p=2.0): x = min(1, max(0, (t - a) / (b - a))); return x ** p              # langsamt forst, sedan snabbt
 def mix(p, q, k): return Vector(p) + (Vector(q) - Vector(p)) * k
 def orbit(c, az, r, dz): a_ = math.radians(az); return Vector(c) + Vector((r * math.sin(a_), -r * math.cos(a_), dz))
-GOLV_E = [l.data.energy for l in L['golv']]
+GOLV_E = [l.data.energy for l in L['golv']]; GOLV_P = [l.location.copy() for l in L['golv']]; SNITT_E = [l.data.energy for l in L['snitt']]
+WE0 = [n for n in wn.nodes if n.type == 'VALTORGB'][0].color_ramp.elements[0]; WE0_C = tuple(WE0.color)
+OVERG = VAR03 == 'H' and VAR04 == 'D'   # det osynliga klippet: 0.3 landar rakt ovanfor golvet, 0.4 borjar i exakt samma lage och stiger
+H0 = 0.06; FLOOR_P4 = FLOOR.location.copy()
+D_START = Vector(((LAYOUT_X0 + LAYOUT_X1) / 2, (LAYOUT_Y0 + LAYOUT_Y1) / 2, GROUND))      # mitt i rutnatet, i hornet mellan fyra rutor dar golvet ar tomt; 0.4 stiger rakt upp harifran
+P3 = Vector((0.62, -0.012, -0.0305))                                                        # platsen pa golvet framfor huset dar 0.3 landar
+FLOOR_P3 = FLOOR_P4 + (P3 - D_START)                                                        # golvet flyttas sa att pixlarna under P3 ar exakt de under D_START
+def YAW(t): return math.radians(90 - 68 * sm(t, 8.9, T_D + 2.2))                           # kamerans vridning, hojd och brannvidd ar gemensamma kurvor over klippet,
+def HUP(t): return H0 * (2.9 / H0) ** sm(t, 9.1, 10.6)                                      # sa att rorelsen fortsatter utan avbrott (hojden stiger med jamn upplevd fart)
+def LENS_G(t): return 85 - 50 * sm(t, 8.86, 9.12) - 5 * sm(t, 9.12, 10.4)
+
 def lights(on):
     for k, ls in L.items():
         for l in ls: l.hide_render = k != on
@@ -417,13 +428,24 @@ def cam03(t, tm, p):   # kameran i varianterna av 0.3
         az = math.radians(24 + 24 * sm(t, 7.6, 8.7)); el = math.radians(7 + 20 * sm(t, 8.45, 9.0) + 40 * dive); r = 0.25 - 0.06 * sm(t, 7.4, 8.5) + 0.04 * sm(t, 8.5, 9.0)
         eye = tgt + r * Vector((math.cos(el) * math.cos(az), -math.cos(el) * math.sin(az), math.sin(el)))
         camera(eye, tgt, 100, 2.4, mix(pile, p, sm(t, 7.0, 7.4)))   # skarpan flyttas fran hogen till noten och ligger sedan pa noten
-    elif VAR03 == 'H':   # last vid hjulet: kameran rullar med hjulet sa att hjulet och noten star still och resten snurrar, slapper sedan och foljer noten ner
+    elif VAR03 == 'H':   # last vid hjulet: kameran rullar med hjulet sa att hjulet och noten star still och resten snurrar, slapper sedan, foljer noten ner och landar rakt ovanfor golvet
         rel = sm(t, 8.1, 8.95); roll = math.radians(wheel_angle(t)) * (1 - rel); D = 0.34 + 0.30 * sm(t, 7.05, 8.2)
-        tgt = mix(AXLE, Vector((0, -0.012, 0.028)), sm(t, 8.15, 8.9)); dive = acc(t, 8.9, T_D, 2.0); el = math.radians(55) * dive
-        eye = tgt + D * Vector((math.cos(el), 0, math.sin(el))); camera(eye, tgt + Vector((0, 0, -0.04)) * dive, 85, 4.0, tgt, roll=roll)
+        tgt = mix(AXLE, Vector((0, -0.012, 0.028)), sm(t, 8.15, 8.9))
+        if not OVERG:
+            dive = acc(t, 8.9, T_D, 2.0); el = math.radians(55) * dive
+            eye = tgt + D * Vector((math.cos(el), 0, math.sin(el))); camera(eye, tgt + Vector((0, 0, -0.04)) * dive, 85, 4.0, tgt, roll=roll); return
+        b = sm(t, 8.8, 9.1); w = sm(t, 8.82, 9.08)                                   # noten hinner landa i skalen, sedan ner mot golvet och borjar stiga redan fore klippet
+        eye = mix(tgt + Vector((D, 0, 0)), P3 + Vector((0, 0, HUP(t))), b)
+        f_ = Vector((-1, 0, 0)).slerp(Vector((0, 0, -1)), w) if 0 < w < 1 else (Vector((-1, 0, 0)) if w <= 0 else Vector((0, 0, -1)))
+        y_ = YAW(t); uh = mix(Vector((0, 0, 1)), Vector((-math.sin(y_), math.cos(y_), 0)), w).normalized(); rt_ = f_.cross(uh).normalized(); up_ = rt_.cross(f_)
+        CAM.location = eye; CAM.rotation_euler = (Matrix((rt_, up_, -f_)).transposed() @ Matrix.Rotation(roll, 3, 'Z')).to_euler()
+        golv = min(2.0, (eye.z - P3.z) / max(-f_.z, 1e-3)); cam_d.lens = LENS_G(t); cam_d.dof.aperture_fstop = 4.0 + 1.6 * b
+        cam_d.dof.focus_distance = max(0.03, (tgt - eye).length * (1 - w) + golv * w)          # skarpan foljer med fran noten till golvet
 
 def state(t):
-    cam_d.type = 'PERSP'; cam_d.dof.use_dof = True
+    cam_d.type = 'PERSP'; cam_d.dof.use_dof = True; FLOOR.location = FLOOR_P4; WE0.color = WE0_C
+    for l, e_, p_ in zip(L['golv'], GOLV_E, GOLV_P): l.location = p_; l.data.energy = e_
+    for l, e_ in zip(L['snitt'], SNITT_E): l.data.energy = e_
     for o in ELEK_ALL + NUMMER + VAROBJ: o.hide_render = not (T_D <= t < T_E)   # elektroniken och numren finns bara i 0.4
     for n, o in PARTS.items(): o.matrix_world = ORIG_M[n]; o.data = ORIG_DATA[n]; o.hide_render = False
     SCREEN.hide_render = False; SCREEN.data.materials[0] = SCR['vantar']; FLOOR.hide_render = True
@@ -451,6 +473,10 @@ def state(t):
         NUTS[0].hide_render = False; NUTS[0].matrix_world = Matrix.Translation(p) @ Matrix.Rotation(-th, 4, 'X') @ Matrix.Scale(NR, 4)
         for i, (x, y, z, rx, ry, rz) in enumerate(PILE):   # resten av magasinet: en full hog ovanpa hjulet
             NUTS[i + 1].hide_render = False; NUTS[i + 1].matrix_world = Matrix.Translation((x, y, z)) @ Euler((rx, ry, rz)).to_matrix().to_4x4() @ Matrix.Scale(NR, 4)
+        if OVERG:
+            FLOOR.hide_render = False; FLOOR.location = FLOOR_P3; WE0.color = (0.010, 0.034, 0.022, 1); kl = sm(t, 8.7, 9.15)
+            for l, e_, p_ in zip(L['golv'], GOLV_E, GOLV_P): l.hide_render = False; l.location = p_ + (P3 - D_START); l.data.energy = e_ * kl
+            for l, e_ in zip(L['snitt'], SNITT_E): l.data.energy = e_ * (1 - kl)
         if VAR03 != 'K': cam03(t, tm, p); return
         k = out(t, T_C, 8.3, 2.6); follow = sm(t, 8.1, 8.85); tgt = mix((0, 0.05, 0.088), (0, 0.006, 0.03), follow)
         dive = acc(t, 8.95, T_D, 2.0); tgt = tgt + Vector((0, -0.01, -0.09)) * dive     # overgang ut: snabb tilt nerat forbi skalen
@@ -505,15 +531,19 @@ def state(t):
         elif VAR04 in 'CD':   # ovanifran: borjar tatt over golvet, lyfter och visar allt, sedan rakt ner (C: i ramen, D: i golvets pixlar)
             mid = Vector(((LAYOUT_X0 + LAYOUT_X1) / 2, (LAYOUT_Y0 + LAYOUT_Y1) / 2, GROUND))
             if VAR04 == 'C': start = Vector(((K_X0 + K_X1) / 2, K_Y, GROUND)); H = 1.35; MAL = RAM_C; slut_h = 0.045; slut_l = 85
+            elif OVERG: start = D_START; H = 2.9; MAL = Vector((LAYOUT_X1 + 0.3, LAYOUT_Y0 - 0.3, GROUND)); slut_l = 50; slut_h = 110 * PIX * slut_l / 36
             else: start = POS['kropp'] + Vector((KL / 2, KD / 2, GROUND)); H = 2.9; MAL = Vector((LAYOUT_X1 + 0.3, LAYOUT_Y0 - 0.3, GROUND)); slut_l = 50; slut_h = 110 * PIX * slut_l / 36
             upp_ = sm(u, 0.1, 2.0); dyk = acc(u, 2.25, 3.38, 2.0); yaw = math.radians(22) * sm(u, 0.2, 2.2) * (1 - sm(u, 2.3, 3.2))
             c_ = mix(start, mid, sm(u, 0.1, 1.9)); c_ = mix(c_, MAL, sm(u, 2.1, 3.0))
-            h = 0.32 + (H - 0.32) * upp_; h = h + (slut_h - h) * dyk
-            eye = Vector((c_.x, c_.y, GROUND + h)); lut = sm(u, 0.0, 0.45)
+            if OVERG: h = HUP(t); c_ = mix(start, mid, sm(u, 0.35, 1.9)); c_ = mix(c_, MAL, sm(u, 2.1, 3.0))   # stiger med jamn upplevd fart, sidled forst nar kameran kommit upp
+            else: h = 0.32 + (H - 0.32) * upp_
+            h = h + (slut_h - h) * dyk
+            if OVERG: yaw = YAW(t) * (1 - sm(u, 2.3, 3.2))
+            eye = Vector((c_.x, c_.y, GROUND + h)); lut = 1.0 if OVERG else sm(u, 0.0, 0.45)
             f_ = mix(Vector((0, 0.75, -0.66)), Vector((0, 0, -1)), lut).normalized()        # overgang in: tilten fran 0.3 fortsatter ner till rakt ovanifran
             upp = Vector((-math.sin(yaw), math.cos(yaw), 0)) * lut + Vector((0, 0, 1)) * (1 - lut); rt_ = f_.cross(upp).normalized(); up_ = rt_.cross(f_)
             CAM.location = eye; CAM.rotation_euler = Matrix((rt_, up_, -f_)).transposed().to_euler()
-            cam_d.lens = 30 + (slut_l - 30) * dyk; cam_d.dof.aperture_fstop = 5.6; cam_d.dof.focus_distance = max(0.05, eye.z - GROUND)
+            cam_d.lens = (LENS_G(t) if OVERG else 30) + (slut_l - 30) * dyk; cam_d.dof.aperture_fstop = 5.6; cam_d.dof.focus_distance = max(0.05, eye.z - GROUND)
     else:            # 0.5 tatt pa skarmen: VERIFIERAR...
         lights('makro'); k = out(t, T_E, END, 1.8); SCREEN.data.materials[0] = SCR['av' if (t >= END - 0.06 or t < T_E + 0.3) else dots(t)]
         ent = out(t, T_E, T_E + 1.1, 2.6)       # overgang in fran 0.4: borjar tatt mot den slackta skarmen och backar ut ur den, skarmen tands
@@ -527,11 +557,18 @@ def warp(t):
     for (n0, o0), (n1, o1) in zip(WARP, WARP[1:]):
         if t <= n1: return o0 + (o1 - o0) * (t - n0) / (n1 - n0)
     return WARP[-1][1]
-bpy.app.handlers.frame_change_pre.append(lambda sc_, *_: state(sc_.frame_current_final / FPS) if sc_.render.use_motion_blur else None)
+def _blur_t(sc_):   # rorelseoskarpans delrutor stannar i samma scen som rutan, sa att inget blandas over klippen
+    t, t0 = sc_.frame_current_final / FPS, sc_.frame_current / FPS
+    for g in (T_C, T_D, T_E):
+        if t0 >= g > t: t = g
+        if t0 < g <= t: t = g - 1e-4
+    return t
+bpy.app.handlers.frame_change_pre.append(lambda sc_, *_: state(_blur_t(sc_)) if sc_.render.use_motion_blur else None)
 frames = sorted({round(t * FPS) for t in TIMES}) if TIMES else range(int(WARP[-1][0] * FPS))
 for f in frames:
     p = os.path.join(OUT, f'{f:04d}.jpg')
     if os.path.exists(p) and os.path.getsize(p) > 0: continue
-    if VAR03 != 'K' and T_C <= f / FPS < T_D: sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.5; sc.frame_set(f); state(sc.frame_current_final / FPS)
+    # forsta rutan efter klippet till 0.3 renderas utan rorelseoskarpa (annars blandades 0.2 in)
+    if VAR03 != 'K' and T_C + 0.03 <= f / FPS < (T_E if OVERG else T_D): sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.5; sc.frame_set(f); state(_blur_t(sc))
     else: sc.render.use_motion_blur = False; state(min(warp(f / FPS), END - 0.001))
     bpy.context.view_layer.update(); sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)
