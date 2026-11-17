@@ -24,11 +24,11 @@ for f in range(N):
     x0, y0, x1, y1 = omr[f]; a = bild(src).astype(np.float32); rp = os.path.join(VR, f'{f:04d}.jpg')
     rw, rh = map(int, subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', rp], capture_output=True, text=True).stdout.strip().split(','))
     r = las(['-i', rp], rw, rh)[0].astype(np.float32); bast = None
-    for ox in (0, 1, -1):   # Blender kan gora omradet en pixel mindre an beraknat: valj den placering som stammer bast med den gamla bilden i kanten
+    for ox in (0, 1, -1):   # Blender kan gora omradet en pixel mindre an beraknat (oversta raden faller bort): valj den placering som stammer bast med den gamla bilden
         for oy in (0, 1, -1):
             X0, Y0 = x0 + ox, y0 + oy
             if X0 < 0 or Y0 < 0 or X0 + rw > W or Y0 + rh > H: continue
-            g = a[Y0:Y0 + rh, X0:X0 + rw]; e = np.abs(g[:6] - r[:6]).mean() + np.abs(g[-6:] - r[-6:]).mean() + np.abs(g[:, :6] - r[:, :6]).mean() + np.abs(g[:, -6:] - r[:, -6:]).mean()
+            g = a[Y0:Y0 + rh, X0:X0 + rw]; e = np.abs(g - r).mean()   # hela omradet: skalens kanter avgor (bara kanten ar for enfargad och gav en pixels hopp mellan rutorna)
             if bast is None or e < bast[0]: bast = (e, X0, Y0)
     x0, y0 = bast[1], bast[2]; x1, y1 = x0 + rw, y0 + rh; omr[f] = (x0, y0, x1, y1)
     yy, xx = np.mgrid[y0:y1, x0:x1]; k = 8.0   # mjuk kant 8 px innanfor omradet, utom dar omradet slutar vid bildkanten
