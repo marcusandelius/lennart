@@ -32,35 +32,48 @@ BG = np.array([6, 18, 11]) / 255; LIT = np.array([96, 214, 150]) / 255; FLASH = 
 u = (np.arange(C) + 0.5) / C; e = np.clip((0.5 - np.abs(u - 0.5)) / 0.14, 0, 1); cell = np.outer(e, e)[..., None] * 0.75 + 0.25
 sub = np.stack([0.65 + 0.35 * 1.6 * (0.5 + 0.5 * np.cos(2 * np.pi * (u - ph))) for ph in (1 / 6, 0.5, 5 / 6)], -1)[None, :, :] * np.ones((C, 1, 1))
 TILE = cell * sub
-# Overgangen till 1.1 (LENNART_TILL = bild, 1280 x 720, forsta rutan i 1.1): pixlarna blir bilden. I ett svep fran ekollonet och utat tar varje cell
-# fargen fran 1.1 och bokstaverna slocknar, sedan okar upplosningen i tre steg (160, 320, 640 celler i bredd) och 1.1 tar vid i full upplosning pa slaget.
-TILL = os.environ.get('LENNART_TILL')
-if TILL:
-    r_ = subprocess.run(['ffmpeg', '-v', 'error', '-i', TILL, '-vf', 'scale=1280:720', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
-    TB = np.frombuffer(r_, np.uint8).reshape(720, 1280, 3).astype(np.float64) / 255
-    def mosaik(c):   # bilden i celler om c px: medelfarg per cell
-        h_, w_ = 720 // c, 1280 // c; return TB.reshape(h_, c, w_, c, 3).mean((1, 3))
-    M80 = mosaik(C); ys_, xs_ = np.mgrid[0:GH, 0:GW]; nc = np.argwhere(not_).mean(0)
-    d_ = np.hypot((ys_ - nc[0]) * 1.0, xs_ - nc[1]); d_ /= d_.max(); t_sw = 2.08 + 0.38 * d_ + np.random.default_rng(3).random(d_.shape) * 0.06   # svepet: 2,08-2,52 s
-    STEG = [(2.56, 8), (2.64, 4), (2.72, 2)]   # (fran tid, cellstorlek i px)
-    def cellbild(c, gap):   # en cellbild med glipor, normerad sa att ljusstyrkan behalls; gap 0-1 hur tydliga gliporna ar
-        u_ = (np.arange(c) + 0.5) / c; e_ = np.clip((0.5 - np.abs(u_ - 0.5)) / 0.14, 0, 1); cl = np.outer(e_, e_)[..., None] * 0.75 + 0.25
-        sb = np.stack([0.65 + 0.35 * 1.6 * (0.5 + 0.5 * np.cos(2 * np.pi * (u_ - ph))) for ph in (1 / 6, 0.5, 5 / 6)], -1)[None, :, :] * np.ones((c, 1, 1))
-        tl = cl * sb; tl = tl / tl.mean((0, 1)); return 1 + (tl - 1) * gap
-GLOW = 0.55
+# Overgangen till 1.1 (LENNART_BAKOM = mapp med balkongvideon fore 1.1, rutor 00.jpg, 01.jpg ... a 0,04 s fran kallklippets borjan; LENNART_BAKOM_T = tiden i
+# kallklippet dar 1.1 borjar): pixlarna lossnar och avslojar videon bakom. Bakgrundens pixlar lossnar forst, fran nagra stallen runt kanterna och utat,
+# faller en bit med tyngd, krymper och slocknar. Bokstaverna och ekollonet svavar en stund over balkongen och faller sist, sa att 1.1 tar vid pa slaget.
+BAKOM = os.environ.get('LENNART_BAKOM'); B_T = float(os.environ.get('LENNART_BAKOM_T', '0.48'))
+if BAKOM:
+    def bakom(t):   # videon bakom: kallklippets tid B_T + (t - DUR), stilla fore kallklippets borjan
+        n_ = int(round(max(0.0, B_T + t - DUR) * FPS)); p_ = os.path.join(BAKOM, '%02d.jpg' % n_)
+        r_ = subprocess.run(['ffmpeg', '-v', 'error', '-i', p_, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
+        return np.frombuffer(r_, np.uint8).reshape(720, 1280, 3) / 255 * np.array([1.0, 0.973, 0.979])   # samma ton som 1.1
+    rr = np.random.default_rng(11); ys_, xs_ = np.mgrid[0:GH, 0:GW]
+    fron = [(0, rr.uniform(0, GW)), (GH - 1, rr.uniform(0, GW)), (rr.uniform(0, GH), 0), (rr.uniform(0, GH), GW - 1), (0, 0), (GH - 1, GW - 1), (rr.uniform(0, GH), rr.uniform(0, GW))]
+    dist = np.min([np.hypot(ys_ - a_, xs_ - b_) for a_, b_ in fron], 0); dist /= dist.max()
+    t_los = 1.70 + 0.55 * dist ** 0.9 + rr.random(dist.shape) * 0.10; lang = np.full(dist.shape, 0.28)
+    tand = on | not_; t_los[tand] = 2.52 + rr.random(tand.sum()) * 0.08; lang[tand] = 0.16   # bokstaverna sist och fortare
+    vx = rr.uniform(-60, 60, dist.shape); G_ = 2600.0
+def glod(x):   # mjukt sken (som gblur sigma 9 med skarmblandning): nedskalat 4 ggr, gaussisk osk. sigma 2,25, uppskalat
+    h_, w_ = x.shape[0] // 4, x.shape[1] // 4; d_ = x.reshape(h_, 4, w_, 4, 3).mean((1, 3))
+    k_ = np.exp(-0.5 * (np.arange(-7, 8) / 2.25) ** 2); k_ /= k_.sum()
+    d_ = np.apply_along_axis(lambda v: np.convolve(v, k_, 'same'), 0, d_); d_ = np.apply_along_axis(lambda v: np.convolve(v, k_, 'same'), 1, d_)
+    return np.kron(d_, np.ones((4, 4, 1)))
 for f in range(int(round(DUR * FPS))):
-    t = f / FPS; age = t - t_on; glow = GLOW
+    t = f / FPS; age = t - t_on
     col = np.where((age >= 0)[..., None], np.where((age < 0.1)[..., None], FLASH, LIT), BG + BACK)
     img = np.kron(col, np.ones((C, C, 1))) * np.tile(TILE, (GH, GW, 1)); img = np.clip(img * 1.25, 0, 1)
-    if TILL and t >= 2.08:
-        steg = [s_ for s_ in STEG if t >= s_[0]]
-        if not steg:   # svepet: celler som har bytt visar 1.1 i 80 x 45, en ruta lite ljusare nar de byter
-            k_ = (t >= t_sw)[..., None]; fl = 1 + 0.35 * ((t - t_sw) < 0.045)[..., None]
-            mc = np.kron(M80 * fl, np.ones((C, C, 1))) * np.tile(cellbild(C, 0.85), (GH, GW, 1))
-            img = np.where(np.kron(k_, np.ones((C, C, 1))) > 0, np.clip(mc, 0, 1), img); glow = GLOW * 0.6
-        else:
-            c = steg[-1][1]; gap = {8: 0.6, 4: 0.3, 2: 0.08}[c]
-            img = np.clip(np.kron(mosaik(c), np.ones((c, c, 1))) * np.tile(cellbild(c, gap), (720 // c, 1280 // c, 1)), 0, 1); glow = {8: 0.25, 4: 0.12, 2: 0.04}[c]
-    p = subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '1280x720', '-i', '-', '-vf', 'format=gbrp,split[a][b];[b]gblur=sigma=9[g];[a][g]blend=all_mode=screen:all_opacity=%.3f,format=yuvj444p' % glow, '-q:v', '2', os.path.join(OUT, '%04d.jpg' % f)],
+    if BAKOM and t >= 1.70:
+        sitter = t < t_los; A = np.kron(sitter[..., None].astype(float), np.ones((C, C, 1))); T_ = img * A
+        for (cy, cx) in np.argwhere(~sitter):
+            a_ = t - t_los[cy, cx]; k_ = a_ / lang[cy, cx]
+            if k_ >= 1: continue
+            al = 1 - k_; s_ = 1 - 0.45 * k_; n_ = max(2, int(round(C * s_))); ix = (np.arange(n_) * C / n_).astype(int)
+            blk = img[cy * C:(cy + 1) * C, cx * C:(cx + 1) * C][np.ix_(ix, ix)]
+            y0_ = int(round(cy * C + (C - n_) / 2 + 0.5 * G_ * a_ * a_)); x0_ = int(round(cx * C + (C - n_) / 2 + vx[cy, cx] * a_))
+            ya, yb, xa, xb = max(y0_, 0), min(y0_ + n_, 720), max(x0_, 0), min(x0_ + n_, 1280)
+            if ya >= yb or xa >= xb: continue
+            b_ = blk[ya - y0_:yb - y0_, xa - x0_:xb - x0_]
+            T_[ya:yb, xa:xb] = T_[ya:yb, xa:xb] * (1 - al) + b_ * al; A[ya:yb, xa:xb] = A[ya:yb, xa:xb] * (1 - al) + al
+        bas = bakom(t) * (1 - A) + T_; ut = 1 - (1 - bas) * (1 - 0.55 * glod(T_))
+    else:
+        ut = 1 - (1 - img) * (1 - 0.55 * glod(img)) if BAKOM else None
+    if ut is not None:
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '1280x720', '-i', '-', '-q:v', '2', os.path.join(OUT, '%04d.jpg' % f)], input=(np.clip(ut, 0, 1) * 255).astype(np.uint8).tobytes())
+        continue
+    p = subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '1280x720', '-i', '-', '-vf', 'format=gbrp,split[a][b];[b]gblur=sigma=9[g];[a][g]blend=all_mode=screen:all_opacity=0.55,format=yuvj444p', '-q:v', '2', os.path.join(OUT, '%04d.jpg' % f)],
                        input=(img * 255).astype(np.uint8).tobytes())
 print('titel', f + 1, 'rutor')
