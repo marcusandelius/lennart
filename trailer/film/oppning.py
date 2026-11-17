@@ -90,6 +90,9 @@ def screen_mat(f):
 SCR = {'vantar': screen_mat('skarm-vantar.png'), 'verifierar': screen_mat('skarm-verifierar.png')}
 # 0.5: punkterna i VERIFIERAR tands en i taget pa de tre pipen (1,70, 1,95 och 2,20 s in i klippet, se ljudmix.mjs). Den nytanda punkten blixtrar till i 0,12 s.
 for n_ in ('v0', 'v1', 'v1f', 'v2', 'v2f', 'v3', 'v3f'): SCR[n_] = screen_mat('skarm-verifierar-%s.png' % n_)
+for k_, f_ in ((1, 1.0), (2, 1.35), (3, 1.6), (4, 1.2), (5, 1.0)):   # glitchen nar LED-skarmen byter till VERIFIERAR (verktyg/skarm_glitch.py), nagra rutor lyser starkare
+    SCR['g%d' % k_] = screen_mat('skarm-glitch-%d.png' % k_); _p = SCR['g%d' % k_].node_tree.nodes['Principled BSDF']; _p.inputs['Emission Strength'].default_value *= f_
+GLITCH = {321: 'g1', 322: 'g2', 323: 'vantar', 324: 'g3', 325: 'av', 326: 'g4', 327: 'g5'}   # rutnummer -> skarmbild, 12,84-13,08 s
 SCR['av'] = screen_mat('skarm-av.png')     # slutet av 0.5: alla pixlar slocknar, titeln tar vid i samma rutnat
 PIPS = [T_E + d for d in (1.70, 1.95, 2.20)]
 def dots(t):
@@ -349,7 +352,9 @@ if VAR04 == 'D':
     mm = nt_.nodes.new('ShaderNodeMath'); mm.operation = 'MULTIPLY'; nt_.links.new(kant[0].outputs[0], mm.inputs[0]); nt_.links.new(kant[1].outputs[0], mm.inputs[1])
     ma = nt_.nodes.new('ShaderNodeMath'); ma.operation = 'MULTIPLY_ADD'; ma.inputs[1].default_value = 0.75; ma.inputs[2].default_value = 0.25; nt_.links.new(mm.outputs[0], ma.inputs[0])
     PIX_S = nt_.nodes.new('ShaderNodeMath'); PIX_S.operation = 'MULTIPLY'; PIX_S.inputs[1].default_value = 0.5; nt_.links.new(ma.outputs[0], PIX_S.inputs[0])
-    pp.inputs['Emission Color'].default_value = (0.024, 0.07, 0.043, 1)
+    pp.inputs['Emission Color'].default_value = (0.024, 0.07, 0.043, 1); GOLV_EM = pp.inputs['Emission Color']
+    GOLV_GRON, GOLV_SLUT = (0.024, 0.07, 0.043, 1), (0.0012, 0.0035, 0.0022, 1)   # nar kameran sjunker mot LED-skarmen tonar golvets pixlar ut till nastan slackt, sa att skarmen ar det enda som lyser (valt fore dampat midnattsblatt)
+    if os.environ.get('LENNART_GOLV') == 'bla': GOLV_SLUT = (0.009, 0.015, 0.046, 1)   # provet med dampat midnattsblatt
     # ett mjukt sken av tanda pixlar runt LED-skarmen i mitten: 1 + HALO_G * exp(-r^2 / s^2), r fran HALO_X/HALO_Y i golvets koordinater
     HALO_X = nt_.nodes.new('ShaderNodeValue'); HALO_Y = nt_.nodes.new('ShaderNodeValue'); HALO_G = nt_.nodes.new('ShaderNodeValue'); HALO_G.outputs[0].default_value = 0.0
     _dx = nt_.nodes.new('ShaderNodeMath'); _dx.operation = 'SUBTRACT'; nt_.links.new(sx_.outputs['X'], _dx.inputs[0]); nt_.links.new(HALO_X.outputs[0], _dx.inputs[1])
@@ -461,7 +466,7 @@ def cam03(t, tm, p):   # kameran i varianterna av 0.3
 
 def state(t):
     cam_d.type = 'PERSP'; cam_d.dof.use_dof = True; FLOOR.location = FLOOR_P4; WE0.color = WE0_C
-    if VAR04 == 'D': HALO_G.outputs[0].default_value = 0.0
+    if VAR04 == 'D': HALO_G.outputs[0].default_value = 0.0; GOLV_EM.default_value = GOLV_GRON
     for l, e_, p_ in zip(L['golv'], GOLV_E, GOLV_P): l.location = p_; l.data.energy = e_
     for l, e_ in zip(L['snitt'], SNITT_E): l.data.energy = e_
     for o in ELEK_ALL + NUMMER + VAROBJ: o.hide_render = not (T_D <= t < T_E4)   # elektroniken och numren finns bara i 0.4
@@ -513,8 +518,11 @@ def state(t):
                 _sk = bpy.data.objects[SKMOD]
                 for o in [_sk] + list(_sk.children_recursive): o.hide_render = False
                 SKARM_B.data.materials[0] = SCR['vantar'] if (u > 1.55 and not (1.6 < u < 1.66) and not (1.74 < u < 1.77)) else SCR['av']
-                if t >= 12.97: SKARM_B.data.materials[0] = SCR['av' if (t < 13.05 or t >= END - 0.06) else dots(t)]   # VERIFIERAR nar kameran kommit fram, punkterna pa pipen, slacks infor titeln
+                _n = round(t * FPS)   # rorelseoskarpans delrutor far samma bild som rutan
+                if _n in GLITCH: SKARM_B.data.materials[0] = SCR[GLITCH[_n]]   # skarmen glitchar over fran VANTAR till VERIFIERAR nar kameran kommit fram
+                elif _n > max(GLITCH): SKARM_B.data.materials[0] = SCR['av' if t >= END - 0.06 else dots(t)]   # VERIFIERAR, punkterna pa pipen, slacks infor titeln
                 _lc = FLOOR.matrix_world.inverted() @ SKARM_B.matrix_world.translation; HALO_X.outputs[0].default_value = _lc.x; HALO_Y.outputs[0].default_value = _lc.y
+                _b = sm(t, 11.6, 12.8); GOLV_EM.default_value = tuple(g_ + (b_ - g_) * _b for g_, b_ in zip(GOLV_GRON, GOLV_SLUT))
                 HALO_G.outputs[0].default_value = 5.0 * sm(u, 1.6, 2.3) * (1 - 0.75 * sm(t, 12.0, 13.0))    # golvets pixlar runt skarmen tands strax efter den och dampas nar kameran kommer ner, sa att skarmen ar det ljusaste
         if VAR04 in 'KBE':
             ext = sm(u, 0.0, 1.15); rise = sm(u, 0.55, 2.0); pan = sm(u, 0.6, 2.6)
