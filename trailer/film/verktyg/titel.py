@@ -2,7 +2,7 @@
 # och slocknar; titeln fortsatter i samma rutnat (80 x 45 pixlar a 16 px), och bokstavernas pixlar tands i slumpvis ordning.
 # Kor:  <Blenders python> titel.py <ut-mapp> [langd i s]      (skriver 1280 x 720 jpg-rutor via ffmpeg)
 import sys, os, subprocess, numpy as np
-OUT = sys.argv[1]; DUR = float(sys.argv[2]) if len(sys.argv) > 2 else 1.8; FPS = 25; C = 16; GW, GH = 80, 45; os.makedirs(OUT, exist_ok=True)
+OUT = sys.argv[1]; DUR = float(sys.argv[2]) if len(sys.argv) > 2 else 2.8; FPS = 25; C = 16; GW, GH = 80, 45; os.makedirs(OUT, exist_ok=True)
 F = {  # 5 x 7-typsnitt
  'P': ['11110', '10001', '10001', '11110', '10000', '10000', '10000'], 'R': ['11110', '10001', '10001', '11110', '10100', '10010', '10001'],
  'O': ['01110', '10001', '10001', '10001', '10001', '10001', '01110'], 'J': ['00111', '00010', '00010', '00010', '00010', '10010', '01100'],

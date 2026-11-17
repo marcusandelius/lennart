@@ -248,6 +248,32 @@ LAYOUT_X1 = LAYOUT_X0 + sum(COLW) + 2 * GGAP; LAYOUT_Y0 = min(p.y for p in POS.v
 # stommen: roret ligger framfor forsta gruppen, med oppningen mot delarna
 _kb = _bb([v.co for v in _BM['kropp'].verts]); KL = _kb[1].x - _kb[0].x; KD = _kb[1].y - _kb[0].y; KH = _kb[1].z - _kb[0].z
 POS['kropp'] = Vector((LAYOUT_X0 - 0.07 - KL, FRAMRAD_Y - KD / 2, 0)); BLOCK['kropp'] = (KL, KD)
+# Varianter av 0.4 (LENNART_04, prov for Marcus): K = byggsatsen i grupper (nuvarande), A = en lang rak linje som slutar genom stommen och ner i ramen,
+# B = byggsatsen, slutar pa LED-skarmen pa golvet som tands, C = ovanifran: lyfter over byggsatsen och dyker ner i ramen,
+# D = delarna i ett rutnat pa ett golv som ar en enorm slackt LED-skarm; kameran dyker in i golvets pixlar, E = en gron skanning sveper over delarna.
+VAR04 = os.environ.get('LENNART_04', 'K')
+def _vrid(n):   # vrider ett block 90 grader i sina egna koordinater, sa att kortsidan hamnar langs x
+    W_, D_ = BLOCK[n]
+    for v in _BM[n].verts: x, y = v.co.x, v.co.y; v.co.x = D_ - y; v.co.y = x
+    BLOCK[n] = (D_, W_)
+if VAR04 == 'A':   # alla delar pa en lang rad langs x, kortsidan i fardriktningen. Sist stommen (roret) och efter den skarmramen
+    ordn = [n for g in ('Bas', 'Tak', 'Skål', 'Elektronik', 'Inredning', 'Kropp') for n in sorted(GD[g], key=lambda n: -BLOCK[n][0] * BLOCK[n][1]) if n != 'skarmram']
+    x_ = 0.0
+    for n in ordn + ['skarmram']:
+        if n in _BM and BLOCK[n][0] > BLOCK[n][1] + 0.002 and n != 'skarmram': _vrid(n)
+        if n == 'skarmram':
+            if BLOCK[n][0] > BLOCK[n][1]: _vrid(n)               # ramens langsida tvars fardriktningen, sa att den ligger rak i bild nar kameran tittar ner
+            x_ += KL + 0.1 + 0.06                                  # plats for stommen, sedan ramen
+        w, d = BLOCK[n]; POS[n] = Vector((x_, -d / 2, 0)); x_ += w + 0.025
+    LINE_X1 = POS['skarmram'].x; POS['kropp'] = Vector((LINE_X1 - 0.06 - KL, -KD / 2, 0)); off = x_ / 2   # linjen centreras kring origo, dar ljuset ar
+    for n in POS: POS[n].x -= off
+    LINE_X1 -= off; LAYOUT_X0, LAYOUT_X1 = -off, x_ - off; print('LINJEN', round(x_, 2), 'm', flush=True)
+if VAR04 == 'D':   # 48 delar i ett rutnat 8 x 6, en del per ruta
+    alla = ['kropp'] + [n for g in ('Kropp', 'Tak', 'Bas', 'Skål', 'Inredning') for n in sorted(GD[g], key=lambda n: -BLOCK[n][0] * BLOCK[n][1])]
+    BLOCK['kropp'] = (KL, KD); CELL = max(max(BLOCK[n]) for n in alla) + 0.05; GX8, GY6 = 8, 6
+    for i, n in enumerate(alla):
+        cx, cy = (i % GX8 - (GX8 - 1) / 2) * CELL, ((GY6 - 1) / 2 - i // GX8) * CELL; w, d = BLOCK[n]; POS[n] = Vector((cx - w / 2, cy - d / 2, 0))
+    LAYOUT_X0, LAYOUT_X1, LAYOUT_Y0, LAYOUT_Y1 = -GX8 / 2 * CELL, GX8 / 2 * CELL, -GY6 / 2 * CELL, GY6 / 2 * CELL; print('RUTNAT', round(CELL, 3), flush=True)
 for n, bm in _BM.items():
     lo = _bb([v.co for v in bm.verts])[0] if n == 'kropp' else Vector((0, 0, 0)); sh = POS[n] - Vector((lo.x, lo.y, 0)) + (Vector((0, 0, GROUND - lo.z)) if n == 'kropp' else Vector())
     for v in bm.verts: v.co += sh
@@ -268,6 +294,50 @@ if os.environ.get('LENNART_NUMMER', '1') == '1':
 _rp = [v.co for v in LAYD['skarmram'].vertices]; RAM_C = LAY['skarmram'] + Vector((sum(p.x for p in _rp) / len(_rp), sum(p.y for p in _rp) / len(_rp), max(p.z for p in _rp)))   # skarmramens mitt pa golvet
 _xy = _np.array([(p.x, p.y) for p in _rp]); _xy -= _xy.mean(0); _ev = _np.linalg.eigh(_xy.T @ _xy)[1][:, -1]; RAM_A = math.atan2(_ev[1], _ev[0])   # ramens langsida pa golvet
 RAM_A = (RAM_A + math.pi / 2) % math.pi - math.pi / 2; RAM_ROLL = math.radians(-23); print('RAMEN', RAM_C, math.degrees(RAM_A), flush=True)
+# --- tillbehor till varianterna av 0.4 ---
+VAROBJ = []   # syns bara i 0.4
+# svart inuti skarmramen, sa att kameran dyker ner i morker (A, C, E, K)
+_rlo, _rhi = _bb(_rp); bpy.ops.mesh.primitive_plane_add(size=1, location=(RAM_C.x, RAM_C.y, GROUND + 0.0004)); RSV = bpy.context.active_object
+RSV.scale = ((_rhi.x - _rlo.x) * 0.8, (_rhi.y - _rlo.y) * 0.8, 1); _rsm = mat('ram_svart', (0.0, 0.0, 0.0), 1.0); _rsm.node_tree.nodes['Principled BSDF'].inputs['Specular IOR Level'].default_value = 0.0; RSV.data.materials.append(_rsm); VAROBJ.append(RSV)
+RSV['bara'] = 'ACEK'
+# golvet: morknar mot slutet av linjen (A)
+_gm = FLOOR.data.materials[0]; _gn = _gm.node_tree; _gp = _gn.nodes['Principled BSDF']; _gtc = _gn.nodes.new('ShaderNodeTexCoord'); _gsx = _gn.nodes.new('ShaderNodeSeparateXYZ')
+_gmr = _gn.nodes.new('ShaderNodeMapRange'); _gmix = _gn.nodes.new('ShaderNodeMixRGB'); _gmix.blend_type = 'MULTIPLY'; _gmix.inputs['Fac'].default_value = 1.0
+_gmix.inputs['Color1'].default_value = _gp.inputs['Base Color'].default_value[:]; _gn.links.new(_gtc.outputs['Object'], _gsx.inputs[0]); _gn.links.new(_gsx.outputs['X'], _gmr.inputs['Value'])
+_gn.links.new(_gmr.outputs[0], _gmix.inputs['Color2']); _gn.links.new(_gmix.outputs[0], _gp.inputs['Base Color'])
+_gmr.inputs['To Min'].default_value = 1.0; _gmr.inputs['To Max'].default_value = 1.0
+if VAR04 == 'A': _gmr.inputs['From Min'].default_value = LINE_X1 - 1.4; _gmr.inputs['From Max'].default_value = LINE_X1; _gmr.inputs['To Max'].default_value = 0.4
+# golvet som LED-skarm (D): samma pixlar som skarmen i 0.5, morkt grona med mjuka morka glipor
+PIX = 0.004
+if VAR04 == 'D':
+    pm = bpy.data.materials.new('golv_skarm'); pm.use_nodes = True; nt_ = pm.node_tree; pp = nt_.nodes['Principled BSDF']; pp.inputs['Base Color'].default_value = (0.0, 0.0, 0.0, 1); pp.inputs['Roughness'].default_value = 0.9; pp.inputs['Specular IOR Level'].default_value = 0.15
+    tc_ = nt_.nodes.new('ShaderNodeTexCoord'); sx_ = nt_.nodes.new('ShaderNodeSeparateXYZ'); nt_.links.new(tc_.outputs['Object'], sx_.inputs[0]); kant = []
+    for ax in ('X', 'Y'):
+        m1 = nt_.nodes.new('ShaderNodeMath'); m1.operation = 'DIVIDE'; m1.inputs[1].default_value = PIX; nt_.links.new(sx_.outputs[ax], m1.inputs[0])
+        m2 = nt_.nodes.new('ShaderNodeMath'); m2.operation = 'FRACT'; nt_.links.new(m1.outputs[0], m2.inputs[0])
+        m3 = nt_.nodes.new('ShaderNodeMath'); m3.operation = 'SUBTRACT'; m3.inputs[1].default_value = 0.5; nt_.links.new(m2.outputs[0], m3.inputs[0])
+        m4 = nt_.nodes.new('ShaderNodeMath'); m4.operation = 'ABSOLUTE'; nt_.links.new(m3.outputs[0], m4.inputs[0])
+        m5 = nt_.nodes.new('ShaderNodeMath'); m5.operation = 'MULTIPLY_ADD'; m5.inputs[1].default_value = -1 / 0.14; m5.inputs[2].default_value = 0.5 / 0.14; m5.use_clamp = True; nt_.links.new(m4.outputs[0], m5.inputs[0]); kant.append(m5)
+    mm = nt_.nodes.new('ShaderNodeMath'); mm.operation = 'MULTIPLY'; nt_.links.new(kant[0].outputs[0], mm.inputs[0]); nt_.links.new(kant[1].outputs[0], mm.inputs[1])
+    ma = nt_.nodes.new('ShaderNodeMath'); ma.operation = 'MULTIPLY_ADD'; ma.inputs[1].default_value = 0.75; ma.inputs[2].default_value = 0.25; nt_.links.new(mm.outputs[0], ma.inputs[0])
+    PIX_S = nt_.nodes.new('ShaderNodeMath'); PIX_S.operation = 'MULTIPLY'; PIX_S.inputs[1].default_value = 0.5; nt_.links.new(ma.outputs[0], PIX_S.inputs[0])
+    pp.inputs['Emission Color'].default_value = (0.024, 0.07, 0.043, 1); nt_.links.new(PIX_S.outputs[0], pp.inputs['Emission Strength'])
+    FLOOR_D = pm
+# skanningen (E): en tunn gron linje pa golvet och ett smalt gront ljus som sveper over delarna
+if VAR04 == 'E':
+    bpy.ops.mesh.primitive_plane_add(size=1); SCANB = bpy.context.active_object; SCANB.scale = (0.006, LAYOUT_Y1 - LAYOUT_Y0 + 0.2, 1); SCAN_M = mat('skanning', (0, 0, 0), 0.5)
+    P_s = SCAN_M.node_tree.nodes['Principled BSDF']; P_s.inputs['Emission Color'].default_value = (0.38, 0.84, 0.59, 1); P_s.inputs['Emission Strength'].default_value = 6.0; SCANB.data.materials.append(SCAN_M); VAROBJ.append(SCANB)
+    sl = bpy.data.lights.new('skanljus', 'AREA'); sl.shape = 'RECTANGLE'; sl.size = 0.03; sl.size_y = LAYOUT_Y1 - LAYOUT_Y0 + 0.3; sl.energy = 12; sl.color = (0.38, 0.9, 0.6); SCANL = link(bpy.data.objects.new('skanljus', sl)); VAROBJ.append(SCANL)
+# LED-skarmen bland elektroniken (B): dess bild tands
+SKARM_B = None
+for o in ELEK_ALL:
+    if o.type == 'MESH' and o.name.startswith('bild') and o.parent and o.parent.name.startswith('E_skarmmodul'): SKARM_B = o
+SKARM_P = SKARM_B.data.materials[0].node_tree.nodes['Principled BSDF'] if SKARM_B else None
+for o in VAROBJ: o.hide_render = True
+if VAR04 == 'D': FLOOR.data.materials[0] = FLOOR_D
+if VAR04 == 'A':   # ett langt mjukt ljus over hela linjen
+    la = bpy.data.lights.new('linjeljus', 'AREA'); la.shape = 'RECTANGLE'; la.size = LAYOUT_X1 - LAYOUT_X0 + 0.6; la.size_y = 0.6; la.energy = 260; la.color = (1, 0.82, 0.64)
+    LA = link(bpy.data.objects.new('linjeljus', la)); LA.location = (0, -0.55, 0.75); LA.rotation_euler = (Vector((0, 0.05, GROUND)) - LA.location).to_track_quat('-Z', 'Y').to_euler(); LA['bara'] = 'A'; VAROBJ.append(LA); LA.hide_render = True
 
 def light(name, loc, target, power, size, col):
     d = bpy.data.lights.new(name, 'AREA'); d.energy = power; d.size = size; d.color = col; o = link(bpy.data.objects.new(name, d)); o.location = loc
@@ -295,6 +365,7 @@ def out(t, a, b, p=2.4): x = min(1, max(0, (t - a) / (b - a))); return 1 - (1 - 
 def acc(t, a, b, p=2.0): x = min(1, max(0, (t - a) / (b - a))); return x ** p              # langsamt forst, sedan snabbt
 def mix(p, q, k): return Vector(p) + (Vector(q) - Vector(p)) * k
 def orbit(c, az, r, dz): a_ = math.radians(az); return Vector(c) + Vector((r * math.sin(a_), -r * math.cos(a_), dz))
+GOLV_E = [l.data.energy for l in L['golv']]
 def lights(on):
     for k, ls in L.items():
         for l in ls: l.hide_render = k != on
@@ -311,7 +382,7 @@ def nut_path(t):   # noten ligger i hjulets ficka, foljer med 130 grader framat 
     return p, th + acc(t, 8.15, 8.85, 1.5) * 5.5
 
 def state(t):
-    for o in ELEK_ALL + NUMMER: o.hide_render = not (T_D <= t < T_E)   # elektroniken och numren finns bara i 0.4
+    for o in ELEK_ALL + NUMMER + VAROBJ: o.hide_render = not (T_D <= t < T_E)   # elektroniken och numren finns bara i 0.4
     for n, o in PARTS.items(): o.matrix_world = ORIG_M[n]; o.data = ORIG_DATA[n]; o.hide_render = False
     SCREEN.hide_render = False; SCREEN.data.materials[0] = SCR['vantar']; FLOOR.hide_render = True
     for o in NUTS: o.hide_render = True
@@ -337,25 +408,65 @@ def state(t):
         k = out(t, T_C, 8.3, 2.6); follow = sm(t, 8.1, 8.85); tgt = mix((0, 0.05, 0.088), (0, 0.006, 0.03), follow)
         dive = acc(t, 8.95, T_D, 2.0); tgt = tgt + Vector((0, -0.01, -0.09)) * dive     # overgang ut: snabb tilt nerat forbi skalen
         camera(mix((0.62, 0.02, 0.135), (0.36, -0.075, 0.10), k) + Vector((0, -0.05, -0.05)) * follow + Vector((0, 0, -0.02)) * dive, tgt, 60, 5.6, (0.0, tgt.y, tgt.z))
-    elif t < T_E:    # 0.4 ordnad upplaggning: borjar inne i stommen (roret), aker ut genom oppningen, stiger och sveper over grupperna, sedan ner genom skarmramen
+    elif t < T_E:    # 0.4: se VAR04 overst i upplaggningen. K: borjar inne i stommen (roret), aker ut, stiger och sveper over grupperna, sedan ner genom skarmramen
         lights('golv'); FLOOR.hide_render = False; u = t - T_D
         for b in BUMPS: b.inputs['Strength'].default_value = 0.2
         for n, o in PARTS.items(): o.data = LAYD[n]; o.matrix_world = Matrix.Translation(LAY[n])
         for o in CAMPARTS: o.hide_render = True
         SCREEN.hide_render = True
-        ext = sm(u, 0.0, 1.15); rise = sm(u, 0.55, 2.0); pan = sm(u, 0.6, 2.6)
-        e_in = Vector((K_X0 + 0.04 + (K_X1 + 0.16 - K_X0 - 0.04) * ext, K_Y, K_Z + 0.03 * ext))
-        t_in = Vector((K_X1 + 0.7, K_Y + 0.05, GROUND + 0.01 + 0.3 * (1 - out(u, 0, 0.6, 2.0))))      # overgang in: tilten fran 0.3 fortsatter nerat, inne i roret
-        px = LAYOUT_X0 + 0.3 + (LAYOUT_X1 - 0.75 - LAYOUT_X0 - 0.3) * pan
-        e_ov = Vector((px - 0.05, LAYOUT_Y0 - 0.38, 0.58)); t_ov = Vector((px + 0.1, (LAYOUT_Y0 + LAYOUT_Y1) / 2 - 0.05, GROUND))
-        eye = mix(e_in, e_ov, rise); tgt = mix(t_in, t_ov, rise)
-        crane = sm(t, T_E - 1.45, T_E - 0.45); dive = acc(t, T_E - 0.8, T_E - 0.02, 2.0)                        # overgang ut: upp over skarmramen pa golvet och rakt ner genom dess oppning
-        lens = (20 + 16 * rise) * (1 - crane) + 85 * crane
-        if crane > 0: tgt = mix(tgt, RAM_C, crane); eye = mix(eye, RAM_C + Vector((0.0001, -0.0001, 0.30 - 0.255 * dive)), crane)
-        camera(eye, tgt, lens, (4.0 - 1.6 * rise) * (1 - crane) + 5.6 * crane)
-        if crane > 0:    # nar kameran tittar rakt ner styrs upp-riktningen sjalv (mot +Y), sa att ramen ligger rak och still hela vagen ner
-            f_ = (Vector(tgt) - Vector(eye)).normalized(); u_ = Vector((0, crane, 1 - crane)).normalized(); rt_ = f_.cross(u_).normalized(); up_ = rt_.cross(f_)
-            CAM.rotation_euler = (Matrix((rt_, up_, -f_)).transposed() @ Matrix.Rotation(math.radians(2.5) * crane, 3, 'Z')).to_euler()
+        for o in VAROBJ: o.hide_render = VAR04 not in o.get('bara', VAR04)
+        for l, e0 in zip(L['golv'], GOLV_E): l.data.energy = e0 * (0.3 if VAR04 == 'E' else 1.0)
+        if VAR04 == 'D':
+            for o in ELEK_ALL: o.hide_render = True
+        if VAR04 in 'KBE':
+            ext = sm(u, 0.0, 1.15); rise = sm(u, 0.55, 2.0); pan = sm(u, 0.6, 2.6)
+            e_in = Vector((K_X0 + 0.04 + (K_X1 + 0.16 - K_X0 - 0.04) * ext, K_Y, K_Z + 0.03 * ext))
+            t_in = Vector((K_X1 + 0.7, K_Y + 0.05, GROUND + 0.01 + 0.3 * (1 - out(u, 0, 0.6, 2.0))))      # overgang in: tilten fran 0.3 fortsatter nerat, inne i roret
+            px = LAYOUT_X0 + 0.3 + (LAYOUT_X1 - 0.75 - LAYOUT_X0 - 0.3) * pan
+            e_ov = Vector((px - 0.05, LAYOUT_Y0 - 0.38, 0.58)); t_ov = Vector((px + 0.1, (LAYOUT_Y0 + LAYOUT_Y1) / 2 - 0.05, GROUND))
+            eye = mix(e_in, e_ov, rise); tgt = mix(t_in, t_ov, rise)
+            crane = sm(t, T_E - 1.45, T_E - 0.45); dive = acc(t, T_E - 0.8, T_E - 0.02, 2.0)                        # overgang ut: upp over malet pa golvet och rakt ner
+            MAL = RAM_C; hojd = 0.30 - 0.255 * dive
+            if VAR04 == 'B' and SKARM_B:   # malet ar LED-skarmen bland elektroniken. Den tands, visar vantbilden och slocknar strax fore klippet (0.5 borjar pa den slackta skarmen)
+                MAL = SKARM_B.matrix_world.translation.copy(); hojd = 0.30 - 0.245 * dive
+                pa = u > 2.25 and not (2.3 < u < 2.36)   # tands med ett litet flimmer och ar tand in i klippet; slutbilden ar skarmens morka pixlar, som i 0.5
+                SKARM_B.data.materials[0] = SCR['vantar'] if pa else SCR['av']
+            if VAR04 == 'E':   # skanningen sveper fran vanster till skarmramen, en gron linje och ett smalt gront ljus
+                xs = LAYOUT_X0 - 0.1 + (RAM_C.x - LAYOUT_X0 + 0.1) * sm(u, 0.25, 2.35); my = (LAYOUT_Y0 + LAYOUT_Y1) / 2
+                SCANB.location = (xs, my, GROUND + 0.0006); SCANL.location = (xs, my, GROUND + 0.22); SCANL.rotation_euler = (0, 0, 0)
+                SCAN_M.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 6.0 * sm(u, 0.15, 0.4) * (1 - sm(u, 2.9, 3.2)); SCANL.data.energy = 12 * sm(u, 0.15, 0.4) * (1 - sm(u, 2.9, 3.2))
+            lens = (20 + 16 * rise) * (1 - crane) + 85 * crane
+            if crane > 0: tgt = mix(tgt, MAL, crane); eye = mix(eye, MAL + Vector((0.0001, -0.0001, hojd)), crane)
+            camera(eye, tgt, lens, (4.0 - 1.6 * rise) * (1 - crane) + 5.6 * crane)
+            if crane > 0:    # nar kameran tittar rakt ner styrs upp-riktningen sjalv (mot +Y), sa att malet ligger rakt och still hela vagen ner
+                f_ = (Vector(tgt) - Vector(eye)).normalized(); u_ = Vector((0, crane, 1 - crane)).normalized(); rt_ = f_.cross(u_).normalized(); up_ = rt_.cross(f_)
+                CAM.rotation_euler = (Matrix((rt_, up_, -f_)).transposed() @ Matrix.Rotation(math.radians(2.5) * crane, 3, 'Z')).to_euler()
+        elif VAR04 == 'A':   # en lang linje: lagt over raden, in genom stommen, ut och rakt ner i ramen
+            Kin = K_X0 - 0.06; L0 = LAYOUT_X0 - 0.35; t1, t2 = 1.85, 2.45
+            a1 = (Kin - 0.3 - L0) / t1; a2 = (K_X1 + 0.03 - Kin + 0.3) / (t2 - t1)
+            def herm(s, p0, p1, v0, v1, dt): h00 = 2 * s ** 3 - 3 * s ** 2 + 1; h10 = s ** 3 - 2 * s ** 2 + s; h01 = -2 * s ** 3 + 3 * s ** 2; h11 = s ** 3 - s ** 2; return h00 * p0 + h10 * dt * v0 + h01 * p1 + h11 * dt * v1
+            vmid = min(1.3 * a1, 2.4 * a2)
+            if u < t1: x = herm(u / t1, L0, Kin - 0.3, 0.6 * a1, vmid, t1)
+            elif u < t2: x = herm((u - t1) / (t2 - t1), Kin - 0.3, K_X1 + 0.03, vmid, 0.6, t2 - t1)
+            else: x = K_X1 + 0.03 + 0.6 * (u - t2) * (1 - sm(u, t2, t2 + 0.4))
+            ned = sm(u, t1 - 0.6, t1 + 0.1); crane = sm(u, t2 - 0.1, t2 + 0.5); dive = acc(t, T_E - 0.8, T_E - 0.02, 2.0)   # ut ur roret: upp och over ramen, sedan rakt ner i den
+            eye = Vector((x, K_Y * ned, GROUND + 0.2 + (K_Z - GROUND - 0.2) * ned))
+            fram = Vector((x + 0.8, K_Y * ned, GROUND + 0.02 + (K_Z - GROUND - 0.02) * ned + 0.35 * (1 - out(u, 0, 0.6, 2.0))))   # overgang in: tilten fran 0.3 fortsatter nerat
+            eye = mix(eye, RAM_C + Vector((0.0001, 0.0, 0.2 - 0.155 * dive)), crane); tgt = mix(fram, RAM_C, crane)
+            f_ = (tgt - eye).normalized(); upp = mix(Vector((0, 0, 1)), Vector((1, 0, 0)), crane).normalized(); rt_ = f_.cross(upp).normalized(); up_ = rt_.cross(f_)
+            CAM.location = eye; CAM.rotation_euler = Matrix((rt_, up_, -f_)).transposed().to_euler(); cam_d.lens = (24 + 6 * ned) * (1 - crane) + 85 * crane; cam_d.dof.aperture_fstop = 4.0 + 1.6 * crane; cam_d.dof.focus_distance = max(0.03, (tgt - eye).length)
+        elif VAR04 in 'CD':   # ovanifran: borjar tatt over golvet, lyfter och visar allt, sedan rakt ner (C: i ramen, D: i golvets pixlar)
+            mid = Vector(((LAYOUT_X0 + LAYOUT_X1) / 2, (LAYOUT_Y0 + LAYOUT_Y1) / 2, GROUND))
+            if VAR04 == 'C': start = Vector(((K_X0 + K_X1) / 2, K_Y, GROUND)); H = 1.35; MAL = RAM_C; slut_h = 0.045; slut_l = 85
+            else: start = POS['kropp'] + Vector((KL / 2, KD / 2, GROUND)); H = 2.9; MAL = Vector((LAYOUT_X1 + 0.3, LAYOUT_Y0 - 0.3, GROUND)); slut_l = 50; slut_h = 110 * PIX * slut_l / 36
+            upp_ = sm(u, 0.1, 2.0); dyk = acc(u, 2.25, 3.38, 2.0); yaw = math.radians(22) * sm(u, 0.2, 2.2) * (1 - sm(u, 2.3, 3.2))
+            c_ = mix(start, mid, sm(u, 0.1, 1.9)); c_ = mix(c_, MAL, sm(u, 2.1, 3.0))
+            h = 0.32 + (H - 0.32) * upp_; h = h + (slut_h - h) * dyk
+            eye = Vector((c_.x, c_.y, GROUND + h)); lut = sm(u, 0.0, 0.45)
+            f_ = mix(Vector((0, 0.75, -0.66)), Vector((0, 0, -1)), lut).normalized()        # overgang in: tilten fran 0.3 fortsatter ner till rakt ovanifran
+            upp = Vector((-math.sin(yaw), math.cos(yaw), 0)) * lut + Vector((0, 0, 1)) * (1 - lut); rt_ = f_.cross(upp).normalized(); up_ = rt_.cross(f_)
+            CAM.location = eye; CAM.rotation_euler = Matrix((rt_, up_, -f_)).transposed().to_euler()
+            cam_d.lens = 30 + (slut_l - 30) * dyk; cam_d.dof.aperture_fstop = 5.6; cam_d.dof.focus_distance = max(0.05, eye.z - GROUND)
     else:            # 0.5 tatt pa skarmen: VERIFIERAR...
         lights('makro'); k = out(t, T_E, END, 1.8); SCREEN.data.materials[0] = SCR['av' if (t >= END - 0.06 or t < T_E + 0.3) else dots(t)]
         ent = out(t, T_E, T_E + 1.1, 2.6)       # overgang in fran 0.4: borjar tatt mot den slackta skarmen och backar ut ur den, skarmen tands

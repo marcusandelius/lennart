@@ -210,7 +210,7 @@ FK = max(range(6), key=lambda i: NUT_REST[i][3]); F_TL, F_H, F_V0 = 0.6, 0.5, 0.
 def fall_nut(t):   # (forskjutning fran vilolaget, hur mycket av vridningen som ar kvar (1 -> 0), studsens vickning)
     if t < F_TL: return Vector((0, 0, F_H - F_V0 * t - 0.5 * F_A * t * t)), (1 - t / F_TL) ** 1.5, 0.0
     u = (t - F_TL) / 0.2; u2 = (t - F_TL - 0.2) / 0.12; z = 0.012 * 4 * u * (1 - u) if u < 1 else (0.003 * 4 * u2 * (1 - u2) if u2 < 1 else 0.0)
-    return Vector((0.006 * (1 - math.exp(-(t - F_TL) * 9)), 0, z)), 0.0, 0.35 * math.exp(-(t - F_TL) * 10) * math.sin((t - F_TL) * 30)
+    return Vector((0, 0, z)), 0.0, 0.35 * math.exp(-(t - F_TL) * 10) * math.sin((t - F_TL) * 30)
 PLATE_AT = PLATE.location.copy(); WOB_A, WOB_D = 6.0, 1.4      # fatets snurr: storsta lutning i grader, langd i sekunder
 def wob_phase(s): return 2 * math.pi * (2.2 * s + 3.0 * s * s)   # varvet gar fran 2 till 10 varv per sekund
 def state(t):

@@ -103,7 +103,7 @@ def power(loc):
 def screw(loc):
     e = empty('skruv', loc); cyl(e, 0.0011, 0.0085, (0, 0, 0.0022), M['steel'], (math.pi / 2, 0, 0), 24); cyl(e, 0.0022, 0.0016, (0, 0.005, 0.0022), M['steel'], (math.pi / 2, 0, 0), 24); return e
 def spool(loc, col, name):
-    e = empty(name, loc); fm = bpy.data.materials.new('fil_' + name); fm.use_nodes = True; nt = fm.node_tree; p = nt.nodes['Principled BSDF']; p.inputs['Base Color'].default_value = (*col, 1); p.inputs['Roughness'].default_value = 0.38
+    e = empty(name, loc); fm = bpy.data.materials.new('fil_' + name); fm.use_nodes = True; nt = fm.node_tree; p = nt.nodes['Principled BSDF']; p.inputs['Base Color'].default_value = (*col, 1); p.inputs['Roughness'].default_value = 0.38 if sum(col) > 0.3 else 0.2; p.inputs['Coat Weight'].default_value = 0.0 if sum(col) > 0.3 else 0.7   # det svarta ar blankare, sa att det syns mot den morka ytan
     tcn = nt.nodes.new('ShaderNodeTexCoord'); wv = nt.nodes.new('ShaderNodeTexWave'); wv.wave_type = 'RINGS'; wv.rings_direction = 'Z'; wv.inputs['Scale'].default_value = 2 * math.pi / (20 * 0.00175); bm = nt.nodes.new('ShaderNodeBump'); bm.inputs['Strength'].default_value = 1.0; bm.inputs['Distance'].default_value = 0.0008
     mr = nt.nodes.new('ShaderNodeMixRGB'); mr.blend_type = 'MULTIPLY'; mr.inputs['Fac'].default_value = 0.55; mr.inputs['Color1'].default_value = (*col, 1); nt.links.new(wv.outputs['Color'], mr.inputs['Color2']); nt.links.new(mr.outputs[0], p.inputs['Base Color'])
     nt.links.new(tcn.outputs['Object'], wv.inputs['Vector']); nt.links.new(wv.outputs['Fac'], bm.inputs['Height']); nt.links.new(bm.outputs['Normal'], p.inputs['Normal'])
@@ -170,7 +170,7 @@ for i, (dx, dy, rz) in enumerate(NUTP):
 label('not6', 'NÖTTER', (0.15, -0.092))
 # filamentet som kopts: rod, gron, vit, gra och svart. Den roda (stugans farg) ligger forst, och det ar i dess nav kameran aker in i slutet
 SPOOLS = [spool(p, c, 'rulle%d' % i) for i, (p, c) in enumerate([((0.5, 0.0, 0), (0.635, 0.227, 0.172)), ((0.72, 0.0, 0), (0.07, 0.38, 0.13)), ((0.61, 0.212, 0), (0.93, 0.92, 0.89)),
-                                                                  ((0.94, 0.0, 0), (0.13, 0.14, 0.15)), ((0.83, 0.212, 0), (0.025, 0.025, 0.028))])]
+                                                                  ((0.94, 0.0, 0), (0.13, 0.14, 0.15)), ((0.83, 0.212, 0), (0.075, 0.075, 0.082))])]
 for i, s_ in enumerate(SPOOLS): place('rulle%d' % i, s_, T['rullar'] + i * 0.3, (0.75, 0, 0))
 label('rulle0', 'FILAMENT', (0.72, -0.118))
 

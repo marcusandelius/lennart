@@ -24,7 +24,7 @@ const SEG = [
   ['4.1', 0.35, 92.05, 110.02],   // inkopen: scenen ar renderad efter den har tagningen (scenens tid = inspelningens tid - 91,7)
   ['5.1', 0.40, 113.15, 115.76], ['5.3', 0.40, 117.09, 122.47],
   ['6.1', 0.60, 126.15, 128.52],  // Sa har ser det ut. Jag namnde att det var manga delar.
-  ['6.3', -1.50, 128.86, 132.96], // Men det var viktigt for Lennart ... (borjar strax innan huset ar fardigt)
+  ['6.3', -1.50, 128.86, 133.25], // Men det var viktigt for Lennart ... (borjar strax innan huset ar fardigt). Slutar dar "honom" tystnar (under -50 dB vid 133,12)
   ['7.3', 0.50, 136.25, 146.83],
 ];
 
@@ -65,7 +65,8 @@ ff(['-i', ROST, '-filter_complex', parts.join(';') + ';' + SEG.map((_, i) => `[s
 // 3. musiken: genereras i ratt langd. Oppningen ar gles, huvuddelen borjar nar akt 1 borjar.
 // Finns en egen lat i projektmappen anvands den (System Online.mp3, gjord i Suno, -15 LUFS -> sanks 5 dB till samma referens som den genererade musiken).
 const LAT = join(P, 'System Online.mp3'), egen = existsSync(LAT);
-if (egen) ff(['-i', LAT, '-af', `volume=-5dB,apad=whole_dur=${TOT.toFixed(3)},afade=t=out:st=${(TOT - 3).toFixed(3)}:d=3`, '-t', TOT.toFixed(3), '-ar', '48000', '-ac', '2', '-c:a', 'pcm_s16le', MU]);
+const MUSIK_IN = 1.0;   // titeln (0.6) forlangdes 1 s den 17/11. Musiken borjar lika mycket senare, sa att den ligger kvar mot allt efter titeln (byggklippen i 6.1 ar lagda pa dess slag)
+if (egen) ff(['-i', LAT, '-af', `volume=-5dB,adelay=${MUSIK_IN * 1000}:all=1,apad=whole_dur=${TOT.toFixed(3)},afade=t=out:st=${(TOT - 3).toFixed(3)}:d=3`, '-t', TOT.toFixed(3), '-ar', '48000', '-ac', '2', '-c:a', 'pcm_s16le', MU]);
 else execFileSync(PYX, [join(HERE, 'musik.py'), MU, TOT.toFixed(2), at('1.1').toFixed(2)], { stdio: 'inherit' });
 
 // 3b. ljudeffekterna: [klipp, sekunder in i klippet, ljud, niva i dB, {dur, pitch, pan}]. Tiderna foljer scenernas egna tidtabeller. Ljud med korta namn (pip, pop, klang ...) syntetiseras i effekter.py. Ovriga namn ar filer ur Kenneys ljudpaket (CC0, kenney.nl) i film/ljud/kenney.
