@@ -412,6 +412,7 @@ D_START = Vector(((LAYOUT_X0 + LAYOUT_X1) / 2, (LAYOUT_Y0 + LAYOUT_Y1) / 2, GROU
 if VAR04 == 'D' and SKMOD:   # mittenrutan har nu skarmen, sa 0.4 borjar i hornet snett nedanfor den. Avstandet ar helt antal golvpixlar, sa att pixlarna i 0.3 ar desamma
     _h = round(CELL / 2 / PIX) * PIX; D_START = D_START + Vector((_h, -_h, 0))
 D_SKARM = VAR04 == 'D' and SKMOD is not None and SKARM_B is not None   # 0.4 slutar i LED-skarmen i stallet for i golvets pixlar
+T_E4 = END if D_SKARM else T_E   # med LED-skarmen ar 0.4 och 0.5 en enda tagning: kameran svavar over skarmen, som visar VERIFIERAR, och aker in i pixlarna till titeln
 P3 = Vector((0.62, -0.012, -0.0305))                                                     # platsen pa golvet framfor huset dar 0.3 landar
 FLOOR_P3 = FLOOR_P4 + (P3 - D_START)                                                        # golvet flyttas sa att pixlarna under P3 ar exakt de under D_START
 def YAW(t): return math.radians(90 - 68 * sm(t, 8.9, T_D + 2.2))                           # kamerans vridning, hojd och brannvidd ar gemensamma kurvor over klippet,
@@ -463,7 +464,7 @@ def state(t):
     if VAR04 == 'D': HALO_G.outputs[0].default_value = 0.0
     for l, e_, p_ in zip(L['golv'], GOLV_E, GOLV_P): l.location = p_; l.data.energy = e_
     for l, e_ in zip(L['snitt'], SNITT_E): l.data.energy = e_
-    for o in ELEK_ALL + NUMMER + VAROBJ: o.hide_render = not (T_D <= t < T_E)   # elektroniken och numren finns bara i 0.4
+    for o in ELEK_ALL + NUMMER + VAROBJ: o.hide_render = not (T_D <= t < T_E4)   # elektroniken och numren finns bara i 0.4
     for n, o in PARTS.items(): o.matrix_world = ORIG_M[n]; o.data = ORIG_DATA[n]; o.hide_render = False
     SCREEN.hide_render = False; SCREEN.data.materials[0] = SCR['vantar']; FLOOR.hide_render = True
     for o in NUTS: o.hide_render = True
@@ -498,7 +499,7 @@ def state(t):
         k = out(t, T_C, 8.3, 2.6); follow = sm(t, 8.1, 8.85); tgt = mix((0, 0.05, 0.088), (0, 0.006, 0.03), follow)
         dive = acc(t, 8.95, T_D, 2.0); tgt = tgt + Vector((0, -0.01, -0.09)) * dive     # overgang ut: snabb tilt nerat forbi skalen
         camera(mix((0.62, 0.02, 0.135), (0.36, -0.075, 0.10), k) + Vector((0, -0.05, -0.05)) * follow + Vector((0, 0, -0.02)) * dive, tgt, 60, 5.6, (0.0, tgt.y, tgt.z))
-    elif t < T_E:    # 0.4: se VAR04 overst i upplaggningen. K: borjar inne i stommen (roret), aker ut, stiger och sveper over grupperna, sedan ner genom skarmramen
+    elif t < T_E4:   # 0.4 (och 0.5 med LED-skarmen): se VAR04 overst i upplaggningen. K: borjar inne i stommen (roret), aker ut, stiger och sveper over grupperna, sedan ner genom skarmramen
         lights('golv'); FLOOR.hide_render = False; u = t - T_D
         for b in BUMPS: b.inputs['Strength'].default_value = 0.2
         for n, o in PARTS.items(): o.data = LAYD[n]; o.matrix_world = Matrix.Translation(LAY[n])
@@ -512,8 +513,9 @@ def state(t):
                 _sk = bpy.data.objects[SKMOD]
                 for o in [_sk] + list(_sk.children_recursive): o.hide_render = False
                 SKARM_B.data.materials[0] = SCR['vantar'] if (u > 1.55 and not (1.6 < u < 1.66) and not (1.74 < u < 1.77)) else SCR['av']
+                if t >= 12.97: SKARM_B.data.materials[0] = SCR['av' if (t < 13.05 or t >= END - 0.06) else dots(t)]   # VERIFIERAR nar kameran kommit fram, punkterna pa pipen, slacks infor titeln
                 _lc = FLOOR.matrix_world.inverted() @ SKARM_B.matrix_world.translation; HALO_X.outputs[0].default_value = _lc.x; HALO_Y.outputs[0].default_value = _lc.y
-                HALO_G.outputs[0].default_value = 5.0 * sm(u, 1.6, 2.3)    # golvets pixlar runt skarmen tands strax efter den
+                HALO_G.outputs[0].default_value = 5.0 * sm(u, 1.6, 2.3) * (1 - 0.75 * sm(t, 12.0, 13.0))    # golvets pixlar runt skarmen tands strax efter den och dampas nar kameran kommer ner, sa att skarmen ar det ljusaste
         if VAR04 in 'KBE':
             ext = sm(u, 0.0, 1.15); rise = sm(u, 0.55, 2.0); pan = sm(u, 0.6, 2.6)
             e_in = Vector((K_X0 + 0.04 + (K_X1 + 0.16 - K_X0 - 0.04) * ext, K_Y, K_Z + 0.03 * ext))
@@ -557,19 +559,28 @@ def state(t):
             elif OVERG: start = D_START; H = 2.9; MAL = Vector((LAYOUT_X1 + 0.3, LAYOUT_Y0 - 0.3, GROUND)); slut_l = 50; slut_h = 110 * PIX * slut_l / 36
             else: start = POS['kropp'] + Vector((KL / 2, KD / 2, GROUND)); H = 2.9; MAL = Vector((LAYOUT_X1 + 0.3, LAYOUT_Y0 - 0.3, GROUND)); slut_l = 50; slut_h = 110 * PIX * slut_l / 36
             if D_SKARM:   # malet ar LED-skarmen i mitten: kameran stiger, centrerar skarmen och dyker rakt ner i den, och slutar som B pa den morka delen under texten
-                MAL = SKARM_B.matrix_world.translation + Vector((0, -0.011, 0)); mid = Vector((MAL.x, MAL.y, GROUND)); slut_l = 85; slut_h = MAL.z - GROUND + 0.055
+                MAL = SKARM_B.matrix_world.translation.copy(); mid = Vector((MAL.x, MAL.y, GROUND)); slut_l = 85; slut_h = MAL.z - GROUND + 0.055
             upp_ = sm(u, 0.1, 2.0); dyk = acc(u, 2.25, 3.38, 2.0); yaw = math.radians(22) * sm(u, 0.2, 2.2) * (1 - sm(u, 2.3, 3.2))
             c_ = mix(start, mid, sm(u, 0.1, 1.9)); c_ = mix(c_, MAL, sm(u, 2.1, 3.0))
             if OVERG: h = HUP(t); c_ = mix(start, mid, sm(u, 0.35, 1.9)); c_ = mix(c_, MAL, sm(u, 2.1, 3.0))   # stiger med jamn upplevd fart, sidled forst nar kameran kommit upp
             else: h = 0.32 + (H - 0.32) * upp_
-            if D_SKARM: dyk = sm(u, 2.2, 3.36); h = h * (slut_h / h) ** dyk   # ner i jamn upplevd fart (som uppat) och mjukt in pa skarmens morka pixlar
-            else: h = h + (slut_h - h) * dyk
+            if D_SKARM: dyk = 0.0   # nedfarden mot skarmen styrs langre ner
+            h = h + (slut_h - h) * dyk
             if OVERG: yaw = YAW(t) * (1 - sm(u, 2.3, 3.2)) + (math.radians(2.5) * sm(u, 2.3, 3.2) if D_SKARM else 0)   # samma lutning som 0.5 borjar med
             eye = Vector((c_.x, c_.y, GROUND + h)); lut = 1.0 if OVERG else sm(u, 0.0, 0.45)
             f_ = mix(Vector((0, 0.75, -0.66)), Vector((0, 0, -1)), lut).normalized()        # overgang in: tilten fran 0.3 fortsatter ner till rakt ovanifran
             upp = Vector((-math.sin(yaw), math.cos(yaw), 0)) * lut + Vector((0, 0, 1)) * (1 - lut); rt_ = f_.cross(upp).normalized(); up_ = rt_.cross(f_)
             CAM.location = eye; CAM.rotation_euler = Matrix((rt_, up_, -f_)).transposed().to_euler()
-            cam_d.lens = (LENS_G(t) if OVERG else 30) + (slut_l - 30) * dyk; cam_d.dof.aperture_fstop = 5.6; cam_d.dof.focus_distance = max(0.05, eye.z - GROUND - ((MAL.z - GROUND) * dyk if D_SKARM else 0))
+            cam_d.lens = (LENS_G(t) if OVERG else 30) + (slut_l - 30) * dyk; cam_d.dof.aperture_fstop = 5.6; cam_d.dof.focus_distance = max(0.05, eye.z - GROUND)
+            if D_SKARM and t > 11.4:   # ner mot LED-skarmen i jamn upplevd fart, svavar lutad over den medan den verifierar, och aker sedan rakt in tills pixlarna fyller bilden som i titeln
+                C = SKARM_B.matrix_world.translation.copy()
+                s_ = sm(t, 11.4, 13.0); hv = sm(t, 12.9, 14.6); p_ = acc(t, 14.45, END - 0.08, 2.2)
+                d0 = GROUND + 2.9 - C.z; dh = 0.14 * (1 - 0.1 * hv); d = d0 * (dh / d0) ** s_ * (0.058 / dh) ** p_   # 0,058 m och 85 mm: ca 84 pixlar over bildbredden, som titelns rutnat
+                a_ = math.radians(18 * s_ - 4 * hv) * (1 - p_); tg = C + Vector((0.004 * p_, 0, 0))
+                dv = Vector((0, -math.sin(a_), math.cos(a_))); yw = math.radians(22) * (1 - s_)
+                f_ = -dv; upp = Vector((-math.sin(yw), math.cos(yw), 0)); rt_ = f_.cross(upp).normalized(); up_ = rt_.cross(f_)
+                CAM.location = tg + dv * d; CAM.rotation_euler = Matrix((rt_, up_, -f_)).transposed().to_euler()
+                cam_d.lens = 30 + 20 * s_ + 35 * p_; cam_d.dof.aperture_fstop = 5.6 - 2.8 * s_ + 9 * p_; cam_d.dof.focus_distance = d
     else:            # 0.5 tatt pa skarmen: VERIFIERAR...
         lights('makro'); k = out(t, T_E, END, 1.8); SCREEN.data.materials[0] = SCR['av' if (t >= END - 0.06 or t < T_E + 0.3) else dots(t)]
         ent = out(t, T_E, T_E + 1.1, 2.6)       # overgang in fran 0.4: borjar tatt mot den slackta skarmen och backar ut ur den, skarmen tands
@@ -585,7 +596,7 @@ def warp(t):
     return WARP[-1][1]
 def _blur_t(sc_):   # rorelseoskarpans delrutor stannar i samma scen som rutan, sa att inget blandas over klippen
     t, t0 = sc_.frame_current_final / FPS, sc_.frame_current / FPS
-    for g in (T_C, T_D, T_E):
+    for g in ((T_C, T_D) if D_SKARM else (T_C, T_D, T_E)):
         if t0 >= g > t: t = g
         if t0 < g <= t: t = g - 1e-4
     return t
@@ -595,6 +606,6 @@ for f in frames:
     p = os.path.join(OUT, f'{f:04d}.jpg')
     if os.path.exists(p) and os.path.getsize(p) > 0: continue
     # forsta rutan efter klippet till 0.3 renderas utan rorelseoskarpa (annars blandades 0.2 in)
-    if VAR03 != 'K' and T_C + 0.03 <= f / FPS < (T_E if OVERG else T_D): sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.5; sc.frame_set(f); state(_blur_t(sc))
+    if VAR03 != 'K' and T_C + 0.03 <= f / FPS < ((13.4 if D_SKARM else T_E) if OVERG else T_D): sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.5; sc.frame_set(f); state(_blur_t(sc))
     else: sc.render.use_motion_blur = False; state(min(warp(f / FPS), END - 0.001))
     bpy.context.view_layer.update(); sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)
