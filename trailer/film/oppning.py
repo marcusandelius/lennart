@@ -251,7 +251,7 @@ POS['kropp'] = Vector((LAYOUT_X0 - 0.07 - KL, FRAMRAD_Y - KD / 2, 0)); BLOCK['kr
 # Varianter av 0.4 (LENNART_04, prov for Marcus): K = byggsatsen i grupper (nuvarande), A = en lang rak linje som slutar genom stommen och ner i ramen,
 # B = byggsatsen, slutar pa LED-skarmen pa golvet som tands, C = ovanifran: lyfter over byggsatsen och dyker ner i ramen,
 # D = delarna i ett rutnat pa ett golv som ar en enorm slackt LED-skarm; kameran dyker in i golvets pixlar, E = en gron skanning sveper over delarna.
-VAR04 = os.environ.get('LENNART_04', 'K')
+VAR04 = os.environ.get('LENNART_04', 'D')
 def _vrid(n):   # vrider ett block 90 grader i sina egna koordinater, sa att kortsidan hamnar langs x
     W_, D_ = BLOCK[n]
     for v in _BM[n].verts: x, y = v.co.x, v.co.y; v.co.x = D_ - y; v.co.y = x
