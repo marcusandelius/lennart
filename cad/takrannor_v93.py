@@ -82,10 +82,18 @@ for side, g, name in zip((-1, 1), src, names):
         clean = U([D(clean, [reg]), I(prof, reg)])
     clean.apply_translation([SHIFT, 0, 0])
     new = U([clean] + [bracket(y) for y in HOOK_Y])
-    if side < 0: new.apply_transform(np.diag([-1, 1, 1, 1]))
-    assert new.is_watertight
+    # två färger: allt ovanför rännkanten (byglarna) grått, rännan nedanför svart. Plant snitt ger ren skarv.
+    RIM = 127.66
+    fasten = I(new, box(90, 140, -40, 190, RIM, 200))
+    clean = I(new, box(90, 140, -40, 190, 100, RIM))
+    for m in (new, clean, fasten):
+        if side < 0: m.apply_transform(np.diag([-1, 1, 1, 1]))
+    assert new.is_watertight and clean.is_watertight and fasten.is_watertight
     new.export(os.path.join(OUT, "asm_" + name)); asm.append(new)
+    clean.export(os.path.join(OUT, "asm_svart_" + name)); fasten.export(os.path.join(OUT, "asm_fasten_" + name))
 both = trimesh.util.concatenate(asm); both.export(os.path.join(OUT, "asm_22_takrannor_gra.stl"))
+trimesh.util.concatenate([trimesh.load(os.path.join(OUT, "asm_svart_" + n)) for n in names]).export(os.path.join(OUT, "asm_22_takrannor_svart.stl"))
+trimesh.util.concatenate([trimesh.load(os.path.join(OUT, "asm_fasten_" + n)) for n in names]).export(os.path.join(OUT, "asm_22_takrannor_fasten_gra.stl"))
 
 # --- stuprör: böjen (z 95-114) lutas, toppen flyttas SHIFT utåt
 st = trimesh.load(S_SRC); T = np.load(S_T); st.apply_transform(T)
