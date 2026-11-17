@@ -1,5 +1,5 @@
 """
-Takrännor 9.3 och stuprör.
+Takrännor 9.4 och stuprör (9.3: rännan 5 mm utåt, 9.4: byglarna längst ut och flik för det vanliga spåret).
 
 Ändringar mot 9.2 (efter provbiten):
   * Rännan flyttas 5 mm utåt, så att taket bara sticker in över rännans innersta femtedel.
@@ -22,17 +22,15 @@ from shapely.geometry import Polygon
 G_SRC, S_SRC, S_T, OUT = sys.argv[1:5]
 SHIFT = 5.0
 GAP, STRAP_T, HOOK_L, HOOK_T, W = 0.3, 2.0, 7.0, 2.0, 6.0
-HOOK_Y = [-10.0, 160.0]
+HOOK_Y = [-21.5, 171.5]        # allra längst ut på takets grå del (y -25..175)
 EAVE_X, EAVE_Z1 = 113.0, 143.89
 TOP_DIR = np.array([-7.44, 6.11]) / np.hypot(7.44, 6.11)
 NRM = np.array([TOP_DIR[1], -TOP_DIR[0]])
 BOWL_C, BOWL_R = np.array([112.0 + SHIFT, 127.65]), 6.5
 BAR_Z0, BAR_Z1 = 127.0, 131.0
-# den provade flikens profil (x, z), från originalrännan, nu med arm i stället för rännkant under
-TAB_BODY = [(105.3, BAR_Z0), (105.3, 138.3), (107.7, 138.3), (107.7, BAR_Z0)]          # 6 mm bred
-TAB_TIP = [(105.3, 138.0), (105.3, 140.89), (105.7, 140.52), (105.7, 142.12), (107.3, 140.61),
-           (107.3, 139.01), (107.4, 138.0)]                                                   # 4 mm bred, som originalet
-TIP_W = 4.0
+# flik för det vanliga spåret (x 105-107): 1,5 mm tjock, toppen följer spårets lutande tak med 0,3 mm spel
+TAB = [(105.25, BAR_Z0), (105.25, 141.75), (106.75, 140.5), (106.75, BAR_Z0)]
+OLD_TABS = [(-13.0, -7.0), (72.0, 78.0), (157.0, 163.0)]      # där originalflikarna satt
 
 U = lambda ms: trimesh.boolean.union(ms, engine="manifold")
 D = lambda a, bs: trimesh.boolean.difference([a] + bs, engine="manifold")
@@ -63,8 +61,8 @@ def bracket(yc):
     cyl.apply_translation([BOWL_C[0], yc, BOWL_C[1]])
     below = D(box(100, 130, yc - W, yc + W, 100, BOWL_C[1]), [cyl])
     strap_hook = D(strap_hook, [below])
-    bar = ext([(105.3, BAR_Z0), (x0 + STRAP_T, BAR_Z0), (x0 + STRAP_T, BAR_Z1), (105.3, BAR_Z1)], yc)
-    tab = U([ext(TAB_BODY, yc), ext(TAB_TIP, yc, TIP_W)])
+    bar = ext([(105.25, BAR_Z0), (x0 + STRAP_T, BAR_Z0), (x0 + STRAP_T, BAR_Z1), (105.25, BAR_Z1)], yc)
+    tab = ext(TAB, yc)
     return U([strap_hook, bar, tab])
 
 
@@ -75,6 +73,13 @@ asm = []
 for side, g, name in zip((-1, 1), src, names):
     if side < 0: g = g.copy(); g.apply_transform(np.diag([-1, 1, 1, 1]))     # bygg som höger, spegla sedan
     clean = I(g, box(90, 140, -40, 190, 100, 127.66))                          # ta bort de gamla flikarna
+    # ersätt flikarnas fötter på innerkanten med rännans vanliga profil
+    s30 = clean.section(plane_origin=[0, 30, 0], plane_normal=[0, 1, 0])
+    pl, _ = s30.to_2D(to_2D=np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], float))
+    prof = U([ext(list(p.exterior.coords), 75.0, 240.0) for p in pl.polygons_full])
+    for y0, y1 in OLD_TABS:
+        reg = box(104.8, 108.2, y0 - 0.05, y1 + 0.05, 124.0, 127.7)
+        clean = U([D(clean, [reg]), I(prof, reg)])
     clean.apply_translation([SHIFT, 0, 0])
     new = U([clean] + [bracket(y) for y in HOOK_Y])
     if side < 0: new.apply_transform(np.diag([-1, 1, 1, 1]))
