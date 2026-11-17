@@ -72,6 +72,7 @@ else execFileSync(PYX, [join(HERE, 'musik.py'), MU, TOT.toFixed(2), at('1.1').to
 // 3b. ljudeffekterna: [klipp, sekunder in i klippet, ljud, niva i dB, {dur, pitch, pan}]. Tiderna foljer scenernas egna tidtabeller. Ljud med korta namn (pip, pop, klang ...) syntetiseras i effekter.py. Ovriga namn ar filer ur Kenneys ljudpaket (CC0, kenney.nl) i film/ljud/kenney.
 const FX = [
   ['0.3', 1.93, 'knack', -20],                                                                                                    // noten landar i skalen (inget servoljud)
+  ['1.2', 0.04, 'klick', -29], ['1.2', 1.56, 'klick', -29, { pan: -0.35 }], ['1.2', 2.60, 'klick', -29, { pan: 0.35 }],   // korten i 1.2 kommer fram, ett mjukt klick per kort
   ['0.5', 1.70, 'pip', -24], ['0.5', 1.95, 'pip', -24], ['0.5', 2.20, 'pip', -24], ['0.6', 0.0, 'duns', -14],
   ['2.1', 0.6, 'impactWood_light_003', -21], ['2.1', 0.8, 'impactWood_light_004', -31],   // noten fran 1.4 landar bland de andra pa fatet och studsar
   ['2.1', 2.5, 'impactWood_light_000', -22], ['2.1', 3.3, 'impactWood_light_002', -22], ['2.1', 4.1, 'impactWood_light_001', -22],          // skatan pickar

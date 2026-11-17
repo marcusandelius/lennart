@@ -294,9 +294,11 @@ if VAR04 == 'A':   # alla delar pa en lang rad langs x, kortsidan i fardriktning
     LINE_X1 = POS['skarmram'].x; POS['kropp'] = Vector((LINE_X1 - 0.06 - KL, -KD / 2, 0)); off = x_ / 2   # linjen centreras kring origo, dar ljuset ar
     for n in POS: POS[n].x -= off
     LINE_X1 -= off; LAYOUT_X0, LAYOUT_X1 = -off, x_ - off; print('LINJEN', round(x_, 2), 'm', flush=True)
-if VAR04 == 'D':   # 48 delar i ett rutnat 8 x 6, en del per ruta
+SKMOD = next((o.name for o in ELEK if o.name.startswith('E_skarmmodul')), None)
+if VAR04 == 'D':   # husets 48 delar och LED-skarmen i ett rutnat 7 x 7, en sak per ruta. Skarmen ligger i mittenrutan och kameran dyker ner i den
     alla = ['kropp'] + [n for g in ('Kropp', 'Tak', 'Bas', 'Skål', 'Inredning') for n in sorted(GD[g], key=lambda n: -BLOCK[n][0] * BLOCK[n][1])]
-    BLOCK['kropp'] = (KL, KD); CELL = max(max(BLOCK[n]) for n in alla) + 0.05; GX8, GY6 = 8, 6
+    if SKMOD: alla.insert(len(alla) // 2, SKMOD)
+    BLOCK['kropp'] = (KL, KD); CELL = max(max(BLOCK[n]) for n in alla) + 0.05; GX8, GY6 = (7, 7) if SKMOD else (8, 6)
     for i, n in enumerate(alla):
         cx, cy = (i % GX8 - (GX8 - 1) / 2) * CELL, ((GY6 - 1) / 2 - i // GX8) * CELL; w, d = BLOCK[n]; POS[n] = Vector((cx - w / 2, cy - d / 2, 0))
     LAYOUT_X0, LAYOUT_X1, LAYOUT_Y0, LAYOUT_Y1 = -GX8 / 2 * CELL, GX8 / 2 * CELL, -GY6 / 2 * CELL, GY6 / 2 * CELL; print('RUTNAT', round(CELL, 3), flush=True)
@@ -347,7 +349,18 @@ if VAR04 == 'D':
     mm = nt_.nodes.new('ShaderNodeMath'); mm.operation = 'MULTIPLY'; nt_.links.new(kant[0].outputs[0], mm.inputs[0]); nt_.links.new(kant[1].outputs[0], mm.inputs[1])
     ma = nt_.nodes.new('ShaderNodeMath'); ma.operation = 'MULTIPLY_ADD'; ma.inputs[1].default_value = 0.75; ma.inputs[2].default_value = 0.25; nt_.links.new(mm.outputs[0], ma.inputs[0])
     PIX_S = nt_.nodes.new('ShaderNodeMath'); PIX_S.operation = 'MULTIPLY'; PIX_S.inputs[1].default_value = 0.5; nt_.links.new(ma.outputs[0], PIX_S.inputs[0])
-    pp.inputs['Emission Color'].default_value = (0.024, 0.07, 0.043, 1); nt_.links.new(PIX_S.outputs[0], pp.inputs['Emission Strength'])
+    pp.inputs['Emission Color'].default_value = (0.024, 0.07, 0.043, 1)
+    # ett mjukt sken av tanda pixlar runt LED-skarmen i mitten: 1 + HALO_G * exp(-r^2 / s^2), r fran HALO_X/HALO_Y i golvets koordinater
+    HALO_X = nt_.nodes.new('ShaderNodeValue'); HALO_Y = nt_.nodes.new('ShaderNodeValue'); HALO_G = nt_.nodes.new('ShaderNodeValue'); HALO_G.outputs[0].default_value = 0.0
+    _dx = nt_.nodes.new('ShaderNodeMath'); _dx.operation = 'SUBTRACT'; nt_.links.new(sx_.outputs['X'], _dx.inputs[0]); nt_.links.new(HALO_X.outputs[0], _dx.inputs[1])
+    _dy = nt_.nodes.new('ShaderNodeMath'); _dy.operation = 'SUBTRACT'; nt_.links.new(sx_.outputs['Y'], _dy.inputs[0]); nt_.links.new(HALO_Y.outputs[0], _dy.inputs[1])
+    _x2 = nt_.nodes.new('ShaderNodeMath'); _x2.operation = 'MULTIPLY'; nt_.links.new(_dx.outputs[0], _x2.inputs[0]); nt_.links.new(_dx.outputs[0], _x2.inputs[1])
+    _r2 = nt_.nodes.new('ShaderNodeMath'); _r2.operation = 'MULTIPLY_ADD'; nt_.links.new(_dy.outputs[0], _r2.inputs[0]); nt_.links.new(_dy.outputs[0], _r2.inputs[1]); nt_.links.new(_x2.outputs[0], _r2.inputs[2])
+    _ex = nt_.nodes.new('ShaderNodeMath'); _ex.operation = 'MULTIPLY'; _ex.inputs[1].default_value = -1 / 0.22 ** 2; nt_.links.new(_r2.outputs[0], _ex.inputs[0])
+    _e = nt_.nodes.new('ShaderNodeMath'); _e.operation = 'EXPONENT'; nt_.links.new(_ex.outputs[0], _e.inputs[0])
+    _g = nt_.nodes.new('ShaderNodeMath'); _g.operation = 'MULTIPLY_ADD'; nt_.links.new(_e.outputs[0], _g.inputs[0]); nt_.links.new(HALO_G.outputs[0], _g.inputs[1]); _g.inputs[2].default_value = 1.0
+    _hs = nt_.nodes.new('ShaderNodeMath'); _hs.operation = 'MULTIPLY'; nt_.links.new(PIX_S.outputs[0], _hs.inputs[0]); nt_.links.new(_g.outputs[0], _hs.inputs[1])
+    nt_.links.new(_hs.outputs[0], pp.inputs['Emission Strength'])
     FLOOR_D = pm
 # skanningen (E): en tunn gron linje pa golvet och ett smalt gront ljus som sveper over delarna
 if VAR04 == 'E':
@@ -396,7 +409,10 @@ WE0 = [n for n in wn.nodes if n.type == 'VALTORGB'][0].color_ramp.elements[0]; W
 OVERG = VAR03 == 'H' and VAR04 == 'D'   # det osynliga klippet: 0.3 landar rakt ovanfor golvet, 0.4 borjar i exakt samma lage och stiger
 H0 = 0.06; FLOOR_P4 = FLOOR.location.copy()
 D_START = Vector(((LAYOUT_X0 + LAYOUT_X1) / 2, (LAYOUT_Y0 + LAYOUT_Y1) / 2, GROUND))      # mitt i rutnatet, i hornet mellan fyra rutor dar golvet ar tomt; 0.4 stiger rakt upp harifran
-P3 = Vector((0.62, -0.012, -0.0305))                                                        # platsen pa golvet framfor huset dar 0.3 landar
+if VAR04 == 'D' and SKMOD:   # mittenrutan har nu skarmen, sa 0.4 borjar i hornet snett nedanfor den. Avstandet ar helt antal golvpixlar, sa att pixlarna i 0.3 ar desamma
+    _h = round(CELL / 2 / PIX) * PIX; D_START = D_START + Vector((_h, -_h, 0))
+D_SKARM = VAR04 == 'D' and SKMOD is not None and SKARM_B is not None   # 0.4 slutar i LED-skarmen i stallet for i golvets pixlar
+P3 = Vector((0.62, -0.012, -0.0305))                                                     # platsen pa golvet framfor huset dar 0.3 landar
 FLOOR_P3 = FLOOR_P4 + (P3 - D_START)                                                        # golvet flyttas sa att pixlarna under P3 ar exakt de under D_START
 def YAW(t): return math.radians(90 - 68 * sm(t, 8.9, T_D + 2.2))                           # kamerans vridning, hojd och brannvidd ar gemensamma kurvor over klippet,
 def HUP(t): return H0 * (2.9 / H0) ** sm(t, 9.1, 10.6)                                      # sa att rorelsen fortsatter utan avbrott (hojden stiger med jamn upplevd fart)
@@ -444,6 +460,7 @@ def cam03(t, tm, p):   # kameran i varianterna av 0.3
 
 def state(t):
     cam_d.type = 'PERSP'; cam_d.dof.use_dof = True; FLOOR.location = FLOOR_P4; WE0.color = WE0_C
+    if VAR04 == 'D': HALO_G.outputs[0].default_value = 0.0
     for l, e_, p_ in zip(L['golv'], GOLV_E, GOLV_P): l.location = p_; l.data.energy = e_
     for l, e_ in zip(L['snitt'], SNITT_E): l.data.energy = e_
     for o in ELEK_ALL + NUMMER + VAROBJ: o.hide_render = not (T_D <= t < T_E)   # elektroniken och numren finns bara i 0.4
@@ -491,6 +508,12 @@ def state(t):
         for l, e0 in zip(L['golv'], GOLV_E): l.data.energy = e0 * (0.3 if VAR04 == 'E' else 1.0)
         if VAR04 == 'D':
             for o in ELEK_ALL: o.hide_render = True
+            if D_SKARM:   # bara LED-skarmen syns av elektroniken. Den vaknar nar kameran ar som hogst och lyser in i klippet (slutbilden ar dess morka pixlar under texten, som 0.5 borjar)
+                _sk = bpy.data.objects[SKMOD]
+                for o in [_sk] + list(_sk.children_recursive): o.hide_render = False
+                SKARM_B.data.materials[0] = SCR['vantar'] if (u > 1.55 and not (1.6 < u < 1.66) and not (1.74 < u < 1.77)) else SCR['av']
+                _lc = FLOOR.matrix_world.inverted() @ SKARM_B.matrix_world.translation; HALO_X.outputs[0].default_value = _lc.x; HALO_Y.outputs[0].default_value = _lc.y
+                HALO_G.outputs[0].default_value = 5.0 * sm(u, 1.6, 2.3)    # golvets pixlar runt skarmen tands strax efter den
         if VAR04 in 'KBE':
             ext = sm(u, 0.0, 1.15); rise = sm(u, 0.55, 2.0); pan = sm(u, 0.6, 2.6)
             e_in = Vector((K_X0 + 0.04 + (K_X1 + 0.16 - K_X0 - 0.04) * ext, K_Y, K_Z + 0.03 * ext))
@@ -533,17 +556,20 @@ def state(t):
             if VAR04 == 'C': start = Vector(((K_X0 + K_X1) / 2, K_Y, GROUND)); H = 1.35; MAL = RAM_C; slut_h = 0.045; slut_l = 85
             elif OVERG: start = D_START; H = 2.9; MAL = Vector((LAYOUT_X1 + 0.3, LAYOUT_Y0 - 0.3, GROUND)); slut_l = 50; slut_h = 110 * PIX * slut_l / 36
             else: start = POS['kropp'] + Vector((KL / 2, KD / 2, GROUND)); H = 2.9; MAL = Vector((LAYOUT_X1 + 0.3, LAYOUT_Y0 - 0.3, GROUND)); slut_l = 50; slut_h = 110 * PIX * slut_l / 36
+            if D_SKARM:   # malet ar LED-skarmen i mitten: kameran stiger, centrerar skarmen och dyker rakt ner i den, och slutar som B pa den morka delen under texten
+                MAL = SKARM_B.matrix_world.translation + Vector((0, -0.011, 0)); mid = Vector((MAL.x, MAL.y, GROUND)); slut_l = 85; slut_h = MAL.z - GROUND + 0.055
             upp_ = sm(u, 0.1, 2.0); dyk = acc(u, 2.25, 3.38, 2.0); yaw = math.radians(22) * sm(u, 0.2, 2.2) * (1 - sm(u, 2.3, 3.2))
             c_ = mix(start, mid, sm(u, 0.1, 1.9)); c_ = mix(c_, MAL, sm(u, 2.1, 3.0))
             if OVERG: h = HUP(t); c_ = mix(start, mid, sm(u, 0.35, 1.9)); c_ = mix(c_, MAL, sm(u, 2.1, 3.0))   # stiger med jamn upplevd fart, sidled forst nar kameran kommit upp
             else: h = 0.32 + (H - 0.32) * upp_
-            h = h + (slut_h - h) * dyk
-            if OVERG: yaw = YAW(t) * (1 - sm(u, 2.3, 3.2))
+            if D_SKARM: dyk = sm(u, 2.2, 3.36); h = h * (slut_h / h) ** dyk   # ner i jamn upplevd fart (som uppat) och mjukt in pa skarmens morka pixlar
+            else: h = h + (slut_h - h) * dyk
+            if OVERG: yaw = YAW(t) * (1 - sm(u, 2.3, 3.2)) + (math.radians(2.5) * sm(u, 2.3, 3.2) if D_SKARM else 0)   # samma lutning som 0.5 borjar med
             eye = Vector((c_.x, c_.y, GROUND + h)); lut = 1.0 if OVERG else sm(u, 0.0, 0.45)
             f_ = mix(Vector((0, 0.75, -0.66)), Vector((0, 0, -1)), lut).normalized()        # overgang in: tilten fran 0.3 fortsatter ner till rakt ovanifran
             upp = Vector((-math.sin(yaw), math.cos(yaw), 0)) * lut + Vector((0, 0, 1)) * (1 - lut); rt_ = f_.cross(upp).normalized(); up_ = rt_.cross(f_)
             CAM.location = eye; CAM.rotation_euler = Matrix((rt_, up_, -f_)).transposed().to_euler()
-            cam_d.lens = (LENS_G(t) if OVERG else 30) + (slut_l - 30) * dyk; cam_d.dof.aperture_fstop = 5.6; cam_d.dof.focus_distance = max(0.05, eye.z - GROUND)
+            cam_d.lens = (LENS_G(t) if OVERG else 30) + (slut_l - 30) * dyk; cam_d.dof.aperture_fstop = 5.6; cam_d.dof.focus_distance = max(0.05, eye.z - GROUND - ((MAL.z - GROUND) * dyk if D_SKARM else 0))
     else:            # 0.5 tatt pa skarmen: VERIFIERAR...
         lights('makro'); k = out(t, T_E, END, 1.8); SCREEN.data.materials[0] = SCR['av' if (t >= END - 0.06 or t < T_E + 0.3) else dots(t)]
         ent = out(t, T_E, T_E + 1.1, 2.6)       # overgang in fran 0.4: borjar tatt mot den slackta skarmen och backar ut ur den, skarmen tands
