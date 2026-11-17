@@ -116,13 +116,27 @@ nt_n.links.new(capf.outputs[0], mixr.inputs['Value']); nt_n.links.new(mixr.outpu
 n0.data.materials.append(nm); NR = 0.0085; NUTS = [n0] + [link(bpy.data.objects.new('not%d' % i, n0.data)) for i in range(1, 15)]
 # notternas vilolagen raknas fram av verktyg/notfat.py (de undre vilar pa fatet, de ovre har kontakt med notterna under): [x, y, rz, z over golvet]
 import json; POP = json.load(open(os.path.join(HERE, 'notfat.json'))); NUT_REST = POP[:6]
+VATTEN = os.environ.get('LENNART_VATTEN', '1') == '1'; SKALRUTA = os.environ.get('LENNART_SKALRUTA') == '1'   # 0 ger tillbaka det gamla vattnet (en ljusbla skiva)
 BOWL = link(bpy.data.objects.new('vattenskal', None)); BOWL.location = (0.075, -0.215, GROUND)
 bpy.ops.mesh.primitive_uv_sphere_add(segments=64, ring_count=32, radius=1, location=(0, 0, 0.026)); o = bpy.context.active_object; o.scale = (0.046, 0.046, 0.026)
 for v in o.data.vertices:
-    if v.co.z > 0: v.co = (v.co.x * 0.9, v.co.y * 0.9, -0.12 if (v.co.x ** 2 + v.co.y ** 2) < 0.8 else 0.0)
+    if v.co.z > 0: v.co = (v.co.x * 0.9, v.co.y * 0.9, (-0.55 if VATTEN else -0.12) if (v.co.x ** 2 + v.co.y ** 2) < 0.8 else 0.0)   # skalens insida: djupare nar vattnet ar riktigt vatten
 for p in o.data.polygons: p.use_smooth = True
 o.data.materials.append(cer); o.parent = BOWL
-bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=0.039, depth=0.001, location=(0, 0, 0.0245)); o = bpy.context.active_object; o.data.materials.append(mat('vatten', (0.16, 0.42, 0.62), 0.04, coat=1.0)); o.parent = BOWL
+if not VATTEN:   # det gamla vattnet: en tunn ljusbla skiva
+    bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=0.039, depth=0.001, location=(0, 0, 0.0245)); o = bpy.context.active_object; o.data.materials.append(mat('vatten', (0.16, 0.42, 0.62), 0.04, coat=1.0)); o.parent = BOWL
+else:            # vatten: genomskinligt med brytningsindex 1,33, svagt blagront djup, sma krusningar som ror sig langsamt
+    _zb, _zy = 0.026 - 0.55 * 0.026 + 0.0002, 0.0249; _ri = 0.715 * 0.046
+    bpy.ops.mesh.primitive_cylinder_add(vertices=96, radius=_ri, depth=_zy - _zb, location=(0, 0, (_zb + _zy) / 2)); o = bpy.context.active_object; o.parent = BOWL
+    for p in o.data.polygons: p.use_smooth = abs(p.normal.z) < 0.5
+    wm = bpy.data.materials.new('vatten'); wm.use_nodes = True; wn_ = wm.node_tree; wp = wn_.nodes['Principled BSDF']
+    wp.inputs['Base Color'].default_value = (0.92, 0.97, 1.0, 1); wp.inputs['Transmission Weight'].default_value = 1.0; wp.inputs['IOR'].default_value = 1.333; wp.inputs['Roughness'].default_value = 0.015
+    wtc = wn_.nodes.new('ShaderNodeTexCoord'); wmp = wn_.nodes.new('ShaderNodeMapping'); wmp.inputs['Scale'].default_value = (60, 60, 60); wn_.links.new(wtc.outputs['Object'], wmp.inputs['Vector'])
+    WNOI = wn_.nodes.new('ShaderNodeTexNoise'); WNOI.noise_dimensions = '4D'; WNOI.inputs['Scale'].default_value = 1.0; WNOI.inputs['Detail'].default_value = 3.0; WNOI.inputs['Roughness'].default_value = 0.45
+    wn_.links.new(wmp.outputs['Vector'], WNOI.inputs['Vector']); wb = wn_.nodes.new('ShaderNodeBump'); wb.inputs['Strength'].default_value = 0.5; wb.inputs['Distance'].default_value = 0.0004
+    wn_.links.new(WNOI.outputs['Fac'], wb.inputs['Height']); wn_.links.new(wb.outputs['Normal'], wp.inputs['Normal'])
+    wva = wn_.nodes.new('ShaderNodeVolumeAbsorption'); wva.inputs['Color'].default_value = (0.5, 0.8, 0.88, 1); wva.inputs['Density'].default_value = 30.0
+    wn_.links.new(wva.outputs[0], wn_.nodes['Material Output'].inputs['Volume']); o.data.materials.append(wm)
 
 # ---------- molnet: mjuka klot som smalter ihop, lyser inifran i svarets farg ----------
 # byggt av overlappande klot med platt undersida, som en mjuk leksak
@@ -214,6 +228,7 @@ def fall_nut(t):   # (forskjutning fran vilolaget, hur mycket av vridningen som 
 PLATE_AT = PLATE.location.copy(); WOB_A, WOB_D = 6.0, 1.4      # fatets snurr: storsta lutning i grader, langd i sekunder
 def wob_phase(s): return 2 * math.pi * (2.2 * s + 3.0 * s * s)   # varvet gar fran 2 till 10 varv per sekund
 def state(t):
+    if VATTEN: WNOI.inputs['W'].default_value = t * 0.35   # krusningarna pa vattnet ror sig langsamt
     # kameran sanks ner i sin sladd, gungar till och hanger sedan still
     d0, d1 = T['drop']; u = sm(t, d0, d1); sw = 0.14 * math.exp(-(t - d1 + 0.4) * 1.5) * math.sin((t - d1 + 0.4) * 6.5) if t > d1 - 0.4 else 0.0
     HANG.location = HANG_AT + Vector((0, 0, 0.75 * (1 - u) ** 2 + 0.012 * sw)); HANG.rotation_euler = (0, sw, 0)
@@ -310,4 +325,15 @@ for f in frames:
     if FALL and f < 30:   # fallet: riktig rorelseoskarpa. Scenen raknas om vid varje delruta som Cycles fragar efter
         sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.5; sc.frame_set(f); state(sc.frame_current_final / FPS)
     else: sc.render.use_motion_blur = False; state(f / FPS)
-    bpy.context.view_layer.update(); sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)
+    bpy.context.view_layer.update()
+    if SKALRUTA:   # bara omradet runt vattenskalen renderas (for att lagga in nytt vatten i fardiga rutor); omradet skrivs i skal.txt
+        from bpy_extras.object_utils import world_to_camera_view as _w2c
+        _pts = [_w2c(sc, CAM, c_.matrix_world @ v.co) for c_ in BOWL.children for v in c_.data.vertices]
+        _x0, _x1 = min(q.x for q in _pts), max(q.x for q in _pts); _y0, _y1 = min(q.y for q in _pts), max(q.y for q in _pts)
+        if _x1 < 0 or _x0 > 1 or _y1 < 0 or _y0 > 1 or min(q.z for q in _pts) <= 0: print('RUTA', f, 'skalen syns inte', flush=True); continue
+        _rw, _rh = sc.render.resolution_x, sc.render.resolution_y; _m = 14
+        _px0, _px1 = max(0, int(_x0 * _rw) - _m), min(_rw, int(_x1 * _rw) + _m + 1); _py0, _py1 = max(0, int(_y0 * _rh) - _m), min(_rh, int(_y1 * _rh) + _m + 1)
+        sc.render.use_border = True; sc.render.use_crop_to_border = True
+        sc.render.border_min_x, sc.render.border_max_x, sc.render.border_min_y, sc.render.border_max_y = _px0 / _rw, _px1 / _rw, _py0 / _rh, _py1 / _rh
+        with open(os.path.join(OUT, 'skal.txt'), 'a') as _fh: _fh.write('%d %d %d %d %d\n' % (f, _px0, _rh - _py1, _px1, _rh - _py0))   # ruta, x0, y0 (uppifran), x1, y1
+    sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)

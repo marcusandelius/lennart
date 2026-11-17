@@ -32,11 +32,35 @@ BG = np.array([6, 18, 11]) / 255; LIT = np.array([96, 214, 150]) / 255; FLASH = 
 u = (np.arange(C) + 0.5) / C; e = np.clip((0.5 - np.abs(u - 0.5)) / 0.14, 0, 1); cell = np.outer(e, e)[..., None] * 0.75 + 0.25
 sub = np.stack([0.65 + 0.35 * 1.6 * (0.5 + 0.5 * np.cos(2 * np.pi * (u - ph))) for ph in (1 / 6, 0.5, 5 / 6)], -1)[None, :, :] * np.ones((C, 1, 1))
 TILE = cell * sub
+# Overgangen till 1.1 (LENNART_TILL = bild, 1280 x 720, forsta rutan i 1.1): pixlarna blir bilden. I ett svep fran ekollonet och utat tar varje cell
+# fargen fran 1.1 och bokstaverna slocknar, sedan okar upplosningen i tre steg (160, 320, 640 celler i bredd) och 1.1 tar vid i full upplosning pa slaget.
+TILL = os.environ.get('LENNART_TILL')
+if TILL:
+    r_ = subprocess.run(['ffmpeg', '-v', 'error', '-i', TILL, '-vf', 'scale=1280:720', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
+    TB = np.frombuffer(r_, np.uint8).reshape(720, 1280, 3).astype(np.float64) / 255
+    def mosaik(c):   # bilden i celler om c px: medelfarg per cell
+        h_, w_ = 720 // c, 1280 // c; return TB.reshape(h_, c, w_, c, 3).mean((1, 3))
+    M80 = mosaik(C); ys_, xs_ = np.mgrid[0:GH, 0:GW]; nc = np.argwhere(not_).mean(0)
+    d_ = np.hypot((ys_ - nc[0]) * 1.0, xs_ - nc[1]); d_ /= d_.max(); t_sw = 2.08 + 0.38 * d_ + np.random.default_rng(3).random(d_.shape) * 0.06   # svepet: 2,08-2,52 s
+    STEG = [(2.56, 8), (2.64, 4), (2.72, 2)]   # (fran tid, cellstorlek i px)
+    def cellbild(c, gap):   # en cellbild med glipor, normerad sa att ljusstyrkan behalls; gap 0-1 hur tydliga gliporna ar
+        u_ = (np.arange(c) + 0.5) / c; e_ = np.clip((0.5 - np.abs(u_ - 0.5)) / 0.14, 0, 1); cl = np.outer(e_, e_)[..., None] * 0.75 + 0.25
+        sb = np.stack([0.65 + 0.35 * 1.6 * (0.5 + 0.5 * np.cos(2 * np.pi * (u_ - ph))) for ph in (1 / 6, 0.5, 5 / 6)], -1)[None, :, :] * np.ones((c, 1, 1))
+        tl = cl * sb; tl = tl / tl.mean((0, 1)); return 1 + (tl - 1) * gap
+GLOW = 0.55
 for f in range(int(round(DUR * FPS))):
-    t = f / FPS; age = t - t_on
+    t = f / FPS; age = t - t_on; glow = GLOW
     col = np.where((age >= 0)[..., None], np.where((age < 0.1)[..., None], FLASH, LIT), BG + BACK)
-    img = np.kron(col, np.ones((C, C, 1))) * np.tile(TILE, (GH, GW, 1))
-    img = np.clip(img * 1.25, 0, 1)
-    p = subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '1280x720', '-i', '-', '-vf', "format=gbrp,split[a][b];[b]gblur=sigma=9[g];[a][g]blend=all_mode=screen:all_opacity=0.55,format=yuvj444p", '-q:v', '2', os.path.join(OUT, '%04d.jpg' % f)],
+    img = np.kron(col, np.ones((C, C, 1))) * np.tile(TILE, (GH, GW, 1)); img = np.clip(img * 1.25, 0, 1)
+    if TILL and t >= 2.08:
+        steg = [s_ for s_ in STEG if t >= s_[0]]
+        if not steg:   # svepet: celler som har bytt visar 1.1 i 80 x 45, en ruta lite ljusare nar de byter
+            k_ = (t >= t_sw)[..., None]; fl = 1 + 0.35 * ((t - t_sw) < 0.045)[..., None]
+            mc = np.kron(M80 * fl, np.ones((C, C, 1))) * np.tile(cellbild(C, 0.85), (GH, GW, 1))
+            img = np.where(np.kron(k_, np.ones((C, C, 1))) > 0, np.clip(mc, 0, 1), img); glow = GLOW * 0.6
+        else:
+            c = steg[-1][1]; gap = {8: 0.6, 4: 0.3, 2: 0.08}[c]
+            img = np.clip(np.kron(mosaik(c), np.ones((c, c, 1))) * np.tile(cellbild(c, gap), (720 // c, 1280 // c, 1)), 0, 1); glow = {8: 0.25, 4: 0.12, 2: 0.04}[c]
+    p = subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '1280x720', '-i', '-', '-vf', 'format=gbrp,split[a][b];[b]gblur=sigma=9[g];[a][g]blend=all_mode=screen:all_opacity=%.3f,format=yuvj444p' % glow, '-q:v', '2', os.path.join(OUT, '%04d.jpg' % f)],
                        input=(img * 255).astype(np.uint8).tobytes())
 print('titel', f + 1, 'rutor')
