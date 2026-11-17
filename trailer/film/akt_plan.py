@@ -80,7 +80,12 @@ def standee(name, png, h, sink):
     e = link(bpy.data.objects.new(name, None)); img = bpy.data.images.load(os.path.join(ROOT, png))
     def layer_mat(front):
         m = bpy.data.materials.new(name + ('_f' if front else '_k')); m.use_nodes = True; n2 = m.node_tree; p = n2.nodes['Principled BSDF']; t = n2.nodes.new('ShaderNodeTexImage'); t.image = img; t.extension = 'CLIP'
-        n2.links.new(t.outputs['Alpha'], p.inputs['Alpha']); p.inputs['Roughness'].default_value = 0.6
+        p.inputs['Roughness'].default_value = 0.6
+        if FOT:   # kartongen ar rakt avskuren vid foten (z = 0), sa att den star pa en rak kant i stallet for att sjunka ner i golvet
+            tc = n2.nodes.new('ShaderNodeTexCoord'); sz = n2.nodes.new('ShaderNodeSeparateXYZ'); gt = n2.nodes.new('ShaderNodeMath'); gt.operation = 'GREATER_THAN'; gt.inputs[1].default_value = 0.0
+            mu = n2.nodes.new('ShaderNodeMath'); mu.operation = 'MULTIPLY'; n2.links.new(tc.outputs['Object'], sz.inputs[0]); n2.links.new(sz.outputs['Z'], gt.inputs[0])
+            n2.links.new(t.outputs['Alpha'], mu.inputs[0]); n2.links.new(gt.outputs[0], mu.inputs[1]); n2.links.new(mu.outputs[0], p.inputs['Alpha'])
+        else: n2.links.new(t.outputs['Alpha'], p.inputs['Alpha'])
         if front: n2.links.new(t.outputs['Color'], p.inputs['Base Color'])
         else: p.inputs['Base Color'].default_value = (0.62, 0.52, 0.4, 1)
         return m
@@ -88,7 +93,17 @@ def standee(name, png, h, sink):
     for i in range(6):
         me = quad_mesh(h, h, -sink * h); me.materials.append(mf if i == 0 else mk); o = link(bpy.data.objects.new(name + str(i), me)); o.location = (0, 0.0006 * i, 0); o.parent = e
     bpy.ops.mesh.primitive_cylinder_add(vertices=48, radius=1, depth=1, location=(0, 0.0015, 0.0015)); b = bpy.context.active_object; b.scale = (h * 0.2, h * 0.11, 0.003); b.data.materials.append(mat(name + '_fot', (0.62, 0.52, 0.4), 0.7)); b.parent = e
+    # figurens undre kontur (x, z) i figurens eget system: lagsta synliga punkten i varje kolumn (ovanfor snittet) och fotens kanter.
+    # place() lyfter figuren sa att den lagsta punkten precis nar golvet nar den lutar, som en kartongfigur som vickar pa sin kant.
+    import numpy as np
+    W_, H_ = img.size; px = np.empty(W_ * H_ * 4, np.float32); img.pixels.foreach_get(px); al = px.reshape(H_, W_, 4)[..., 3]   # rad 0 ar nederst
+    pts = [(-h * 0.2, 0.0), (h * 0.2, 0.0)]
+    for c in range(0, W_, 2):
+        r = np.nonzero(al[:, c] > 0.16)[0]
+        if len(r): pts.append(((c / (W_ - 1) - 0.5) * h, max(0.0 if FOT else -1.0, -sink * h + r.min() / (H_ - 1) * h)))
+    KONTUR[e.name] = pts
     return e
+FOT = os.environ.get('LENNART_FOT', '1') == '1'; KONTUR = {}   # 0 ger tillbaka de gamla figurerna (kartongen sjunker ner i golvet och klipps av det nar de lutar)
 BIRD = standee('skata', 'dekal-skata.png', 0.3, 0.135); SQ = standee('lennart', 'dekal-lennart.png', 0.22, 0.085)
 
 
@@ -208,6 +223,7 @@ def hops(t, t0, xs, dur=0.36, gap=0.07, h=0.05):   # en rad hopp mellan x-lagen:
     u = min(1.0, (k - i) * (dur + gap) / dur); return xs[i] + (xs[i + 1] - xs[i]) * u, h * 4 * u * (1 - u), 0.22 * math.sin(math.pi * u) * (1 if xs[i + 1] < xs[i] else -1)
 def pulse(t, t0, w=0.28): x = (t - t0) / w; return math.sin(math.pi * x) if 0 < x < 1 else 0.0
 def place(fig, x, y, z, lean, face):
+    if FOT: z = max(z, max(-(px * face * -math.sin(lean) + pz * math.cos(lean)) for px, pz in KONTUR[fig.name]))   # lyft sa att lagsta punkten vilar pa golvet
     fig.location = (x, y, GROUND + z); fig.rotation_euler = (0, lean, 0); fig.scale = (face, 1, 1)
 def flip(t, t0, d=0.24): return math.cos(math.pi * sm(t, t0, t0 + d))   # 1 -> -1, som ett kort som vands
 
