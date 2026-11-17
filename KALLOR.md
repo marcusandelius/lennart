@@ -10,6 +10,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Funktioner i claude.ai | Artifacts (publicerade sidor), Claude Docs (projektdokumentet), webbsökning och webbhämtning, minne, kodkörning i Linux-miljö, visning av bilder | 2026-10-27–11-15 | https://claude.ai |
 | Claude Code (Anthropic), molnsession | Repo-uppsättning, deploy, Pi-guide, flytt av koden från HANDOFF, beslutsunderlag | 2026-11-15– | https://claude.ai/code |
 | Higgsfield, via koppling i claude.ai | 12 demobilder till besöksliggaren med bildmodellen GPT Image 2.5 (`gpt_image_2_5`) | 2026-10-27 | https://higgsfield.ai |
+| Higgsfield, via koppling i Claude Code | Trailerns klipp 1.4: släppet av nöten genererat med videomodellen Seedance 2.5 (`seedance_2_5`), med en ruta ur Marcus mobilklipp som första bild. Två prov med Kling 3.0 (`kling3_0`) användes inte. Ca 50 krediter. | 2026-11-17 | https://higgsfield.ai |
 | Externt bildverktyg för konceptskisserna | Marcus genererade konceptbilder av huset. Claude skrev promptarna. Verktyg [osäkert vilket]. | 2026-10-27 | [osäkert] |
 | ChatGPT (OpenAI) | Marcus genererade logotypen "Lennart.cam". Vilken bildmodell [osäkert]. | 2026-11-15 [verifiera] | https://chatgpt.com |
 | Kopplingar i claude.ai: Notion och Gmail | Notion: tillfällig sida för att föra över demobilderna | 2026-10-27 | – |
@@ -103,6 +104,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Musiken "System Online" | `trailer/System Online.mp3` | Gjord av Marcus i Suno. Licens för spridning beror på abonnemanget [verifiera]. |
 | Claude-logotypen i trailerns del 3 | Ritad i `trailer/film/akt_design.py` | Egen tolkning av Anthropics logotyp, ritad i kod. Om logotypen får användas så [verifiera]. |
 | Videoklipp på Lennart | `trailer/PXL_*.mp4`, `trailer/1000007512.mp4`, `trailer/VID-20261114-WA0000~3.mp4` | Marcus mobilklipp. VID-klippet kom via WhatsApp, vem som filmade det [verifiera]. Marcus är den enda personen i bild. |
+| Släppet i slutet av klipp 1.4 | `trailer/film/higgsfield_14/`, inbyggt med `trailer/film/verktyg/fall_14.py` | AI-genererat med Higgsfield (Seedance 2.5), inte filmat. Från ruta 177 (ca 1 s före klippet till 2.1) är det inte mobilklippet utan en genererad fortsättning där Lennart öppnar tassarna och tappar nöten. I tilten tar en renderad nöt över. Bör märkas som rekonstruktion om tävlingen kräver det [verifiera]. |
 
 ## Hjälp från personer och AI-sessioner
 
