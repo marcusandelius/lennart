@@ -41,7 +41,7 @@ Hämtad ur [HANDOFF-filen](historik/HANDOFF-lennarts-matstation-projekt.md), avs
 
 - **Livebilden är publik:** låt någon som kan reglerna bedöma om en publik livebild från uteplatsen är förenlig med GDPR, och vad som gäller om personer kommer i bild [kräver granskning]. Fram till dess: stäng av livebilden i adminvyn när någon som inte vill synas är vid uteplatsen.
 - **Coolify:** lägg till `ADMIN_PASSWORD` och en volym på `/data` (se docs/SETUP-COOLIFY.md).
-- **Inspelning vid rörelse (2026-11-18):** installera ffmpeg på Pi:n (SETUP-PI steg 10) och slå på inspelningen i adminvyn innan uppställningen ställs ut. Prova fram rörelsegränsen på plats.
+- **Inspelning vid rörelse (2026-11-18):** ffmpeg finns redan på Pi:n. Slå på inspelningen i adminvyn innan uppställningen ställs ut. Prova fram rörelsegränsen på plats.
 - **Klippen kan visa personer:** de syns bara i adminvyn, men om de får sparas och användas för träning bör stämmas av mot GDPR [kräver granskning]. Lägg aldrig klipp i repot. Radera klipp med personer om de inte behövs.
 - **LED-ringen:** kopplas in senare, så att det går att spela in även i skymning och mörker.
 - **Märk klippen** under helgen och veckan, så att det finns ett facit när modeller för igenkänning ska provas.

@@ -336,15 +336,19 @@ Appen behöver inte startas om: den letar efter kortet varje gång ett servokomm
 
 Pi:n kan spela in klipp när något rör sig framför kameran. Klippen blir underlag för att testa och kanske träna bildigenkänningen. Appen räknar själv ut när något rör sig, men själva videofilen (MP4) görs av programmet **ffmpeg**, som inte finns på Pi:n från början.
 
-**10a. Installera ffmpeg:**
+**10a. Kontrollera om ffmpeg redan finns:**
+
+```bash
+ffmpeg -version
+```
+
+*Varför:* ffmpeg packar kamerabilderna till H.264-video, så att ett klipp på en minut blir några MB i stället för flera GB. Det följer med Raspberry Pi OS med skrivbord, men inte med Lite. Marcus Pi rapporterade 2026-11-18 att ffmpeg fanns. Visar kommandot en version är du klar med 10a–10b.
+
+**10b. Bara om det står `command not found`:** installera ffmpeg och starta om appen, så att den hittar det.
 
 ```bash
 sudo apt install -y ffmpeg
 ```
-
-*Varför:* ffmpeg packar kamerabilderna till H.264-video, så att ett klipp på en minut blir några MB i stället för flera GB. Det är ett vanligt paket i Raspberry Pi OS. Appen letar efter ffmpeg varje gång den startar.
-
-**10b. Starta om appen**, så att den hittar ffmpeg:
 
 ```bash
 systemctl --user restart lennart
