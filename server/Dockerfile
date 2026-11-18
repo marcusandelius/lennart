@@ -10,7 +10,7 @@ RUN apt-get update \
 RUN useradd --create-home --uid 10001 lennart \
  && mkdir /data && chown lennart /data
 WORKDIR /app
-COPY app.py admin.py live.py index.html demo.html admin.html login.html ./
+COPY app.py admin.py live.py clips.py index.html demo.html admin.html login.html clips.html ./
 COPY static ./static
 USER lennart
 

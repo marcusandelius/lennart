@@ -41,9 +41,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+import re
+
 import admin
-from live import (CAMERA_ROTATIONS, LIMITS, NO_FRAME_GIVE_UP_S, RESOLUTIONS, LiveRelay, Settings,
-                  validate_command)
+from clips import LABELS, MAX_CLIP_BYTES, MAX_THUMB_BYTES, ClipStore
+from live import (CAMERA_ROTATIONS, LIMITS, NO_FRAME_GIVE_UP_S, REC_RESOLUTIONS, RESOLUTIONS, LiveRelay,
+                  Settings, validate_command)
 
 PORT = int(os.environ.get("PORT", "8000"))
 DEVICE_TOKEN = os.environ.get("LENNART_DEVICE_TOKEN", "")
@@ -70,10 +73,13 @@ ALLOWED_FIELDS = {
     "camera_rotation": int,
     "servo_ok": bool,
     "servo_info": str,
+    "recording_ok": bool,
+    "recording_info": str,
 }
+LONG_FIELDS = ("message", "servo_info", "recording_info")
 
 HERE = Path(__file__).parent
-PAGES = {name: (HERE / f"{name}.html").read_text(encoding="utf-8") for name in ("index", "demo", "admin", "login")}
+PAGES = {name: (HERE / f"{name}.html").read_text(encoding="utf-8") for name in ("index", "demo", "admin", "login", "clips")}
 
 # Statiska filer läses in en gång vid start. Bara filer som finns här kan hämtas,
 # så en adress som /static/../app.py ger 404 i stället för att läsa utanför mappen.
@@ -96,6 +102,10 @@ _history: deque = deque(maxlen=50)  # i minnet: nollställs vid omstart
 
 settings = Settings(DATA_DIR)
 relay = LiveRelay(settings)
+clips = ClipStore(DATA_DIR)
+CLIP_FILE = re.compile(r"^/api/admin/clips/([0-9a-f-]+)\.(mp4|jpg)$")
+CLIP_ACTION = re.compile(r"^/api/admin/clips/([0-9a-f-]+)/(label|delete)$")
+CLIP_UPLOAD = re.compile(r"^/api/clips/([0-9a-f-]+)(/thumb)?$")
 
 
 def clean_report(raw: dict) -> dict:
@@ -103,7 +113,7 @@ def clean_report(raw: dict) -> dict:
     for key, kind in ALLOWED_FIELDS.items():
         value = raw.get(key)
         if isinstance(value, kind) and not (kind is not bool and isinstance(value, bool)):
-            report[key] = value[:(200 if key in ("message", "servo_info") else 80)] if isinstance(value, str) else value
+            report[key] = value[:(200 if key in LONG_FIELDS else 80)] if isinstance(value, str) else value
     return report
 
 
@@ -254,15 +264,92 @@ class Handler(BaseHTTPRequestHandler):
                 "settings": settings.values,
                 "persisted": settings.persisted,
                 "resolutions": list(RESOLUTIONS),
+                "rec_resolutions": list(REC_RESOLUTIONS),
                 "rotations": list(CAMERA_ROTATIONS),
                 "limits": LIMITS,
                 "live": relay.info(),
                 "status": status_payload(),
+                "clips": clips.summary(),
             })
+        elif path == "/admin/klipp":
+            if self._admin_ok():
+                self._html("clips")
+            else:
+                self._redirect("/admin/login")
+        elif path == "/api/admin/clips":
+            if self._admin_ok():
+                self._json(200, {"clips": clips.list(), "labels": LABELS, "bytes": clips.total_bytes(),
+                                 "max_bytes": settings.values["clips_max_gb"] * 1024 ** 3})
+            else:
+                self._json(401, {"fel": "Inte inloggad"})
+        elif path == "/api/admin/clips.csv":
+            if self._admin_ok():
+                self._send(200, clips.csv(), "text/csv; charset=utf-8", "private, no-store",
+                           [("Content-Disposition", 'attachment; filename="lennart-klipp.csv"')])
+            else:
+                self._json(401, {"fel": "Inte inloggad"})
+        elif CLIP_FILE.match(path):
+            if self._admin_ok():
+                clip_id, kind = CLIP_FILE.match(path).groups()
+                self._send_clip_file(clip_id, kind)
+            else:
+                self._json(401, {"fel": "Inte inloggad"})
         elif path == "/healthz":
             self._send(200, b"ok", "text/plain; charset=utf-8")
         else:
             self._json(404, {"fel": "Finns inte"})
+
+    def _send_clip_file(self, clip_id: str, kind: str) -> None:
+        """Skicka en video eller miniatyrbild. Videon skickas i delar (Range), så att
+        webbläsaren kan spola och så att Safari över huvud taget spelar upp den."""
+        if not clips.valid_id(clip_id):
+            self._json(404, {"fel": "Finns inte"})
+            return
+        file = clips.path(clip_id, "." + kind)
+        try:
+            size = file.stat().st_size
+        except OSError:
+            self._json(404, {"fel": "Finns inte"})
+            return
+        content_type = "video/mp4" if kind == "mp4" else "image/jpeg"
+        start, end, status = 0, size - 1, 200
+        wanted = re.match(r"^bytes=(\d*)-(\d*)$", self.headers.get("Range", "").strip())
+        if wanted and size > 0 and (wanted.group(1) or wanted.group(2)):
+            first, last = wanted.groups()
+            if first:
+                start = int(first)
+                end = min(int(last), size - 1) if last else size - 1
+            else:  # "bytes=-500" betyder de sista 500 byten
+                start = max(size - int(last), 0)
+            if start > end or start >= size:
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{size}")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            status = 206
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(end - start + 1))
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Cache-Control", "private, max-age=3600")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Robots-Tag", "noindex")
+        if status == 206:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.end_headers()
+        try:
+            with open(file, "rb") as f:
+                f.seek(start)
+                remaining = end - start + 1
+                while remaining > 0:
+                    chunk = f.read(min(256 * 1024, remaining))
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    remaining -= len(chunk)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # webbläsaren avbröt, till exempel när man spolar
 
     def _stream_live(self) -> None:
         """Skicka livebilden som en ström av JPEG-bilder (multipart/x-mixed-replace).
@@ -331,6 +418,33 @@ class Handler(BaseHTTPRequestHandler):
                 return
             relay.put_frame(jpeg)
             self._json(200, {"continue": relay.wanted, **relay.device_reply()})
+        elif CLIP_UPLOAD.match(path):
+            if self._device_ok():
+                clip_id, thumb = CLIP_UPLOAD.match(path).groups()
+                self._receive_clip(clip_id, bool(thumb))
+        elif CLIP_ACTION.match(path):
+            if not self._admin_ok():
+                self._json(401, {"fel": "Inte inloggad"})
+                return
+            if not self._same_origin():
+                self._json(403, {"fel": "Fel ursprung"})
+                return
+            clip_id, action = CLIP_ACTION.match(path).groups()
+            if not clips.valid_id(clip_id) or not clips.path(clip_id, ".json").exists():
+                self._json(404, {"fel": "Klippet finns inte"})
+                return
+            if action == "delete":
+                clips.delete(clip_id)
+                print(f"Admin raderade klipp {clip_id}", flush=True)
+                self._json(200, {"ok": True})
+                return
+            raw = self._read_json(512)
+            if raw is None:
+                return
+            try:
+                self._json(200, clips.set_label(clip_id, raw.get("label")))
+            except ValueError as e:
+                self._json(400, {"fel": str(e)})
         elif path == "/admin/login":
             self._login()
         elif path == "/admin/logout":
@@ -381,6 +495,52 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self._json(404, {"fel": "Finns inte"})
 
+    def _receive_clip(self, clip_id: str, thumb: bool) -> None:
+        if not clips.valid_id(clip_id):
+            self._json(400, {"fel": "Ogiltigt id"})
+            return
+        if thumb:
+            if self.headers.get("Content-Type") != "image/jpeg":
+                self._json(415, {"fel": "Bara image/jpeg"})
+                return
+            jpeg = self._read_body(MAX_THUMB_BYTES)
+            if jpeg is None:
+                return
+            try:
+                clips.save_thumb(clip_id, jpeg)
+            except KeyError:
+                self._json(404, {"fel": "Klippet finns inte"})
+                return
+            self._json(200, {"ok": True})
+            return
+        if self.headers.get("Content-Type") != "video/mp4":
+            self._json(415, {"fel": "Bara video/mp4"})
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            meta = json.loads(self.headers.get("X-Clip-Meta", "{}"))
+            if not isinstance(meta, dict):
+                raise ValueError
+        except ValueError:
+            self._json(400, {"fel": "Ogiltig Content-Length eller X-Clip-Meta"})
+            return
+        if not 0 < length <= MAX_CLIP_BYTES:
+            self._json(413, {"fel": "Klippet är för stort"})
+            return
+        if clips.total_bytes() + length > settings.values["clips_max_gb"] * 1024 ** 3:
+            # Pi:n behåller klippet och försöker igen senare, när admin har rensat eller höjt gränsen.
+            self.close_connection = True
+            self._json(507, {"fel": "Klipputrymmet på servern är fullt"})
+            return
+        try:
+            clips.save(clip_id, meta, self.rfile, length)
+        except (ValueError, OSError) as e:
+            self.close_connection = True
+            self._json(400, {"fel": f"Klippet kunde inte sparas: {e}"})
+            return
+        print(f"Tog emot klipp {clip_id} ({length // 1024} kB)", flush=True)
+        self._json(200, {"ok": True, "id": clip_id})
+
     def _login(self) -> None:
         if not admin.enabled():
             self._html("login", 503, fel="Adminvyn är inte påslagen. Sätt ADMIN_PASSWORD i Coolify.")
@@ -408,7 +568,7 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args) -> None:
         # Logga inte det som sker hela tiden: hälsokontroller och livebilder.
         line = str(args[0]) if args else ""
-        if not any(p in line for p in ("/healthz", "/api/live/frame", "/api/live/wait")):
+        if not any(p in line for p in ("/healthz", "/api/live/frame", "/api/live/wait", "/api/clips/")):
             super().log_message(fmt, *args)
 
 

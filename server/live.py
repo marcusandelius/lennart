@@ -31,6 +31,9 @@ RESOLUTIONS = {
 
 CAMERA_ROTATIONS = (0, 90, 180, 270)  # grader medsols
 
+# Upplösningar för inspelade klipp. Kameran levererar 1280 × 720.
+REC_RESOLUTIONS = ("640x360", "1280x720")
+
 DEFAULTS = {
     "live_enabled": True,   # av-knappen i adminvyn
     "resolution": "640x360",
@@ -44,6 +47,16 @@ DEFAULTS = {
     "servo_min_us": 500,
     "servo_max_us": 2500,
     "dispense_angle": 130,  # så långt doseringshjulet vrids för att släppa en nöt
+    # Inspelning av klipp vid rörelse, för att samla material till igenkänningen.
+    "recording_enabled": False,  # av tills admin slår på det
+    "rec_resolution": "1280x720",
+    "rec_fps": 15,
+    "motion_sensitivity": 15,    # promille av bilden som måste ändras för att spela in (lägre = känsligare)
+    "pre_roll_s": 2,             # sekunder före rörelsen som kommer med i klippet
+    "post_roll_s": 5,            # sekunder utan rörelse innan klippet avslutas
+    "max_clip_s": 60,            # längsta klipp
+    "min_brightness": 15,        # spela inte in när bilden är mörkare än så här (procent)
+    "clips_max_gb": 20,          # så mycket klipp får ta plats på servern
 }
 
 LIMITS = {
@@ -51,11 +64,19 @@ LIMITS = {
     "servo_doser_channel": (0, 15), "servo_lucka_channel": (0, 15),
     "servo_min_us": (400, 1500), "servo_max_us": (1500, 2600),
     "dispense_angle": (30, 180),
+    "rec_fps": (5, 15), "motion_sensitivity": (2, 200), "pre_roll_s": (0, 5),
+    "post_roll_s": (2, 30), "max_clip_s": (10, 90), "min_brightness": (0, 100),
+    "clips_max_gb": (1, 500),
 }
+
+BOOL_KEYS = ("live_enabled", "recording_enabled")
+CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS, "rec_resolution": REC_RESOLUTIONS}
 
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
 DEVICE_KEYS = ("camera_rotation", "servo_doser_channel", "servo_lucka_channel",
-               "servo_min_us", "servo_max_us", "dispense_angle")
+               "servo_min_us", "servo_max_us", "dispense_angle",
+               "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",
+               "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")
 
 SERVOS = ("doser", "lucka")
 COMMAND_MAX_AGE_S = 20      # äldre kommandon kastas, så att inget servo rör sig långt senare
@@ -68,15 +89,12 @@ def validate(changes: dict, current: dict) -> dict:
     """Kontrollera ändringar från adminvyn. Okända fält och fel värden ger ValueError."""
     result = dict(current)
     for key, value in changes.items():
-        if key == "live_enabled":
+        if key in BOOL_KEYS:
             if not isinstance(value, bool):
-                raise ValueError("live_enabled ska vara sant eller falskt")
-        elif key == "resolution":
-            if value not in RESOLUTIONS:
-                raise ValueError(f"Okänd upplösning: {value}")
-        elif key == "camera_rotation":
-            if value not in CAMERA_ROTATIONS or isinstance(value, bool):
-                raise ValueError("camera_rotation ska vara 0, 90, 180 eller 270")
+                raise ValueError(f"{key} ska vara sant eller falskt")
+        elif key in CHOICES:
+            if isinstance(value, bool) or value not in CHOICES[key]:
+                raise ValueError(f"{key} ska vara en av {', '.join(map(str, CHOICES[key]))}")
         elif key in LIMITS:
             low, high = LIMITS[key]
             if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:

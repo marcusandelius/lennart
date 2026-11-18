@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lennart.cam – klipp</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/static/logo.webp">
+<link rel="stylesheet" href="/static/site.css">
+<style>
+  main { display:grid; gap:1.25rem; padding-top:1.5rem; }
+  h1 { font-size:clamp(1.9rem,5vw,2.6rem); font-weight:800; letter-spacing:-.02em; margin:0; }
+  .lead { color:var(--ink-2); margin:.3rem 0 0; max-width:44rem; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+  .chip { font:inherit; font-weight:600; font-size:.92rem; padding:.35rem .8rem; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink); cursor:pointer; }
+  .chip[aria-pressed="true"] { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .chip .n { opacity:.65; font-variant-numeric:tabular-nums; margin-left:.25rem; }
+  .spacer { flex:1; }
+  a.button, button { font:inherit; font-weight:700; padding:.5rem 1rem; border:0; border-radius:10px; background:var(--ink); color:var(--paper); cursor:pointer; text-decoration:none; }
+  button.secondary, a.button.secondary { background:transparent; color:var(--ink); border:1px solid var(--line); }
+  button.danger { background:transparent; color:var(--denied); border:1px solid color-mix(in srgb, var(--denied) 50%, transparent); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(15rem, 1fr)); gap:1rem; }
+  .clip { background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+  .clip button.thumb { padding:0; border-radius:0; background:#000; display:block; position:relative; aspect-ratio:16/9; width:100%; }
+  .clip img { width:100%; height:100%; object-fit:cover; display:block; }
+  .clip .dur { position:absolute; right:.4rem; bottom:.4rem; background:rgba(0,0,0,.7); color:#fff; font-size:.8rem; padding:.1rem .4rem; border-radius:6px; font-variant-numeric:tabular-nums; }
+  .clip .info { padding:.6rem .75rem .75rem; display:grid; gap:.4rem; }
+  .clip time { font-weight:700; }
+  .clip .meta { color:var(--ink-2); font-size:.85rem; }
+  .labels { display:flex; flex-wrap:wrap; gap:.3rem; }
+  .labels .chip { font-size:.8rem; padding:.2rem .55rem; }
+  .labels .chip[aria-pressed="true"] { background:var(--granted); border-color:var(--granted); color:#fff; }
+  .empty { color:var(--ink-2); padding:2rem 0; }
+  dialog { border:0; border-radius:16px; padding:0; width:min(64rem, 96vw); background:var(--surface); color:var(--ink); }
+  dialog::backdrop { background:rgba(0,0,0,.7); }
+  dialog video { width:100%; display:block; background:#000; max-height:72vh; }
+  dialog .bar { padding:.8rem 1rem 1rem; display:grid; gap:.6rem; }
+  dialog .row { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+  .msg { min-height:1.4em; margin:0; font-weight:600; }
+  .msg.no { color:var(--denied); }
+  .head-actions { display:flex; gap:.6rem; align-items:center; }
+  kbd { font:inherit; font-size:.8rem; border:1px solid var(--line); border-radius:4px; padding:0 .3rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-head">
+    <a class="brand" href="/status" aria-label="Lennart.cam, till statussidan"><img src="/static/logo.webp" alt="Lennart.cam" width="720" height="490"></a>
+    <div class="head-actions">
+      <nav class="nav" aria-label="Sidor">
+        <a href="/status">Status</a>
+        <a href="/demo">Demo</a>
+        <a href="/admin">Admin</a>
+        <a href="/admin/klipp" aria-current="page">Klipp</a>
+      </nav>
+      <form method="post" action="/admin/logout"><button type="submit" class="secondary">Logga ut</button></form>
+    </div>
+  </header>
+
+  <main>
+    <div>
+      <h1>Klipp</h1>
+      <p class="lead">Inspelat när något rörde sig framför kameran. Märk vad som syns, så blir klippen underlag för att testa och träna bildigenkänningen. Klippen syns bara här, aldrig publikt.</p>
+    </div>
+    <div class="toolbar">
+      <div class="toolbar" id="filters" role="group" aria-label="Visa"></div>
+      <span class="spacer"></span>
+      <span class="meta" id="usage"></span>
+      <a class="button secondary" href="/api/admin/clips.csv">Exportera CSV</a>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+
+<dialog id="player" aria-label="Klipp">
+  <video id="video" controls playsinline preload="metadata"></video>
+  <div class="bar">
+    <div class="row"><strong id="ptime"></strong><span class="meta" id="pmeta"></span></div>
+    <div class="labels" id="plabels"></div>
+    <div class="row">
+      <button type="button" class="secondary" id="prev">← Föregående</button>
+      <button type="button" class="secondary" id="next">Nästa →</button>
+      <span class="spacer"></span>
+      <button type="button" class="danger" id="pdelete">Radera</button>
+      <button type="button" id="pclose">Stäng</button>
+    </div>
+    <p class="meta">Tangenter: <kbd>1</kbd>–<kbd>7</kbd> märker, <kbd>←</kbd> <kbd>→</kbd> byter klipp, <kbd>Esc</kbd> stänger.</p>
+  </div>
+</dialog>
+
+<script>
+  const $ = id => document.getElementById(id);
+  let clips = [], labels = {}, filter = "alla", current = null;
+
+  const when = iso => {
+    const d = new Date(iso);
+    return isNaN(d) ? "okänd tid" : d.toLocaleString("sv-SE", { dateStyle: "medium", timeStyle: "medium" });
+  };
+  const visible = () => clips.filter(c => filter === "alla" || (filter === "omarkta" ? !c.label : c.label === filter));
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+
+  function labelButtons(c) {
+    return Object.entries(labels).map(([key, text], i) =>
+      `<button type="button" class="chip" data-id="${c.id}" data-label="${key}" aria-pressed="${c.label === key}" title="Tangent ${i + 1}">${esc(text)}</button>`).join("");
+  }
+
+  function render() {
+    const counts = { alla: clips.length, omarkta: clips.filter(c => !c.label).length };
+    for (const k of Object.keys(labels)) counts[k] = clips.filter(c => c.label === k).length;
+    const names = { alla: "Alla", omarkta: "Omärkta", ...labels };
+    $("filters").innerHTML = Object.entries(names).filter(([k]) => k === "alla" || k === "omarkta" || counts[k])
+      .map(([k, t]) => `<button type="button" class="chip" data-filter="${k}" aria-pressed="${filter === k}">${esc(t)}<span class="n">${counts[k]}</span></button>`).join("");
+    const list = visible();
+    $("grid").innerHTML = list.length ? list.map(c => `
+      <article class="clip">
+        <button type="button" class="thumb" data-open="${c.id}" aria-label="Spela upp klippet från ${esc(when(c.started))}">
+          <img src="/api/admin/clips/${c.id}.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+          <span class="dur">${c.duration_s != null ? Math.round(c.duration_s) + " s" : ""}</span>
+        </button>
+        <div class="info">
+          <time datetime="${esc(c.started || "")}">${esc(when(c.started))}</time>
+          <span class="meta">${c.width || "?"} × ${c.height || "?"}, ${((c.size || 0) / 1e6).toFixed(1)} MB${c.peak_motion != null ? `, rörelse ${c.peak_motion} ‰` : ""}</span>
+          <div class="labels">${labelButtons(c)}</div>
+        </div>
+      </article>`).join("") : `<p class="empty">${clips.length ? "Inga klipp med det här valet." : "Inga klipp än. Slå på inspelningen i adminvyn."}</p>`;
+  }
+
+  async function load() {
+    const r = await fetch("/api/admin/clips", { cache: "no-store" });
+    if (r.status === 401) { location.href = "/admin/login"; return; }
+    const s = await r.json();
+    clips = s.clips; labels = s.labels;
+    $("usage").textContent = `${(s.bytes / 1e9).toFixed(2)} av ${(s.max_bytes / 1024 ** 3).toFixed(0)} GB`;
+    render();
+  }
+
+  async function setLabel(id, label) {
+    const c = clips.find(x => x.id === id);
+    const value = c.label === label ? null : label;   // klicka igen för att ta bort märkningen
+    const r = await fetch(`/api/admin/clips/${id}/label`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: value }),
+    });
+    if (!r.ok) { $("msg").className = "msg no"; $("msg").textContent = (await r.json()).fel || "Kunde inte märka klippet."; return; }
+    c.label = value;
+    render();
+    if (current === id) $("plabels").innerHTML = labelButtons(c);
+  }
+
+  function open(id) {
+    const c = clips.find(x => x.id === id);
+    if (!c) return;
+    current = id;
+    $("video").src = `/api/admin/clips/${id}.mp4`;
+    $("ptime").textContent = when(c.started);
+    $("pmeta").textContent = `${c.duration_s != null ? Math.round(c.duration_s) + " s, " : ""}${c.fps || "?"} bilder/s, ${c.width || "?"} × ${c.height || "?"}`;
+    $("plabels").innerHTML = labelButtons(c);
+    if (!$("player").open) $("player").showModal();
+    $("video").play().catch(() => {});
+  }
+  function step(dir) {
+    const list = visible(), i = list.findIndex(c => c.id === current);
+    if (i >= 0 && list[i + dir]) open(list[i + dir].id);
+  }
+  function close() { $("video").pause(); $("video").removeAttribute("src"); $("video").load(); current = null; if ($("player").open) $("player").close(); }
+
+  document.addEventListener("click", e => {
+    const t = e.target.closest("button");
+    if (!t) return;
+    if (t.dataset.filter) { filter = t.dataset.filter; render(); }
+    else if (t.dataset.label) setLabel(t.dataset.id, t.dataset.label);
+    else if (t.dataset.open) open(t.dataset.open);
+  });
+  $("prev").addEventListener("click", () => step(-1));
+  $("next").addEventListener("click", () => step(1));
+  $("pclose").addEventListener("click", close);
+  $("player").addEventListener("close", () => { if (current) close(); });
+  $("pdelete").addEventListener("click", async () => {
+    if (!current || !confirm("Radera klippet? Det går inte att ångra.")) return;
+    const id = current, list = visible(), i = list.findIndex(c => c.id === id);
+    const r = await fetch(`/api/admin/clips/${id}/delete`, { method: "POST" });
+    if (!r.ok) { $("msg").className = "msg no"; $("msg").textContent = "Kunde inte radera klippet."; return; }
+    clips = clips.filter(c => c.id !== id);
+    render();
+    const nextClip = list[i + 1] || list[i - 1];
+    if (nextClip) open(nextClip.id); else close();
+  });
+  document.addEventListener("keydown", e => {
+    if (!current) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); step(1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+    else if (/^[1-9]$/.test(e.key)) {
+      const key = Object.keys(labels)[parseInt(e.key, 10) - 1];
+      if (key) setLabel(current, key);
+    }
+  });
+
+  load();
+  setInterval(() => { if (!current) load(); }, 30000);
+</script>
+</body>
+</html>

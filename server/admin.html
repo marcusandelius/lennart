@@ -45,6 +45,7 @@
         <a href="/status">Status</a>
         <a href="/demo">Demo</a>
         <a href="/admin" aria-current="page">Admin</a>
+        <a href="/admin/klipp">Klipp</a>
       </nav>
       <form method="post" action="/admin/logout"><button type="submit" class="secondary">Logga ut</button></form>
     </div>
@@ -88,6 +89,43 @@
         </div>
         <button type="submit">Spara</button>
         <p class="msg" id="cameramsg" role="status"></p>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Inspelning vid rörelse</h2>
+      <p id="recstatus">–</p>
+      <p class="hint" id="recclips">–</p>
+      <form id="recording">
+        <label class="switch"><input type="checkbox" id="recording_enabled"> Spela in när något rör sig</label>
+        <div class="row">
+          <label for="rec_resolution">Upplösning</label>
+          <div><select id="rec_resolution"></select><p class="hint">1280 × 720 ger bäst underlag för igenkänning. 640 × 360 tar ungefär en fjärdedel så mycket data.</p></div>
+        </div>
+        <div class="row">
+          <label for="rec_fps">Bilder per sekund</label>
+          <div><input type="number" id="rec_fps" step="1"><p class="hint">Fler bilder ger större filer. Djuren rör sig snabbt, så 10–15 är lagom.</p></div>
+        </div>
+        <div class="row">
+          <label for="motion_sensitivity">Rörelsegräns (‰)</label>
+          <div><input type="number" id="motion_sensitivity" step="1"><p class="hint">Hur stor del av bilden, i promille, som måste ändras för att inspelningen ska starta. Lägre = känsligare. Blir det många tomma klipp av blad och skuggor: höj värdet.</p></div>
+        </div>
+        <details>
+          <summary>Fler inställningar</summary>
+          <div class="row"><label for="pre_roll_s">Sekunder före rörelsen</label><input type="number" id="pre_roll_s" step="1"></div>
+          <div class="row"><label for="post_roll_s">Sekunder efter sista rörelsen</label><input type="number" id="post_roll_s" step="1"></div>
+          <div class="row"><label for="max_clip_s">Längsta klipp (s)</label><input type="number" id="max_clip_s" step="5"></div>
+          <div class="row">
+            <label for="min_brightness">Lägsta ljusstyrka (0–100)</label>
+            <div><input type="number" id="min_brightness" step="1"><p class="hint">Ingen inspelning när bilden är mörkare än så, eftersom kameran inte ser något utan belysning.</p></div>
+          </div>
+          <div class="row">
+            <label for="clips_max_gb">Utrymme på servern (GB)</label>
+            <div><input type="number" id="clips_max_gb" step="1"><p class="hint">När det är fullt tar servern inte emot fler klipp. Stationen sparar dem då själv tills det finns plats.</p></div>
+          </div>
+        </details>
+        <p><button type="submit">Spara</button> <a href="/admin/klipp">Visa klippen →</a></p>
+        <p class="msg" id="recmsg" role="status"></p>
       </form>
     </section>
 
@@ -161,6 +199,7 @@
 <script>
   const $ = id => document.getElementById(id);
   const fields = ["fps", "quality", "max_view_min"];
+  const recFields = ["rec_fps", "motion_sensitivity", "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness", "clips_max_gb"];
   const servoFields = ["servo_doser_channel", "servo_lucka_channel", "servo_min_us", "servo_max_us", "dispense_angle"];
 
   async function saveSettings(body, msgId) {
@@ -198,6 +237,10 @@
       $("camera_rotation").value = s.settings.camera_rotation;
       for (const f of servoFields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
       $("dispensehint").textContent = `Ett litet vick, sedan till ${s.settings.dispense_angle}° och tillbaka till 0°.`;
+      $("rec_resolution").innerHTML = s.rec_resolutions.map(v => `<option value="${v}">${v.replace("x", " × ")}</option>`).join("");
+      $("rec_resolution").value = s.settings.rec_resolution;
+      $("recording_enabled").checked = s.settings.recording_enabled;
+      for (const f of recFields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
       loaded = true;
     }
     $("notpersisted").hidden = s.persisted;
@@ -210,6 +253,9 @@
     $("version").textContent = rep.version || "–";
     $("servostatus").textContent = !st.online ? "Stationen hörs inte av."
       : rep.servo_info ? `${rep.servo_ok ? "✓" : "✗"} ${rep.servo_info}` : "Ingen uppgift från stationen än.";
+    $("recstatus").textContent = !st.online ? "Stationen hörs inte av."
+      : rep.recording_info ? `${rep.recording_ok ? "✓" : "✗"} ${rep.recording_info}` : "Ingen uppgift från stationen än.";
+    if (s.clips) $("recclips").textContent = `${s.clips.count} klipp på servern, ${(s.clips.bytes / 1e9).toFixed(2)} av ${s.settings.clips_max_gb} GB.`;
   }
 
   $("settings").addEventListener("submit", async e => {
@@ -228,6 +274,12 @@
   $("camera").addEventListener("submit", e => {
     e.preventDefault();
     saveSettings({ camera_rotation: parseInt($("camera_rotation").value, 10) }, "cameramsg");
+  });
+  $("recording").addEventListener("submit", e => {
+    e.preventDefault();
+    const body = { recording_enabled: $("recording_enabled").checked, rec_resolution: $("rec_resolution").value };
+    for (const f of recFields) body[f] = parseInt($(f).value, 10);
+    saveSettings(body, "recmsg");
   });
   $("servosettings").addEventListener("submit", async e => {
     e.preventDefault();
