@@ -4,7 +4,7 @@
 # blir klara i samma ogonblick (rakt klipp till sprangskissen, 6.1).
 # Kor:  blender -b -P akt_utskrift.py -- <ut-mapp (absolut)> <bredd> [tider i sekunder ...]
 # Klippen ligger i film/timelapse/rutor/<1-8>/%04d.jpg (uppdelade med ffmpeg, 1280 px). Varje ruta spelar sitt klipp fran borjan
-# nar den dyker fram och sista bilden landar nar alla blir klara (DONE), sa korta klipp gar langsammare och langa fortare.
+# nar den dyker fram och den fardiga delen (KLAR) landar nar alla blir klara (DONE), sa korta klipp gar langsammare och langa fortare.
 import bpy, sys, os, math, random
 from mathutils import Vector, Euler, Matrix
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -27,16 +27,36 @@ except Exception: pass
 sc.world = bpy.data.worlds.new('w'); sc.world.use_nodes = True; bg = sc.world.node_tree.nodes['Background']; bg.inputs['Color'].default_value = (0.004, 0.014, 0.018, 1)
 def link(o): sc.collection.objects.link(o); return o
 
-# ---------- layouten: 6 x 4 celler pa en yta som ar 16 x 9, tolv rutor i olika storlekar ----------
+# ---------- layouten: 6 x 4 celler pa en yta som ar 16 x 9, atta rutor i olika storlekar ----------
 CW, CH, G = 16 / 6, 9 / 4, 0.07
 LAYOUT = [  # (kolumn, rad, bredd, hojd)
     (0, 0, 3, 2),   # A huvudrutan, 16:9 - bilden borjar har
     (3, 0, 2, 1), (5, 0, 1, 2), (3, 1, 2, 1),
     (0, 2, 2, 2), (2, 2, 2, 1), (2, 3, 2, 1), (4, 2, 2, 2)]
-# klipp och beskarning: (klipp 1-8, zoom, mitt u, mitt v) - zoom < 1 skar bort fisheye-kanterna. Klippen ar numrerade i datumordning (se film/timelapse)
-CROP = [(3, 0.86, 0.55, 0.50),   # A stugans roda kropp
-        (6, 0.85, 0.52, 0.50), (7, 1.0, 0.55, 0.5), (4, 0.75, 0.55, 0.66),
-        (1, 0.80, 0.58, 0.58), (5, 0.85, 0.52, 0.50), (2, 0.58, 0.47, 0.68), (8, 0.78, 0.52, 0.47)]
+# klipp och beskarning. Klippen ar numrerade i datumordning (se film/timelapse). Beskarningen ar i pixlar i klippets 1280 x 720-bilder:
+# (andel av utskriften, vanster, overkant, bredd) - hojden foljer rutans form. Med flera nycklar foljer beskarningen delarna,
+# som flyttar sig i bild nar byggplattan sanks under utskriften.
+CROP = [(3, [(0, 90, 76, 1101)]),                     # A stugans roda kropp
+        (6, [(0, 64, 41, 1216)]),                     # taket, hoger halva
+        (8, [(0, 784, 28, 224), (0.12, 784, 28, 224), (0.5, 784, 150, 224), (0.75, 784, 205, 240), (1, 784, 262, 240)]),   # blomladan och blommorna, utan filamenttornet till vanster
+        (4, [(0, 186, 9, 1088)]),                     # vita fonsterdelar
+        (1, [(0, 170, 0, 840), (0.15, 170, 0, 840), (0.5, 262, 0, 857), (1, 185, 65, 780)]),   # elektroniklada och monteringsplatta
+        (5, [(0, 51, 34, 1178)]),                     # taket, vanster halva
+        (7, [(0, 256, 74, 768)]),                     # munstycket och de svarta smadelarna
+        (2, [(0, 373, 0, 463)])]                      # skarmram och skarmklamma, med skrivhuvudet ovanfor
+# rutan dar utskriften ser fardig ut (matt mot klippets sista bild). Efter den star bilden still, sa klippet spelas bara dit:
+# alla blir da klara samtidigt i stallet for att de korta klippen star fardiga en stor del av tiden
+KLAR = {1: 479, 2: 58, 3: 1202, 4: 67, 5: 51, 6: 51, 7: 242, 8: 343}
+
+def crop_at(keys, p, at):
+    # beskarningen vid andelen p, som (skala u, skala v, forskjutning u, forskjutning v) i UV
+    for (p0, *c0), (p1, *c1) in zip(keys, keys[1:]):
+        if p <= p1: f = 0 if p1 == p0 else min(max((p - p0) / (p1 - p0), 0), 1); x, y, w = [a + (b - a) * f for a, b in zip(c0, c1)]; break
+    else: x, y, w = keys[-1][1:]
+    h = w / at
+    if h > 720: h = 720; w = h * at
+    x = min(max(x, 0), 1280 - w); y = min(max(y, 0), 720 - h)
+    return w / 1280, h / 720, x / 1280, 1 - (y + h) / 720
 
 def rrect(w, h, r, name):
     pts = []
@@ -48,13 +68,12 @@ def rrect(w, h, r, name):
 
 def frame_img(k, n): return bpy.data.images.load(os.path.join(RUTOR, str(k), '%04d.jpg' % min(max(n, 0), NF[k] - 1)), check_existing=True)
 TILES = []; rng = random.Random(4)
-for i, ((c, r, w, h), (k, z, cu, cv)) in enumerate(zip(LAYOUT, CROP)):
+for i, ((c, r, w, h), (k, keys)) in enumerate(zip(LAYOUT, CROP)):
     tw, th = w * CW - 2 * G, h * CH - 2 * G; cx, cy = -8 + (c + w / 2) * CW, 4.5 - (r + h / 2) * CH
     m = bpy.data.materials.new('ruta%d' % i); m.use_nodes = True; nt = m.node_tree; nt.nodes.clear()
     o_ = nt.nodes.new('ShaderNodeOutputMaterial'); em = nt.nodes.new('ShaderNodeEmission'); tx = nt.nodes.new('ShaderNodeTexImage'); tx.image = frame_img(k, 0); tx.extension = 'EXTEND'
     uvn = nt.nodes.new('ShaderNodeTexCoord'); mp = nt.nodes.new('ShaderNodeMapping')
-    ai, at = 16 / 9, tw / th; fw, fh = (1.0, ai / at) if at >= ai else (at / ai, 1.0)
-    sw, sh = fw * z, fh * z; ou = min(max(cu - sw / 2, 0), 1 - sw); ov = min(max(cv - sh / 2, 0), 1 - sh)
+    at = tw / th; sw, sh, ou, ov = crop_at(keys, 0, at)
     mp.inputs['Location'].default_value = (ou, ov, 0); mp.inputs['Scale'].default_value = (sw, sh, 1)
     nt.links.new(uvn.outputs['UV'], mp.inputs['Vector']); nt.links.new(mp.outputs[0], tx.inputs['Vector']); nt.links.new(tx.outputs['Color'], em.inputs['Color']); nt.links.new(em.outputs[0], o_.inputs['Surface'])
     ob = link(bpy.data.objects.new('ruta%d' % i, rrect(tw, th, 0.09, 'ruta%d' % i))); ob.data.materials.append(m)
@@ -64,7 +83,7 @@ for i, ((c, r, w, h), (k, z, cu, cv)) in enumerate(zip(LAYOUT, CROP)):
     pme = bpy.data.meshes.new('l'); pme.from_pydata([(0, 0, 0), (1, 0, 0), (1, 0.045, 0), (0, 0.045, 0)], [], [(0, 1, 2, 3)]); pme.materials.append(pm)
     bar = link(bpy.data.objects.new('linje%d' % i, pme)); bar.parent = ob; bar.location = (-tw / 2 + 0.16, -th / 2 + 0.14, 0.002)
     d = (Vector((cx, cy)) - Vector((-4, 2.25))).length
-    TILES.append(dict(ob=ob, bar=bar, w=tw - 0.32, home=Vector((cx, cy, 0)), em=em, pe=pe, mp=mp, tx=tx, k=k, s0=(sw, sh), o0=(ou, ov), dist=d, dz=rng.uniform(-0.9, 0.9) if i else 0.0, push=rng.uniform(0.02, 0.06)))
+    TILES.append(dict(ob=ob, bar=bar, w=tw - 0.32, home=Vector((cx, cy, 0)), em=em, pe=pe, mp=mp, tx=tx, k=k, keys=keys, at=at, dist=d, dz=rng.uniform(-0.9, 0.9) if i else 0.0, push=rng.uniform(0.02, 0.06)))
 order = sorted(range(len(TILES)), key=lambda j: TILES[j]['dist'])
 for n, j in enumerate(order): TILES[j]['t0'] = 0.0 if j == 0 else 1.9 + 0.11 * n     # rutorna dyker fram utat fran huvudrutan
 
@@ -81,10 +100,9 @@ def state(t):
         sx_ = 1 if T['home'].x > 0 else -1; T['ob'].location = T['home'] + Vector((sx_ * door * (9 + 0.5 * abs(T['home'].x)), 0, -7 * (1 - u) + T['dz'] * (1 - flat) + 4 * door)); T['ob'].rotation_euler = (0, -sx_ * 0.9 * door, 0)
         s = 0.86 + 0.14 * u; T['ob'].scale = (s, s, 1); T['em'].inputs['Strength'].default_value = 1.0 * u
         p = min(1, max(0, (t - T['t0']) / (DONE - T['t0']))) if vis else 0; T['bar'].scale = (max(p * T['w'], 0.001), 1, 1)
-        T['tx'].image = frame_img(T['k'], round(p * (NF[T['k']] - 1)))   # klippet gar fran forsta till sista bilden medan linjen fylls
-        T['pe'].inputs['Strength'].default_value = 3.0 + 14.0 * (sm(t, DONE, DONE + 0.08) * (1 - sm(t, DONE + 0.15, DONE + 0.6)))   # alla linjer blixtrar till nar de blir klara samtidigt
-        k = T['push'] * min(t, DONE) / DONE; sw, sh = T['s0']; T['mp'].inputs['Scale'].default_value = (sw * (1 - k), sh * (1 - k), 1)       # langsam inzoomning i varje ruta
-        T['mp'].inputs['Location'].default_value = (T['o0'][0] + sw * k / 2, T['o0'][1] + sh * k / 2, 0)
+        T['tx'].image = frame_img(T['k'], round(p * KLAR[T['k']]))   # klippet gar fran tom platta till fardig del medan linjen fylls
+        k = T['push'] * min(t, DONE) / DONE; sw, sh, ou, ov = crop_at(T['keys'], p, T['at'])       # beskarningen foljer delarna, plus en langsam inzoomning i varje ruta
+        T['mp'].inputs['Scale'].default_value = (sw * (1 - k), sh * (1 - k), 1); T['mp'].inputs['Location'].default_value = (ou + sw * k / 2, ov + sh * k / 2, 0)
     # kameran: helbild pa huvudrutan -> backar och vrids till en sned vy av vaggen -> glider tillbaka rakt fram nar vaggen planas ut
     back = sm(t, 1.7, 5.0); home = sm(t, 5.0, 8.6)
     tgt = Vector((-4, 2.25, 0)).lerp(Vector((0, 0, 0)), back)

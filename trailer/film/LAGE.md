@@ -43,11 +43,11 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 
 ## Nästa steg
 
-1. Klart 19/11: åtta timelapse-klipp i `timelapse/`, inbyggda i utskriftsväggen. Väggen har nu åtta rutor i stället för tolv. Fler klipp kan läggas till genom att utöka `LAYOUT` och `CROP` i `akt_utskrift.py`.
+1. Klart 19/11: åtta timelapse-klipp i `timelapse/`, inbyggda i utskriftsväggen. Väggen har nu åtta rutor i stället för tolv. Varje ruta har en egen beskärning som följer delen när plattan sänks, och klippen spelas bara fram till att delen är färdig (`KLAR`), så att alla blir klara samtidigt. Blomlådan är beskuren utan filamenttornet. Fler klipp kan läggas till genom att utöka `LAYOUT`, `CROP` och `KLAR` i `akt_utskrift.py`.
 2. Riktig film till del 7 när huset står ute.
 3. Fyra riktiga klipp från bygget till monteringen. De ersätter platshållarna (se Byggklippen nedan).
 4. Elektroniken i monteringen (del 6).
-5. 5.1 som rörlig bild i stället för stillbild, gärna en skärminspelning från slicern eller ett närklipp på munstycket.
+5. 5.1: Marcus filmar byggplattan när den läggs i skrivaren, som en förberedelse för utskrifterna i väggen efter. Ersätter stillbilden ur 3D. Om Marcus syns i bild ska samtycket i KALLOR.md utökas till det klippet [verifiera].
 6. Storyboardens röstspalt har fortfarande den gamla manustexten, inte orden i inspelningen.
 
 ## Att kontrollera före publicering
