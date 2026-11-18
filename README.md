@@ -60,7 +60,7 @@ Raspberry Pi 5 (8 GB), Camera Module 3 Wide, Waveshare 2" skärm, servon via PCA
 1. **Webbdelen:** GitHub Actions ber Coolify bygga om och starta appen via Coolifys API.
 2. **Raspberry Pi:** en GitHub-runner på Pi:n hämtar koden, installerar den och startar om systemd-tjänsten `lennart`. Runnern tar bara kontakt utåt, så inga portar öppnas och det fungerar likadant på wifi och 4G.
 
-**Läget just nu:** Pi:n visar kamerabilden live på skärmen, rapporterar till statussidan på lennart.cam var 30:e sekund, och skickar livebild till lennart.cam när en besökare trycker på "Se live". Livebilden, kamerans rotation och servona styrs från adminvyn. Igenkänningen kommer härnäst. lennart.cam öppnar med ett val mellan statussidan och en demo av besöksliggaren, med AI-genererade bilder och påhittade besök.
+**Läget just nu:** Pi:n visar kamerabilden live på skärmen, rapporterar till statussidan på lennart.cam var 30:e sekund, och skickar livebild till lennart.cam när en besökare trycker på "Se live". Livebilden, kamerans rotation och servona styrs från adminvyn. Pi:n kan också spela in klipp när något rör sig. Klippen laddas upp till adminvyn och märks där (ekorre, skata …) som underlag för att välja och testa bildigenkänning. Igenkänningen kommer härnäst. lennart.cam öppnar med ett val mellan statussidan och en demo av besöksliggaren, med AI-genererade bilder och påhittade besök.
 
 | Guide | Innehåll |
 |---|---|

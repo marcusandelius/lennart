@@ -332,6 +332,36 @@ Appen behöver inte startas om: den letar efter kortet varje gång ett servokomm
 
 ---
 
+## Steg 10 – ffmpeg för inspelning av klipp
+
+Pi:n kan spela in klipp när något rör sig framför kameran. Klippen blir underlag för att testa och kanske träna bildigenkänningen. Appen räknar själv ut när något rör sig, men själva videofilen (MP4) görs av programmet **ffmpeg**, som inte finns på Pi:n från början.
+
+**10a. Installera ffmpeg:**
+
+```bash
+sudo apt install -y ffmpeg
+```
+
+*Varför:* ffmpeg packar kamerabilderna till H.264-video, så att ett klipp på en minut blir några MB i stället för flera GB. Det är ett vanligt paket i Raspberry Pi OS. Appen letar efter ffmpeg varje gång den startar.
+
+**10b. Starta om appen**, så att den hittar ffmpeg:
+
+```bash
+systemctl --user restart lennart
+```
+
+**10c. Slå på inspelningen** på lennart.cam/admin, under **Inspelning vid rörelse**: kryssa i **Spela in när något rör sig** och tryck **Spara**.
+
+✅ **Klart när:** kortet visar `✓ Lär in bakgrunden` och efter några sekunder `✓ Väntar på rörelse`. Vifta med handen framför kameran. Efter cirka 10 sekunder ska raden visa `1 klipp sedan start`, och strax efter syns klippet under **Klipp** i adminvyn.
+
+**Bra att veta:**
+- Klippen sparas först i `~/lennart-data/clips` på Pi:n och laddas sedan upp. Där ligger de högst 5 GB innan de äldsta uppladdade tas bort. Gränsen kan ändras med `LENNART_CLIP_LOCAL_GB` i `.env`.
+- Blir det många tomma klipp av blad och skuggor: höj **Rörelsegräns** i adminvyn. Missas djur: sänk den.
+- Inget spelas in när det är mörkt. Gränsen heter **Lägsta ljusstyrka**.
+- Klippen kan visa personer. De syns bara i adminvyn och ska aldrig läggas i repot.
+
+---
+
 ## Senare: över till 4G
 
-Runnern och appen behöver ingen ändring, eftersom båda tar bara kontakt utåt. SSH från din dator når däremot inte Pi:n över 4G, eftersom operatören normalt delar IP-adresser bakom NAT. Vill du kunna logga in på distans tar vi det som ett eget beslut.
+Runnern och appen behöver ingen ändring, eftersom båda tar bara kontakt utåt. Klippen från inspelningen kan däremot dra mycket mobildata: sänk upplösningen till 640 × 360 eller stäng av inspelningen i adminvyn innan Pi:n går över till 4G. SSH från din dator når däremot inte Pi:n över 4G, eftersom operatören normalt delar IP-adresser bakom NAT. Vill du kunna logga in på distans tar vi det som ett eget beslut.

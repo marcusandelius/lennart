@@ -39,6 +39,8 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | spidev (py-spidev) | MIT [verifiera] | SPI till skärmen | https://github.com/doceme/py-spidev |
 | gpiozero | BSD-3-Clause [verifiera] | Installerad. Provades för skärmens styrpinnar men valde fel GPIO-krets på Pi 5, så den används inte för skärmen. | https://gpiozero.readthedocs.io |
 | lgpio | Unlicense [verifiera] | Styrpinnarna till skärmen (DC, RST, BL) på Pi 5 | https://abyz.me.uk/lg/py_lgpio.html |
+| ffmpeg | LGPL-2.1 eller senare, GPL-2.0 eller senare när det byggts med GPL-delar som libx264 (Debians paket gör det) [verifiera] | Gör MP4-filer av kamerabilderna vid inspelning på Pi:n. Används även för att skapa testklipp under utvecklingen. | https://ffmpeg.org |
+| x264 (libx264) | GPL-2.0 eller senare [verifiera] | H.264-kodningen i ffmpeg | https://www.videolan.org/developers/x264.html |
 | smbus (python3-smbus, från i2c-tools) eller smbus2 | GPL-2.0 resp. MIT [verifiera] | I2C till servokortet PCA9685 | https://i2c.wiki.kernel.org/index.php/I2C_Tools |
 
 ## Typsnitt
@@ -95,6 +97,8 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Claude, chatten om Lennarts matstation i claude.ai | Konstruktion, 3D-modell, förhandsgranskning, inköpslista, utskriftsråd. Se [HANDOFF](docs/historik/HANDOFF-lennarts-matstation-projekt.md). | 2026-10-27–11-15 |
 | Claude Code, molnsession | Repo-struktur, deploy-uppsättning, Pi-guide, flytt av kod och dokument, beslutsunderlag för bildigenkänning | 2026-11-15 |
 | Claude Code, molnsession | Valruta, demosida och grönt tema på lennart.cam, ny text på demosidan | 2026-11-15 |
+| Claude Code, molnsession | Livebild, adminvy, rotation, servostyrning | 2026-11-15 |
+| Claude Code, molnsession | Inspelning vid rörelse på Pi:n, klipparkiv med märkning i adminvyn | 2026-11-18 |
 | Behörig elektriker | *Planerat: elsäkerheten för utomhusström ska kontrolleras av en behörig person* | [osäkert] |
 
 ## Samtycke för bilder med personer
