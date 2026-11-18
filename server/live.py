@@ -51,7 +51,7 @@ DEFAULTS = {
     "recording_enabled": False,  # av tills admin slår på det
     "rec_resolution": "1280x720",
     "rec_fps": 15,
-    "motion_sensitivity": 15,    # promille av bilden som måste ändras för att spela in (lägre = känsligare)
+    "motion_sensitivity": 10,    # promille av bilden som måste ändras för att spela in (lägre = känsligare)
     "pre_roll_s": 2,             # sekunder före rörelsen som kommer med i klippet
     "post_roll_s": 5,            # sekunder utan rörelse innan klippet avslutas
     "max_clip_s": 60,            # längsta klipp

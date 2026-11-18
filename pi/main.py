@@ -1,8 +1,9 @@
 """Lennarts matstation – programmet på Raspberry Pi.
 
 Visar kamerans bild live på 2"-skärmen, rapporterar status till lennart.cam,
-skickar livebild när någon tittar där och tar emot inställningar och
-servokommandon från adminvyn. Igenkänningen läggs till senare.
+skickar livebild när någon tittar där, spelar in klipp när något rör sig
+och tar emot inställningar och servokommandon från adminvyn.
+Igenkänningen läggs till senare.
 
 Inställningar läses från miljön (~/.config/lennart/.env via systemd):
   LENNART_SERVER_URL, LENNART_DEVICE_TOKEN  – för heartbeat
@@ -25,6 +26,7 @@ from PIL import Image, ImageDraw, ImageFont
 from display import HEIGHT, WIDTH, Display
 from heartbeat import Heartbeat
 from live import LiveSender
+from recorder import ClipUploader, Recorder
 from servo import ServoController
 
 CAMERA_RETRY_S = 30
@@ -141,6 +143,8 @@ def main() -> int:
 
     # Efter varje servokommando skickas en rapport direkt, så att adminvyn ser resultatet.
     servo = ServoController(on_change=lambda: threading.Thread(target=heartbeat.send_once, daemon=True).start())
+    recorder = Recorder()
+    uploader = ClipUploader()
 
     def status() -> dict:
         # Felmeddelandet skickas med, så att fel kan felsökas från lennart.cam utan att logga in på Pi:n.
@@ -151,6 +155,10 @@ def main() -> int:
             problems.append(f"Skärm: {display_error}")
         report = {"camera_ok": camera is not None, "display_ok": display is not None, "fps": round(fps, 1),
                   "camera_rotation": device["camera_rotation"], "servo_ok": servo.ok, "servo_info": servo.info()[:200]}
+        rec_info = recorder.info(len(uploader.waiting()))
+        if uploader.last_error:
+            rec_info += f" · {uploader.last_error}"
+        report.update({"recording_ok": recorder.ok, "recording_info": rec_info[:200]})
         if problems:
             report["message"] = " · ".join(problems)[:200]
         return report
@@ -164,6 +172,7 @@ def main() -> int:
     def on_config(config: dict) -> None:
         device.update(config)
         servo.config.update({k: v for k, v in config.items() if k in servo.config})
+        recorder.configure(config)
         print(f"Nya inställningar från lennart.cam: {config}", flush=True)
 
     def on_commands(commands: list) -> None:
@@ -173,6 +182,7 @@ def main() -> int:
 
     live = LiveSender(lambda: latest["rgb"], on_config, on_commands)
     live.start()
+    uploader.start()
 
     frames, fps_since = 0, time.monotonic()
     while running:
@@ -186,8 +196,9 @@ def main() -> int:
                 camera_error = f"{type(e).__name__}: {e}"
                 print(f"Kameran gick inte att starta: {camera_error}", flush=True)
 
-        # Kameran behövs bara när skärmen ska visa något eller någon tittar på livebilden.
-        if camera is None or (display is None and not live.active):
+        # Kameran behövs bara när skärmen ska visa något, någon tittar på livebilden
+        # eller inspelningen vid rörelse är påslagen.
+        if camera is None or (display is None and not live.active and not recorder.enabled):
             latest["rgb"] = None
             if display is not None and camera is None:
                 display.show(add_status_bar(message_screen("Ingen kamera", camera_error), heartbeat.last_ok, fps))
@@ -204,12 +215,16 @@ def main() -> int:
         rgb = np.ascontiguousarray(frame[..., ::-1])  # picamera2 levererar "RGB888" i ordningen blå, grön, röd
         rgb = rotate(rgb, device["camera_rotation"])
         latest["rgb"] = rgb
+        recorder.feed(rgb)
 
         if display is not None:
             display.show(add_status_bar(for_display(rgb), heartbeat.last_ok, fps))
 
-        # Vänta in nästa bild: skärmens takt, eller livebildens om ingen skärm finns.
-        target_fps = DISPLAY_FPS if display is not None else max(live.fps, 1)
+        # Vänta in nästa bild, i den snabbaste takt som någon av skärmen, livebilden
+        # och inspelningen behöver.
+        wanted = [DISPLAY_FPS if display is not None else 0, live.fps if live.active else 0,
+                  recorder.fps if recorder.enabled else 0]
+        target_fps = max(max(wanted), 1)
         spare = 1 / target_fps - (time.monotonic() - now)
         if spare > 0:
             time.sleep(spare)
@@ -220,8 +235,10 @@ def main() -> int:
             frames, fps_since = 0, now
 
     print("Stänger av", flush=True)
+    recorder.stop()
     heartbeat.stop()
     live.stop()
+    uploader.stop()
     if camera is not None:
         camera.stop()
     if display is not None:

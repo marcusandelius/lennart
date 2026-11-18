@@ -42,6 +42,11 @@ if ! /usr/bin/python3 -c "import picamera2, spidev, lgpio, PIL, numpy" 2>/dev/nu
   exit 1
 fi
 
+# ffmpeg behövs bara för inspelning av klipp (docs/SETUP-PI.md, steg 10). Resten fungerar utan.
+if ! command -v ffmpeg >/dev/null; then
+  echo "::warning::ffmpeg saknas på Pi:n, så inspelningen av klipp fungerar inte. Kör: sudo apt install -y ffmpeg"
+fi
+
 echo "→ Kopierar kod till ${APP_DIR}"
 mkdir -p "${APP_DIR}"
 rsync -a --delete --exclude '.venv/' "${SRC_DIR}/" "${APP_DIR}/"
