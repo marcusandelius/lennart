@@ -98,8 +98,8 @@ const FX = [
   ...Array.from({ length: 18 }, (_, i) => ['0.6', 0.22 + ((i * 7) % 18) / 18 * 0.5, 'tick', -33 + (i % 3), { pitch: 0.8 + (i * 5 % 7) * 0.08, pan: ((i * 3) % 7 - 3) * 0.12 }]),
   // overgangen till 1.1 (vandbrickorna, titel_overgangar.py variant 1, vald 18/11): ett tick per vag av brickor som vands, fran ekollonet (vanster) och utat at hoger
   ...[1.97, 2.05, 2.12, 2.19, 2.25, 2.31, 2.37, 2.43, 2.49, 2.55, 2.61, 2.67].map((t, i) => ['0.6', t, 'tick', -31 - (i % 3), { pitch: 0.9 + (i * 5 % 7) * 0.05, pan: -0.45 + i / 11 * 0.9 }]),
-  // utskriftsvaggen (akt_utskrift.py): ett latt klick per ruta som dyker fram (1.9 + 0.11 n s in i 5.2), en klang nar alla blir klara (9.1 s = 5.1 s in i 5.3)
-  ...Array.from({ length: 11 }, (_, n) => { const t = 1.9 + 0.11 * (n + 1) + 0.25; return t < 4 ? ['5.2', t, 'klick', -27, { pitch: 0.8 + (n * 5 % 7) * 0.07, pan: ((n * 3) % 5 - 2) * 0.2 }] : ['5.3', t - 4, 'klick', -27, { pitch: 0.8 + (n * 5 % 7) * 0.07, pan: ((n * 3) % 5 - 2) * 0.2 }]; }),
+  // utskriftsvaggen (akt_utskrift.py, atta riktiga timelapse-klipp sedan 19/11): ett latt klick per ruta som dyker fram (1.9 + 0.11 n s in i 5.2), en klang nar alla blir klara (9.1 s = 5.1 s in i 5.3)
+  ...Array.from({ length: 7 }, (_, n) => { const t = 1.9 + 0.11 * (n + 1) + 0.25; return t < 4 ? ['5.2', t, 'klick', -27, { pitch: 0.8 + (n * 5 % 7) * 0.07, pan: ((n * 3) % 5 - 2) * 0.2 }] : ['5.3', t - 4, 'klick', -27, { pitch: 0.8 + (n * 5 % 7) * 0.07, pan: ((n * 3) % 5 - 2) * 0.2 }]; }),
   ['5.3', 5.1, 'klang', -23],
   // monteringen: varje del klickar pa plats 0,75 s efter att den borjat aka hem (tider ur STEPS i akt_montering.py, raknat fran 6.1)
   ...[4.0, 4.35, 4.7, 5.1, 5.45, 6.0, 6.3, 6.6, 7.3, 7.55, 7.8, 8.5, 9.1, 9.7, 10.3, 10.6, 10.9, 11.15, 11.6, 12.0, 12.5, 13.1, 13.5, 13.85, 14.1, 14.9, 15.3, 15.55, 16.1, 16.5, 17.1]

@@ -1,15 +1,17 @@
-# Projekt Lennart - del 5: utskriftsvaggen. Tolv timelapse-klipp fran 3D-skrivaren i en bento-layout med olika storlekar.
+# Projekt Lennart - del 5: utskriftsvaggen. Atta riktiga timelapse-klipp fran 3D-skrivaren i en bento-layout med olika storlekar.
 # Bilden borjar pa en utskrift i helbild, kameran backar och vrids sa att vaggen syns snett med djup, rutorna dyker fram
 # utat fran den forsta. Vaggen planas sedan ut till en exakt layout. Under varje ruta fylls en tunn forloppslinje, och alla
 # blir klara i samma ogonblick (rakt klipp till sprangskissen, 6.1).
 # Kor:  blender -b -P akt_utskrift.py -- <ut-mapp (absolut)> <bredd> [tider i sekunder ...]
-# Platshallare: rutorna visar tre stillbilder i olika beskarning tills de riktiga timelapse-klippen finns (film/timelapse).
+# Klippen ligger i film/timelapse/rutor/<1-8>/%04d.jpg (uppdelade med ffmpeg, 1280 px). Varje ruta spelar sitt klipp fran borjan
+# nar den dyker fram och sista bilden landar nar alla blir klara (DONE), sa korta klipp gar langsammare och langa fortare.
 import bpy, sys, os, math, random
 from mathutils import Vector, Euler, Matrix
 HERE = os.path.dirname(os.path.abspath(__file__))
 a = sys.argv[sys.argv.index('--') + 1:]; OUT, WIDTH, TIMES = os.path.abspath(a[0]), int(a[1]), [float(x) for x in a[2:]]
 os.makedirs(OUT, exist_ok=True); FPS, END, DONE = 25, 10.0, 9.1   # 5.2 = 0-4 s, 5.3 = 4-10 s. Alla blir klara pa slutet av repliken i 5.3
-IMG = os.path.join(HERE, 'timelapse', 'platshallare')
+RUTOR = os.path.join(HERE, 'timelapse', 'rutor')
+NF = {k: len([f for f in os.listdir(os.path.join(RUTOR, str(k))) if f.endswith('.jpg')]) for k in range(1, 9)}
 
 bpy.ops.wm.read_factory_settings(use_empty=True); sc = bpy.context.scene
 for eng in ('BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'):
@@ -29,12 +31,12 @@ def link(o): sc.collection.objects.link(o); return o
 CW, CH, G = 16 / 6, 9 / 4, 0.07
 LAYOUT = [  # (kolumn, rad, bredd, hojd)
     (0, 0, 3, 2),   # A huvudrutan, 16:9 - bilden borjar har
-    (3, 0, 2, 1), (5, 0, 1, 2), (3, 1, 1, 1), (4, 1, 1, 1),
-    (0, 2, 1, 2), (1, 2, 2, 1), (3, 2, 2, 2), (5, 2, 1, 1), (1, 3, 1, 1), (2, 3, 1, 1), (5, 3, 1, 1)]
-# platshallarnas beskarning: (bild, zoom, mitt u, mitt v) - zoom < 1 skar bort fisheye-kanterna
-CROP = [(3, 0.78, 0.48, 0.50), (1, 0.8, 0.55, 0.62), (3, 0.62, 0.62, 0.45), (2, 0.6, 0.35, 0.55), (1, 0.55, 0.3, 0.62), (2, 0.7, 0.75, 0.45),
-        (1, 0.75, 0.5, 0.55), (2, 0.82, 0.5, 0.5), (3, 0.5, 0.35, 0.7), (3, 0.45, 0.55, 0.3), (1, 0.5, 0.75, 0.6), (2, 0.5, 0.5, 0.75)]
-VALID = {1: (0.0, 0.0, 0.95, 0.92), 2: (0.0, 0.1, 1.0, 1.0), 3: (0.0, 0.0, 1.0, 1.0)}   # bildytor utan knappar och spelarlist
+    (3, 0, 2, 1), (5, 0, 1, 2), (3, 1, 2, 1),
+    (0, 2, 2, 2), (2, 2, 2, 1), (2, 3, 2, 1), (4, 2, 2, 2)]
+# klipp och beskarning: (klipp 1-8, zoom, mitt u, mitt v) - zoom < 1 skar bort fisheye-kanterna. Klippen ar numrerade i datumordning (se film/timelapse)
+CROP = [(3, 0.86, 0.55, 0.50),   # A stugans roda kropp
+        (6, 0.85, 0.52, 0.50), (7, 1.0, 0.55, 0.5), (4, 0.75, 0.55, 0.66),
+        (1, 0.80, 0.58, 0.58), (5, 0.85, 0.52, 0.50), (2, 0.58, 0.47, 0.68), (8, 0.78, 0.52, 0.47)]
 
 def rrect(w, h, r, name):
     pts = []
@@ -44,15 +46,15 @@ def rrect(w, h, r, name):
     for l in me.loops: x, y = pts[l.vertex_index]; uv.data[l.index].uv = (x / w + 0.5, y / h + 0.5)
     return me
 
-imgs = {k: bpy.data.images.load(os.path.join(IMG, '%d.webp' % k)) for k in (1, 2, 3)}
+def frame_img(k, n): return bpy.data.images.load(os.path.join(RUTOR, str(k), '%04d.jpg' % min(max(n, 0), NF[k] - 1)), check_existing=True)
 TILES = []; rng = random.Random(4)
 for i, ((c, r, w, h), (k, z, cu, cv)) in enumerate(zip(LAYOUT, CROP)):
     tw, th = w * CW - 2 * G, h * CH - 2 * G; cx, cy = -8 + (c + w / 2) * CW, 4.5 - (r + h / 2) * CH
     m = bpy.data.materials.new('ruta%d' % i); m.use_nodes = True; nt = m.node_tree; nt.nodes.clear()
-    o_ = nt.nodes.new('ShaderNodeOutputMaterial'); em = nt.nodes.new('ShaderNodeEmission'); tx = nt.nodes.new('ShaderNodeTexImage'); tx.image = imgs[k]; tx.extension = 'EXTEND'
+    o_ = nt.nodes.new('ShaderNodeOutputMaterial'); em = nt.nodes.new('ShaderNodeEmission'); tx = nt.nodes.new('ShaderNodeTexImage'); tx.image = frame_img(k, 0); tx.extension = 'EXTEND'
     uvn = nt.nodes.new('ShaderNodeTexCoord'); mp = nt.nodes.new('ShaderNodeMapping')
-    ai, at = imgs[k].size[0] / imgs[k].size[1], tw / th; fw, fh = (1.0, ai / at) if at >= ai else (at / ai, 1.0)
-    lo = VALID[k]; sw, sh = fw * z, fh * z; ou = min(max(cu - sw / 2, lo[0]), lo[2] - sw); ov = min(max(cv - sh / 2, lo[1]), lo[3] - sh)
+    ai, at = 16 / 9, tw / th; fw, fh = (1.0, ai / at) if at >= ai else (at / ai, 1.0)
+    sw, sh = fw * z, fh * z; ou = min(max(cu - sw / 2, 0), 1 - sw); ov = min(max(cv - sh / 2, 0), 1 - sh)
     mp.inputs['Location'].default_value = (ou, ov, 0); mp.inputs['Scale'].default_value = (sw, sh, 1)
     nt.links.new(uvn.outputs['UV'], mp.inputs['Vector']); nt.links.new(mp.outputs[0], tx.inputs['Vector']); nt.links.new(tx.outputs['Color'], em.inputs['Color']); nt.links.new(em.outputs[0], o_.inputs['Surface'])
     ob = link(bpy.data.objects.new('ruta%d' % i, rrect(tw, th, 0.09, 'ruta%d' % i))); ob.data.materials.append(m)
@@ -62,7 +64,7 @@ for i, ((c, r, w, h), (k, z, cu, cv)) in enumerate(zip(LAYOUT, CROP)):
     pme = bpy.data.meshes.new('l'); pme.from_pydata([(0, 0, 0), (1, 0, 0), (1, 0.045, 0), (0, 0.045, 0)], [], [(0, 1, 2, 3)]); pme.materials.append(pm)
     bar = link(bpy.data.objects.new('linje%d' % i, pme)); bar.parent = ob; bar.location = (-tw / 2 + 0.16, -th / 2 + 0.14, 0.002)
     d = (Vector((cx, cy)) - Vector((-4, 2.25))).length
-    TILES.append(dict(ob=ob, bar=bar, w=tw - 0.32, home=Vector((cx, cy, 0)), em=em, pe=pe, mp=mp, s0=(sw, sh), o0=(ou, ov), dist=d, dz=rng.uniform(-0.9, 0.9) if i else 0.0, push=rng.uniform(0.02, 0.06)))
+    TILES.append(dict(ob=ob, bar=bar, w=tw - 0.32, home=Vector((cx, cy, 0)), em=em, pe=pe, mp=mp, tx=tx, k=k, s0=(sw, sh), o0=(ou, ov), dist=d, dz=rng.uniform(-0.9, 0.9) if i else 0.0, push=rng.uniform(0.02, 0.06)))
 order = sorted(range(len(TILES)), key=lambda j: TILES[j]['dist'])
 for n, j in enumerate(order): TILES[j]['t0'] = 0.0 if j == 0 else 1.9 + 0.11 * n     # rutorna dyker fram utat fran huvudrutan
 
@@ -79,6 +81,7 @@ def state(t):
         sx_ = 1 if T['home'].x > 0 else -1; T['ob'].location = T['home'] + Vector((sx_ * door * (9 + 0.5 * abs(T['home'].x)), 0, -7 * (1 - u) + T['dz'] * (1 - flat) + 4 * door)); T['ob'].rotation_euler = (0, -sx_ * 0.9 * door, 0)
         s = 0.86 + 0.14 * u; T['ob'].scale = (s, s, 1); T['em'].inputs['Strength'].default_value = 1.0 * u
         p = min(1, max(0, (t - T['t0']) / (DONE - T['t0']))) if vis else 0; T['bar'].scale = (max(p * T['w'], 0.001), 1, 1)
+        T['tx'].image = frame_img(T['k'], round(p * (NF[T['k']] - 1)))   # klippet gar fran forsta till sista bilden medan linjen fylls
         T['pe'].inputs['Strength'].default_value = 3.0 + 14.0 * (sm(t, DONE, DONE + 0.08) * (1 - sm(t, DONE + 0.15, DONE + 0.6)))   # alla linjer blixtrar till nar de blir klara samtidigt
         k = T['push'] * min(t, DONE) / DONE; sw, sh = T['s0']; T['mp'].inputs['Scale'].default_value = (sw * (1 - k), sh * (1 - k), 1)       # langsam inzoomning i varje ruta
         T['mp'].inputs['Location'].default_value = (T['o0'][0] + sw * k / 2, T['o0'][1] + sh * k / 2, 0)
@@ -97,3 +100,5 @@ for f in frames:
     p = os.path.join(OUT, f'{f:04d}.jpg')
     if os.path.exists(p) and os.path.getsize(p) > 0: continue
     state(f / FPS); bpy.context.view_layer.update(); sc.render.filepath = p; bpy.ops.render.render(write_still=True); print('RUTA', f, flush=True)
+    for im in list(bpy.data.images):
+        if im.users == 0: bpy.data.images.remove(im)
