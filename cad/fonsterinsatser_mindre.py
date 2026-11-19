@@ -1,6 +1,6 @@
 """
 Fönsterinsatser med mindre pluggar: plattan (z 0-1,8) är oförändrad, pluggarna som trycks in i
-fönstret (z 1,8-3,8) krymps 1 mm på varje sida, från 21,5 x 16,5 till 19,5 x 14,5 mm.
+fönstret (z 1,8-3,8) krymps SHRINK mm på varje sida (standard 1 mm; använd 0,5 mm: 21,5 x 16,5 -> 20,5 x 15,5 mm).
 Kör:  python3 fonsterinsatser_mindre.py <in.stl> <ut.stl> [krympning mm]
 """
 import sys
