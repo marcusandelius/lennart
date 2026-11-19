@@ -1,25 +1,22 @@
 """
-Stuprör 9.5: liggande utskrift.
+Stuprör 9.6: liggande utskrift.
 
 Stående stod röret på en punkt (spetsen av utkastaren, ca 3 mm² kontakt) och var 117 mm högt
 och bara 8,4 mm tjockt, så det lossnade. Här läggs varje rör ner på sidan:
   * Röret ligger nästan i ett lodrätt plan: böjen upptill pekar ca 41 grader snett utåt-framåt,
     utkastaren nertill ca 35 grader. Utkastaren vrids runt rörets axel så att den pekar som böjen.
-  * Röret läggs med sidan som vetter utåt-bakåt mot plattan. Där får det en köl: en 5 mm bred
-    list som går ner till plattan och smälter in 1 mm i röret (rörets vägg är 1,27 mm, så hålet
-    inuti påverkas inte). Kölen går hela vägen; toppen stöter bara mot rännans undersida.
-  * De vita klamrarna får en liten vit fot under ringen. Pinnarna pekar ca 40 grader uppåt.
+  * Röret läggs med sidan som vetter utåt-bakåt mot plattan. 9.6: i stället för en köl kapas röret
+    plant 0,45 mm in (rörväggen är 1,27 mm, ca 0,8 mm blir kvar). Fasetten är ca 3,8 mm bred och
+    går i jämnhöjd med röret, så den syns knappt. Klamrarnas ringar kapas i samma plan.
+    Pinnarna pekar ca 40 grader uppåt.
 Kör:  python3 stupror_liggande.py <23_stupror_gra.stl> <23_stupror_vit.stl> <stupror_T.npy> <utkatalog>
 """
 import sys, os
 import numpy as np
 import trimesh
-from shapely.geometry import MultiPoint, Polygon
-from shapely.ops import unary_union
 
 G, V, TF, OUT = sys.argv[1:5]
-R_TUBE, KEEL_W, KEEL_IN = 4.2, 5.0, 1.0
-TOP_STOP = None            # köl hela vägen: rörets topp stöter bara mot rännans undersida, inget omsluter den
+FLAT = 0.45                # 9.6: i stället för köl kapas röret plant 0,45 mm in (vägg kvar ca 0,8 mm)
 U = lambda ms: trimesh.boolean.union(ms, engine="manifold")
 D = lambda a, bs: trimesh.boolean.difference([a] + bs, engine="manifold")
 I = lambda a, b: trimesh.boolean.intersection([a, b], engine="manifold")
@@ -31,13 +28,6 @@ g.apply_transform(T); v.apply_transform(T)                 # husets koordinater
 def ang(dx, dy): return np.arctan2(dy, dx)
 
 
-def extrude(poly, z0, z1):
-    geoms = getattr(poly, "geoms", [poly])
-    ms = []
-    for p in geoms:
-        if p.area < 0.5: continue
-        m = trimesh.creation.extrude_polygon(p, z1 - z0); m.apply_translation([0, 0, z0]); ms.append(m)
-    return U(ms)
 
 
 laid = []
@@ -70,42 +60,19 @@ for pipe in g.split(only_watertight=False):
     zmin = min(m.bounds[0][2] for m in [pipe] + clamps)
     for m in [pipe] + clamps: m.apply_translation([0, 0, -zmin])
     tube_bot = pipe.bounds[0][2]
-    # 3) köl: rörets skugga, krympt till 5 mm bredd, utan toppen
-    tri = pipe.triangles[:, :, :2]
-    u, w = tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0]
-    keep = np.abs(u[:, 0] * w[:, 1] - u[:, 1] * w[:, 0]) > 1e-6
-    sil = unary_union([Polygon(t) for t in tri[keep]]).buffer(0.01).buffer(-0.01)
-    print("  skugga: %.0f mm²" % sil.area)
-    sil = sil.buffer(-(R_TUBE - KEEL_W / 2))
-    if TOP_STOP is not None:
-        topxy = pipe.vertices[hz > TOP_STOP][:, :2]
-        sil = sil.difference(MultiPoint(topxy).convex_hull.buffer(1.0))
-    print("  köl: %s, yta %.0f mm², delar %d" % (sil.geom_type, sil.area, len(getattr(sil, "geoms", [sil]))))
-    keel = extrude(sil, 0.0, tube_bot + KEEL_IN)
-    # 4) vita fötter under klamrarnas ringar
-    feet = []
-    axis_z = tube_bot + R_TUBE
-    for cl in clamps:
-        b = cl.bounds
-        ym = (b[0][1] + b[1][1]) / 2                         # pinnen pekar vinkelrätt mot röret, så y är bara bandet
-        sec = pipe.section(plane_origin=[0, ym, 0], plane_normal=[0, 1, 0]).bounds
-        cx = (sec[0][0] + sec[1][0]) / 2                       # rörets axel vid klammern
-        ring_r = axis_z - b[0][2]                              # ringen når ner till plattan
-        half = ring_r * np.sin(np.radians(45))
-        h = ring_r - np.sqrt(ring_r ** 2 - half ** 2) + 0.5
-        bx = trimesh.creation.box(extents=[2 * half, b[1][1] - b[0][1], h])
-        bx.apply_translation([cx, ym, h / 2])
-        feet.append(bx)
-    black = U([pipe, D(keel, feet + clamps)])
-    white = U(clamps + [D(U(feet), [black])])
-    black = D(black, [white])
-    # färgdelningen kan lämna tunna flisor, behåll bara riktiga kroppar
+    # 3) plan fasett: kapa rör och klammer under planet tube_bot + FLAT och sänk ner till z = 0
+    cut = tube_bot + FLAT
+    big = trimesh.creation.box(extents=[1000, 1000, 100]); big.apply_translation([0, 0, cut + 50])
+    black = I(pipe, big)
+    white = U([I(c, big) for c in clamps])
+    for m in (black, white): m.apply_translation([0, 0, -cut])
+    white = D(white, [black])
     black = trimesh.util.concatenate([q for q in black.split(only_watertight=False) if abs(q.volume) > 1.0])
     white = trimesh.util.concatenate([q for q in white.split(only_watertight=False) if abs(q.volume) > 1.0])
     assert black.is_watertight and white.is_watertight
     laid.append((side, black, white))
-    print("rör %+d: vridning av utkastaren %.1f grader, rörets botten %.2f mm över plattan, längd %s" %
-          (side, np.degrees(rot), tube_bot, np.round(black.extents, 1).tolist()))
+    print("rör %+d: vridning av utkastaren %.1f grader, fasett %.2f mm, mått %s" %
+          (side, np.degrees(rot), FLAT, np.round(black.extents, 1).tolist()))
 
 # lägg rören bredvid varandra, 6 mm isär
 out_b, out_w, x = [], [], 0.0
