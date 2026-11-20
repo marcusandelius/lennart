@@ -2,7 +2,9 @@
 
 Visar kamerans bild live på 2"-skärmen, rapporterar status till lennart.cam,
 skickar livebild när någon tittar där, spelar in klipp när något rör sig
-och tar emot inställningar och servokommandon från adminvyn.
+och tar emot inställningar och servokommandon från adminvyn. I adminvyn går
+det också att välja om skärmen ska visa kamerabilden, ACCESS GRANTED eller
+ACCESS DENIED.
 Igenkänningen läggs till senare.
 
 Inställningar läses från miljön (~/.config/lennart/.env via systemd):
@@ -53,6 +55,13 @@ def load_font(size: int):
 FONT_SMALL = load_font(14)
 FONT_BIG = load_font(26)
 
+# Skärmlägen som adminvyn kan välja, utöver "camera" (kamerabilden).
+# Bakgrund, två rader stor text och en rad på svenska under.
+ACCESS_SCREENS = {
+    "granted": ((20, 125, 55), "ACCESS", "GRANTED", "Välkommen, Lennart!"),
+    "denied": ((165, 28, 28), "ACCESS", "DENIED", "Bara för Lennart."),
+}
+
 
 def start_camera():
     """Startar Camera Module 3 med en bildström i 1280 × 720. Rotationen görs i mjukvaran."""
@@ -79,6 +88,32 @@ def message_screen(title: str, detail: str = "") -> np.ndarray:
     draw.text((16, 80), title, font=FONT_BIG, fill=WHITE)
     for i, line in enumerate(textwrap.wrap(detail, 34)[:5]):
         draw.text((16, 124 + i * 18), line, font=FONT_SMALL, fill=GREY)
+    return np.asarray(img)
+
+
+def fit_font(draw: ImageDraw.ImageDraw, text: str, size: int, max_width: int):
+    """Största typsnittet, från size och nedåt, där texten ryms på bredden."""
+    while size > 10:
+        font = load_font(size)
+        if draw.textlength(text, font=font) <= max_width:
+            return font
+        size -= 2
+    return load_font(size)
+
+
+def access_screen(mode: str) -> np.ndarray:
+    """Helskärm med ACCESS GRANTED (grön) eller ACCESS DENIED (röd).
+
+    Hela skärmen fylls med en färg, så den fungerar också som test av skärmen
+    och kopplingen: syns färgen fungerar både strömmen och datakablarna.
+    """
+    background, line1, line2, note = ACCESS_SCREENS[mode]
+    img = Image.new("RGB", (WIDTH, HEIGHT), background)
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((6, 6, WIDTH - 7, HEIGHT - 7), outline=WHITE, width=3)
+    for text, size, y in ((line1, 40, 42), (line2, 56, 92), (note, 20, 178)):
+        font = fit_font(draw, text, size, WIDTH - 40)
+        draw.text((WIDTH // 2, y), text, font=font, fill=WHITE, anchor="mt")  # centrerat kring x
     return np.asarray(img)
 
 
@@ -139,7 +174,8 @@ def main() -> int:
     fps = 0.0
 
     # Inställningar från adminvyn. CAMERA_FLIP gäller bara tills servern har svarat.
-    device = {"camera_rotation": 180 if os.environ.get("CAMERA_FLIP", "0") == "1" else 0}
+    device = {"camera_rotation": 180 if os.environ.get("CAMERA_FLIP", "0") == "1" else 0,
+              "display_mode": "camera"}
 
     # Efter varje servokommando skickas en rapport direkt, så att adminvyn ser resultatet.
     servo = ServoController(on_change=lambda: threading.Thread(target=heartbeat.send_once, daemon=True).start())
@@ -154,7 +190,8 @@ def main() -> int:
         if display is None and display_error:
             problems.append(f"Skärm: {display_error}")
         report = {"camera_ok": camera is not None, "display_ok": display is not None, "fps": round(fps, 1),
-                  "camera_rotation": device["camera_rotation"], "servo_ok": servo.ok, "servo_info": servo.info()[:200]}
+                  "camera_rotation": device["camera_rotation"], "display_mode": device["display_mode"],
+                  "servo_ok": servo.ok, "servo_info": servo.info()[:200]}
         rec_info = recorder.info(len(uploader.waiting()))
         if uploader.last_error:
             rec_info += f" · {uploader.last_error}"
@@ -185,8 +222,15 @@ def main() -> int:
     uploader.start()
 
     frames, fps_since = 0, time.monotonic()
+    shown = None  # vad skärmen senast fick, så att ACCESS-bilderna bara skickas när läget ändras
     while running:
         now = time.monotonic()
+        # Läs läget en gång per varv: det kan ändras från adminvyn mitt i varvet.
+        mode = device.get("display_mode", "camera")
+        show_camera = display is not None and mode not in ACCESS_SCREENS
+        if display is not None and not show_camera and shown != mode:
+            display.show(access_screen(mode))
+            shown = mode
         if camera is None and now - camera_tried > CAMERA_RETRY_S:
             camera_tried = now
             try:
@@ -196,13 +240,14 @@ def main() -> int:
                 camera_error = f"{type(e).__name__}: {e}"
                 print(f"Kameran gick inte att starta: {camera_error}", flush=True)
 
-        # Kameran behövs bara när skärmen ska visa något, någon tittar på livebilden
-        # eller inspelningen vid rörelse är påslagen.
-        if camera is None or (display is None and not live.active and not recorder.enabled):
+        # Kameran behövs bara när skärmen ska visa kamerabilden, någon tittar på
+        # livebilden eller inspelningen vid rörelse är påslagen.
+        if camera is None or not (show_camera or live.active or recorder.enabled):
             latest["rgb"] = None
-            if display is not None and camera is None:
+            if show_camera and camera is None:
                 display.show(add_status_bar(message_screen("Ingen kamera", camera_error), heartbeat.last_ok, fps))
-            time.sleep(0.5)
+                shown = "no-camera"
+            time.sleep(0.2 if display is not None else 0.5)  # kort väntan, så att ett nytt skärmläge syns direkt
             continue
 
         try:
@@ -217,12 +262,13 @@ def main() -> int:
         latest["rgb"] = rgb
         recorder.feed(rgb)
 
-        if display is not None:
+        if show_camera:
             display.show(add_status_bar(for_display(rgb), heartbeat.last_ok, fps))
+            shown = "camera"
 
         # Vänta in nästa bild, i den snabbaste takt som någon av skärmen, livebilden
         # och inspelningen behöver.
-        wanted = [DISPLAY_FPS if display is not None else 0, live.fps if live.active else 0,
+        wanted = [DISPLAY_FPS if show_camera else 0, live.fps if live.active else 0,
                   recorder.fps if recorder.enabled else 0]
         target_fps = max(max(wanted), 1)
         spare = 1 / target_fps - (time.monotonic() - now)

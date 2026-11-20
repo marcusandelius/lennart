@@ -31,6 +31,10 @@ RESOLUTIONS = {
 
 CAMERA_ROTATIONS = (0, 90, 180, 270)  # grader medsols
 
+# Vad 2"-skärmen på stationen visar. Igenkänningen ska sköta det själv senare,
+# men tills dess kan admin växla för hand, t.ex. för att testa skärmen.
+DISPLAY_MODES = ("camera", "granted", "denied")
+
 # Upplösningar för inspelade klipp. Kameran levererar 1280 × 720.
 REC_RESOLUTIONS = ("640x360", "1280x720")
 
@@ -41,6 +45,7 @@ DEFAULTS = {
     "quality": 70,          # JPEG-kvalitet, 30–90
     "max_view_min": 5,      # efter så här många minuter får besökaren klicka igen
     "camera_rotation": 0,   # vrid kamerabilden, t.ex. om kameran sitter på sidan
+    "display_mode": "camera",  # kamerabilden, ACCESS GRANTED eller ACCESS DENIED på skärmen
     # Servona sitter på PCA9685-kortet. Pulsbredden styr vinkeln: min_us = 0°, max_us = 180°.
     "servo_doser_channel": 0,
     "servo_lucka_channel": 1,
@@ -70,10 +75,11 @@ LIMITS = {
 }
 
 BOOL_KEYS = ("live_enabled", "recording_enabled")
-CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS, "rec_resolution": REC_RESOLUTIONS}
+CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS, "rec_resolution": REC_RESOLUTIONS,
+           "display_mode": DISPLAY_MODES}
 
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
-DEVICE_KEYS = ("camera_rotation", "servo_doser_channel", "servo_lucka_channel",
+DEVICE_KEYS = ("camera_rotation", "display_mode", "servo_doser_channel", "servo_lucka_channel",
                "servo_min_us", "servo_max_us", "dispense_angle",
                "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",
                "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")

@@ -45,7 +45,7 @@ import re
 
 import admin
 from clips import LABELS, MAX_CLIP_BYTES, MAX_THUMB_BYTES, ClipStore
-from live import (CAMERA_ROTATIONS, LIMITS, NO_FRAME_GIVE_UP_S, REC_RESOLUTIONS, RESOLUTIONS, LiveRelay,
+from live import (CAMERA_ROTATIONS, DISPLAY_MODES, LIMITS, NO_FRAME_GIVE_UP_S, REC_RESOLUTIONS, RESOLUTIONS, LiveRelay,
                   Settings, validate_command)
 
 PORT = int(os.environ.get("PORT", "8000"))
@@ -71,6 +71,7 @@ ALLOWED_FIELDS = {
     "message": str,
     "throttled": str,
     "camera_rotation": int,
+    "display_mode": str,
     "servo_ok": bool,
     "servo_info": str,
     "recording_ok": bool,
@@ -266,6 +267,7 @@ class Handler(BaseHTTPRequestHandler):
                 "resolutions": list(RESOLUTIONS),
                 "rec_resolutions": list(REC_RESOLUTIONS),
                 "rotations": list(CAMERA_ROTATIONS),
+                "display_modes": list(DISPLAY_MODES),
                 "limits": LIMITS,
                 "live": relay.info(),
                 "status": status_payload(),

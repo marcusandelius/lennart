@@ -34,6 +34,12 @@
   .angle { font-variant-numeric:tabular-nums; font-weight:700; min-width:3.5rem; display:inline-block; }
   .buttons { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.5rem; align-items:center; }
   details { margin-top:1rem; } summary { cursor:pointer; font-weight:600; }
+  .modes { display:flex; flex-wrap:wrap; gap:.5rem; margin:.25rem 0 .5rem; }
+  .mode { display:flex; align-items:center; gap:.45rem; padding:.55rem .9rem; border:1px solid var(--line); border-radius:10px; cursor:pointer; font-weight:700; }
+  .mode input { accent-color:var(--ink); margin:0; }
+  .mode:has(input:checked) { border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+  .mode.granted:has(input:checked) { border-color:var(--granted); box-shadow:inset 0 0 0 1px var(--granted); color:var(--granted); }
+  .mode.denied:has(input:checked) { border-color:var(--denied); box-shadow:inset 0 0 0 1px var(--denied); color:var(--denied); }
 </style>
 </head>
 <body>
@@ -78,6 +84,19 @@
         <button type="submit">Spara</button>
         <p class="msg" id="msg" role="status"></p>
       </form>
+    </section>
+
+    <section class="card">
+      <h2>Skärmen</h2>
+      <p id="displaystatus">–</p>
+      <div class="modes" role="radiogroup" aria-label="Vad skärmen på stationen visar">
+        <label class="mode"><input type="radio" name="display_mode" value="camera"> Kamerabilden</label>
+        <label class="mode granted"><input type="radio" name="display_mode" value="granted"> ACCESS GRANTED</label>
+        <label class="mode denied"><input type="radio" name="display_mode" value="denied"> ACCESS DENIED</label>
+      </div>
+      <p class="hint">Ändras direkt när du klickar. Senare ska igenkänningen sköta det här själv.</p>
+      <p class="hint">✓ betyder att programmet kunde starta skärmen. Skärmen kan inte svara tillbaka, så om den ändå är svart sitter felet i kopplingen.</p>
+      <p class="msg" id="displaymsg" role="status"></p>
     </section>
 
     <section class="card">
@@ -223,6 +242,8 @@
     setTimeout(load, 1500);  // stationen skickar en rapport direkt efter kommandot
   }
   let loaded = false;
+  const displayNames = { camera: "kamerabilden", granted: "ACCESS GRANTED", denied: "ACCESS DENIED" };
+  const radio = v => document.querySelector(`input[name=display_mode][value="${v}"]`);
 
   async function load() {
     const r = await fetch("/api/admin/state", { cache: "no-store" });
@@ -235,6 +256,7 @@
       $("live_enabled").checked = s.settings.live_enabled;
       $("camera_rotation").innerHTML = s.rotations.map(v => `<option value="${v}">${v}°</option>`).join("");
       $("camera_rotation").value = s.settings.camera_rotation;
+      if (radio(s.settings.display_mode)) radio(s.settings.display_mode).checked = true;
       for (const f of servoFields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
       $("dispensehint").textContent = `Ett litet vick, sedan till ${s.settings.dispense_angle}° och tillbaka till 0°.`;
       $("rec_resolution").innerHTML = s.rec_resolutions.map(v => `<option value="${v}">${v.replace("x", " × ")}</option>`).join("");
@@ -251,6 +273,11 @@
     $("temp").textContent = rep.cpu_temp_c != null ? `${rep.cpu_temp_c.toFixed(1)} °C` : "–";
     $("net").textContent = rep.network || "–";
     $("version").textContent = rep.version || "–";
+    const displayProblem = (rep.message || "").split(" · ").find(p => p.startsWith("Skärm:"));
+    $("displaystatus").textContent = !st.online ? "Stationen hörs inte av."
+      : rep.display_ok === undefined ? "Ingen uppgift från stationen än."
+      : rep.display_ok ? `✓ Skärmen är igång och visar ${displayNames[rep.display_mode] || "kamerabilden"}.`
+      : `✗ ${displayProblem || "Skärmen gick inte att starta."}`;
     $("servostatus").textContent = !st.online ? "Stationen hörs inte av."
       : rep.servo_info ? `${rep.servo_ok ? "✓" : "✗"} ${rep.servo_info}` : "Ingen uppgift från stationen än.";
     $("recstatus").textContent = !st.online ? "Stationen hörs inte av."
@@ -275,6 +302,9 @@
     e.preventDefault();
     saveSettings({ camera_rotation: parseInt($("camera_rotation").value, 10) }, "cameramsg");
   });
+  document.querySelectorAll("input[name=display_mode]").forEach(r => r.addEventListener("change", async () => {
+    if (await saveSettings({ display_mode: r.value }, "displaymsg")) setTimeout(load, 1500);
+  }));
   $("recording").addEventListener("submit", e => {
     e.preventDefault();
     const body = { recording_enabled: $("recording_enabled").checked, rec_resolution: $("rec_resolution").value };
