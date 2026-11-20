@@ -3,8 +3,8 @@
 Visar kamerans bild live på 2"-skärmen, rapporterar status till lennart.cam,
 skickar livebild när någon tittar där, spelar in klipp när något rör sig
 och tar emot inställningar och servokommandon från adminvyn. I adminvyn går
-det också att välja om skärmen ska visa kamerabilden, ACCESS GRANTED eller
-ACCESS DENIED.
+det också att välja om skärmen ska visa kamerabilden, ACCESS GRANTED,
+ACCESS DENIED eller demoläget (ACCESS GRANTED eller DENIED på slump vid rörelse).
 Igenkänningen läggs till senare.
 
 Inställningar läses från miljön (~/.config/lennart/.env via systemd):
@@ -25,6 +25,7 @@ import time
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+from demo import DemoMode
 from display import HEIGHT, WIDTH, Display
 from heartbeat import Heartbeat
 from live import LiveSender
@@ -179,6 +180,7 @@ def main() -> int:
     # Skärmkommandon från adminvyn utförs i huvudslingan, som är den enda tråden som pratar
     # med skärmen. Annars kunde en omstart krocka med en bild som håller på att skickas.
     display_requests = {"restart": False}
+    demo = DemoMode()
 
     # Efter varje servokommando skickas en rapport direkt, så att adminvyn ser resultatet.
     servo = ServoController(on_change=lambda: threading.Thread(target=heartbeat.send_once, daemon=True).start())
@@ -195,6 +197,9 @@ def main() -> int:
         report = {"camera_ok": camera is not None, "display_ok": display is not None, "fps": round(fps, 1),
                   "camera_rotation": device["camera_rotation"], "display_mode": device["display_mode"],
                   "display_info": (display.info() if display is not None else display_error)[:200],
+                  "demo_info": demo.info(time.monotonic(), device.get("motion_sensitivity", 10),
+                                         device.get("min_brightness", 15))[:200]
+                  if device["display_mode"] == "demo" else None,
                   "servo_ok": servo.ok, "servo_info": servo.info()[:200]}
         rec_info = recorder.info(len(uploader.waiting()))
         if uploader.last_error:
@@ -234,6 +239,11 @@ def main() -> int:
         now = time.monotonic()
         # Läs läget en gång per varv: det kan ändras från adminvyn mitt i varvet.
         mode = device.get("display_mode", "camera")
+        demo_on = display is not None and mode == "demo"
+        if demo_on:
+            mode = demo.screen(now)  # kamerabilden, eller ACCESS-bilden som lottades fram
+        elif demo.background is not None:
+            demo.reset()             # lär in bakgrunden på nytt nästa gång demoläget slås på
         show_camera = display is not None and mode not in ACCESS_SCREENS
         if display is not None:
             # SPI-hastigheten väljs i adminvyn (i MHz). LCD_SPI_HZ i .env gäller tills servern svarat.
@@ -265,9 +275,9 @@ def main() -> int:
                 camera_error = f"{type(e).__name__}: {e}"
                 print(f"Kameran gick inte att starta: {camera_error}", flush=True)
 
-        # Kameran behövs bara när skärmen ska visa kamerabilden, någon tittar på
-        # livebilden eller inspelningen vid rörelse är påslagen.
-        if camera is None or not (show_camera or live.active or recorder.enabled):
+        # Kameran behövs bara när skärmen ska visa kamerabilden, demoläget letar rörelse,
+        # någon tittar på livebilden eller inspelningen vid rörelse är påslagen.
+        if camera is None or not (show_camera or demo_on or live.active or recorder.enabled):
             latest["rgb"] = None
             if show_camera and camera is None:
                 display.show(add_status_bar(message_screen("Ingen kamera", camera_error), heartbeat.last_ok, fps))
@@ -286,6 +296,8 @@ def main() -> int:
         rgb = rotate(rgb, device["camera_rotation"])
         latest["rgb"] = rgb
         recorder.feed(rgb)
+        if demo_on:
+            demo.feed(rgb, now, device.get("motion_sensitivity", 10), device.get("min_brightness", 15))
 
         if show_camera:
             display.show(add_status_bar(for_display(rgb), heartbeat.last_ok, fps))
@@ -293,7 +305,7 @@ def main() -> int:
 
         # Vänta in nästa bild, i den snabbaste takt som någon av skärmen, livebilden
         # och inspelningen behöver.
-        wanted = [DISPLAY_FPS if show_camera else 0, live.fps if live.active else 0,
+        wanted = [DISPLAY_FPS if show_camera or demo_on else 0, live.fps if live.active else 0,
                   recorder.fps if recorder.enabled else 0]
         target_fps = max(max(wanted), 1)
         spare = 1 / target_fps - (time.monotonic() - now)

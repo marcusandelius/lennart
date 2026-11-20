@@ -73,12 +73,13 @@ ALLOWED_FIELDS = {
     "camera_rotation": int,
     "display_mode": str,
     "display_info": str,
+    "demo_info": str,
     "servo_ok": bool,
     "servo_info": str,
     "recording_ok": bool,
     "recording_info": str,
 }
-LONG_FIELDS = ("message", "servo_info", "recording_info", "display_info")
+LONG_FIELDS = ("message", "servo_info", "recording_info", "display_info", "demo_info")
 
 HERE = Path(__file__).parent
 PAGES = {name: (HERE / f"{name}.html").read_text(encoding="utf-8") for name in ("index", "demo", "admin", "login", "clips")}

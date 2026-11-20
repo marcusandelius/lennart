@@ -93,8 +93,11 @@
         <label class="mode"><input type="radio" name="display_mode" value="camera"> Kamerabilden</label>
         <label class="mode granted"><input type="radio" name="display_mode" value="granted"> ACCESS GRANTED</label>
         <label class="mode denied"><input type="radio" name="display_mode" value="denied"> ACCESS DENIED</label>
+        <label class="mode"><input type="radio" name="display_mode" value="demo"> Demo</label>
       </div>
       <p class="hint">Ändras direkt när du klickar. Senare ska igenkänningen sköta det här själv.</p>
+      <p class="hint"><b>Demo:</b> skärmen visar kamerabilden, och när något rör sig lottas ACCESS GRANTED eller ACCESS DENIED fram och visas i 4 sekunder. Rörelsegränsen och ljusgränsen är samma som under <i>Inspelning vid rörelse</i>.</p>
+      <p class="hint" id="demoinfo" hidden></p>
       <div class="row">
         <label for="lcd_spi_mhz">SPI-hastighet</label>
         <div><select id="lcd_spi_mhz"></select><p class="hint">Hur fort bilden skickas till skärmen. Blir bilden randig eller svart med långa kablar: prova lägre. Gäller direkt.</p></div>
@@ -251,7 +254,7 @@
     setTimeout(load, 1500);  // stationen skickar en rapport direkt efter kommandot
   }
   let loaded = false;
-  const displayNames = { camera: "kamerabilden", granted: "ACCESS GRANTED", denied: "ACCESS DENIED" };
+  const displayNames = { camera: "kamerabilden", granted: "ACCESS GRANTED", denied: "ACCESS DENIED", demo: "demoläget" };
   const radio = v => document.querySelector(`input[name=display_mode][value="${v}"]`);
 
   async function load() {
@@ -290,6 +293,8 @@
       : rep.display_ok ? `✓ Skärmen är igång och visar ${displayNames[rep.display_mode] || "kamerabilden"}.`
       : `✗ ${displayProblem || "Skärmen gick inte att starta."}`;
     $("displayinfo").textContent = st.online && rep.display_info ? `Tekniskt: ${rep.display_info}` : "";
+    $("demoinfo").hidden = !(st.online && rep.demo_info);
+    $("demoinfo").textContent = rep.demo_info || "";
     $("servostatus").textContent = !st.online ? "Stationen hörs inte av."
       : rep.servo_info ? `${rep.servo_ok ? "✓" : "✗"} ${rep.servo_info}` : "Ingen uppgift från stationen än.";
     $("recstatus").textContent = !st.online ? "Stationen hörs inte av."
