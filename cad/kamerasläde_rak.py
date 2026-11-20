@@ -6,9 +6,8 @@ ligger i fickan på insidan, dess insida vid y = -63,87.
   * Kortet står lodrätt, linsen pekar rakt ut längs -y och ligger på hålets axel.
   * Linsens spets ca 1 mm bakom fönstret (antagen linshöjd 10 mm över kortets framsida).
   * 9.8: två långa spår (ett per hålkolumn) i stället för fyra korta hål. Kameran kan flyttas fritt
-    från 2 mm upp till 10 mm ner jämfört med 9.7 (9.7 satt för högt). Distanserna är lösa hylsor
-    (6 st, 4 mm, Ø4,6/Ø2,3) som skrivs ut i samma fil: skruv M2 genom kameran, hylsan och spåret,
-    bricka och mutter bakom plattan.
+    från 2 mm upp till 10 mm ner jämfört med 9.7 (9.7 satt för högt). Distanserna är lösa (köpta M2-distanser,
+    ca 4 mm): skruv M2 genom kameran, distansen och spåret, bricka och mutter bakom plattan.
   * Släden hänger på samma kameraklackar som förut (x = ±22, ovansida z = 175, insats y = -58)
     med två M3 x 10 uppifrån. Spåren i flikarna ger justering fram och tillbaka.
 Kör:  python3 kamerasläde_rak.py <utkatalog>
@@ -83,9 +82,10 @@ sled.export(os.path.join(OUT, "asm_kamerafaste.stl"))
 pr = sled.copy()
 pr.apply_transform(trimesh.transformations.rotation_matrix(-np.pi / 2, [1, 0, 0]))
 pr.apply_translation([-(pr.bounds[0][0] + pr.bounds[1][0]) / 2, -(pr.bounds[0][1] + pr.bounds[1][1]) / 2, -pr.bounds[0][2]])
-# lösa distanshylsor (4 + 2 i reserv) bredvid släden
+# lösa distanshylsor bredvid släden: av (köpta distanser används), sätt SPACERS = 6 för att skriva ut egna
+SPACERS = 0
 sp = []
-for n in range(6):
+for n in range(SPACERS):
     t = D(cylinder(radius=2.3, height=STANDOFF, sections=40), [cylinder(radius=1.15, height=STANDOFF + 2, sections=24)])
     t.apply_translation([pr.bounds[0][0] + 4 + n * 7.5, pr.bounds[0][1] - 6, STANDOFF / 2])
     sp.append(t)
