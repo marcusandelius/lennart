@@ -85,7 +85,7 @@ scripts/             – skript som körs av deploy
 
 ## Öppna beslut
 
-- Bildigenkänningen: körs lokalt på Pi:n (beslutat 2026-11-20). **Vilken modell är inte beslutad.** Inget byggs förrän Marcus valt. Se `docs/beslut/bildigenkanning.md`.
+- Bildigenkänningen: körs lokalt på Pi:n med `yolov8n-oiv7` som första försök (beslutat 2026-11-20). Testas på klipp innan den byggs in i stationen. Se `docs/igenkanning.md` och `docs/beslut/bildigenkanning.md`.
 - Övriga öppna frågor: `docs/att-gora.md`.
 
 ## Bra att veta

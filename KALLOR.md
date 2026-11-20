@@ -72,6 +72,10 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 
 - **PCA9685-register** i `pi/servo.py` (MODE1, PRESCALE, LED0_ON_L, frekvens 50 Hz): från NXP:s datablad för PCA9685 [verifiera länk].
 - **ST7789-kommandon** i `pi/display.py`: från Sitronix datablad för ST7789 och Waveshares beskrivning av Pico-LCD-2 [verifiera länk].
+- **YOLOv8n tränad på Open Images V7** (`yolov8n-oiv7`), Ultralytics, [docs](https://docs.ultralytics.com/datasets/detect/open-images-v7/). Licens: AGPL-3.0. Exporterad till ONNX och inlagd som `pi/models/yolov8n-oiv7.onnx` 2026-11-20, se [docs/igenkanning.md](docs/igenkanning.md).
+- **Open Images V7** (Google), som modellen är tränad på, [webbplats](https://storage.googleapis.com/openimages/web/factsfigures_v7.html). Licens: annoteringarna CC BY 4.0, bilderna listade som CC BY 2.0.
+- **ONNX Runtime** (Microsoft), kör modellen på Pi:n, [GitHub](https://github.com/microsoft/onnxruntime). Licens: MIT.
+- **Ultralytics** 8.4.216 (AGPL-3.0), **PyTorch** 2.15.0 (BSD-3-Clause), **onnx** 1.23.2 (Apache-2.0) och **onnxslim** 0.1.99 (MIT): användes bara för att exportera modellen till ONNX, i molnet. Finns inte på Pi:n.
 - **AI-hjälp 2026-11-20:** en hjälpagent i Claude Code-sessionen sökte fram underlag om modeller för lokal igenkänning ([docs/beslut/bildigenkanning-modeller.md](docs/beslut/bildigenkanning-modeller.md)). Inga modeller eller data har lagts in än. De förs in här med licens när de väljs.
 - **Pico-LCD-2, ström och SPI-stift:** [Waveshares wiki](https://www.waveshare.com/wiki/Pico-LCD-2), via sökresultat 2026-11-20 (sidan stänger ute automatiska anrop). Uppgifter: styrkrets ST7789VW, VCC till VSYS, 2,6–5,5 V, DIN = GP11, CLK = GP10, CS = GP9.
 

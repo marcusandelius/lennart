@@ -96,3 +96,5 @@ Skälen:
 ## Beslut
 
 **2026-11-20, inriktning:** Marcus vill att igenkänningen körs **lokalt på Pi:n**, som objektdetektering på videon med en egen klass för ekorre (alternativ A). Ett moln-API (C) väljs alltså bort. Vilken modell som används, och om en färdig modell räcker eller om en egen behöver tränas, är inte avgjort. Underlag om modeller: [bildigenkanning-modeller.md](bildigenkanning-modeller.md).
+
+**2026-11-20, modell för första försöket:** Marcus valde `yolov8n-oiv7` (YOLOv8n tränad på Open Images V7, AGPL-3.0), som är det mest lovande färdiga alternativet med en egen klass för ekorre. Den testas först på inspelade klipp, se [../igenkanning.md](../igenkanning.md). Om träffsäkerheten räcker byggs den in i stationen. Annars finjusteras den på egna klipp.
