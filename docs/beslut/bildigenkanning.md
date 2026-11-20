@@ -1,6 +1,6 @@
 # Beslut: var ska bildigenkänningen köras?
 
-**Status:** Förslag, väntar på Marcus beslut. Inget byggs innan dess.
+**Status:** Inriktning beslutad 2026-11-20: lokalt på Pi:n (se Beslut längst ned). Modellen är inte vald.
 **Datum:** 2026-11-15 (reviderat samma dag efter att HANDOFF-filen lästs)
 
 > Siffror märkta [verifiera] är typiska storleksordningar, inte mätningar. De ska mätas på riktigt innan beslutet blir slutgiltigt.
@@ -95,4 +95,4 @@ Skälen:
 
 ## Beslut
 
-*Väntar på Marcus.*
+**2026-11-20, inriktning:** Marcus vill att igenkänningen körs **lokalt på Pi:n**, som objektdetektering på videon med en egen klass för ekorre (alternativ A). Ett moln-API (C) väljs alltså bort. Vilken modell som används, och om en färdig modell räcker eller om en egen behöver tränas, är inte avgjort. Underlag tas fram av en hjälpagent och läggs till här.

@@ -86,3 +86,4 @@ Konstaterat i chatten, inte beslutat:
 | 2026-11-20 | I adminvyn väljer admin vad skärmen visar: kamerabilden, ACCESS GRANTED eller ACCESS DENIED. Valet sparas som en inställning och gäller tills det ändras. | Marcus önskemål, för att testa skärmen och visa den. Igenkänningen ska sköta det själv senare. |
 | 2026-11-20 | Skärmens SPI-hastighet väljs i adminvyn (1–32 MHz), och skärmen kan startas om därifrån | Marcus önskemål: felsöka den svarta skärmen utan att redigera `.env` på Pi:n |
 | 2026-11-20 | Demoläge för skärmen: vid rörelse lottas ACCESS GRANTED eller ACCESS DENIED och visas i 4 sekunder. Samma rörelsedetektering och gränser som inspelningen. | Marcus önskemål: visa hur stationen ska bete sig innan igenkänningen finns |
+| 2026-11-20 | Bildigenkänningen ska köras lokalt på Pi:n, som objektdetektering med en klass för ekorre. Modellen är inte vald. | Marcus beslut. Ersätter rekommendationen om moln-API i `docs/beslut/bildigenkanning.md`. |
