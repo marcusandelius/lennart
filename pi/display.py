@@ -161,10 +161,12 @@ class Display:
 
 
 def find_spi_device() -> tuple[int, int]:
-    """Hitta SPI-enheten för stiftlistens SPI0 med chip select CE0.
+    """Hitta SPI-enheten för stiftlistens SPI0 med chip select CE0: /dev/spidev0.0.
 
-    Den heter /dev/spidev0.0 med äldre kärnor, men kan heta t.ex. /dev/spidev10.0
-    på Pi 5 med nyare. Kan styras med LCD_SPI_DEV, t.ex. LCD_SPI_DEV=10.0.
+    Den finns bara när SPI är påslaget (raspi-config, eller dtparam=spi=on i
+    /boot/firmware/config.txt) och Pi:n har startats om. En Pi 5 kan ha
+    /dev/spidev10.0 även utan det, men den bussen går inte till stiftlisten
+    [verifiera], så den används inte. Kan styras med LCD_SPI_DEV, t.ex. LCD_SPI_DEV=0.0.
     """
     import glob
 
@@ -172,13 +174,11 @@ def find_spi_device() -> tuple[int, int]:
         bus, device = os.environ["LCD_SPI_DEV"].split(".")
         return int(bus), int(device)
     found = sorted(glob.glob("/dev/spidev*"))
-    for candidate in ("/dev/spidev0.0", "/dev/spidev10.0"):
-        if candidate in found:
-            bus, device = candidate.removeprefix("/dev/spidev").split(".")
-            return int(bus), int(device)
-    if not found:
-        raise RuntimeError("Ingen /dev/spidev* finns. Är SPI påslaget (raspi-config) och Pi:n omstartad?")
-    raise RuntimeError(f"Hittar inte SPI0 (CE0). Finns: {', '.join(found)}. Sätt LCD_SPI_DEV.")
+    if "/dev/spidev0.0" in found:
+        return 0, 0
+    others = f" (finns bara {', '.join(found)})" if found else ""
+    raise RuntimeError(f"SPI på stiftlisten är inte påslaget: /dev/spidev0.0 saknas{others}. "
+                       "Slå på SPI med raspi-config och starta om Pi:n.")
 
 
 def find_header_gpiochip() -> int:

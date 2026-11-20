@@ -87,7 +87,8 @@ Inställningarna läggs i `~/.config/lennart/.env` och börjar gälla när tjän
 | Kamerabilden är vriden eller upp och ner | Välj rotation under **Kamera** i adminvyn på lennart.cam (0°, 90°, 180° eller 270°). |
 | Randig eller trasig bild | Sänk **SPI-hastighet** i adminvyn, eller använd kortare kablar. `LCD_SPI_HZ` i `.env` gäller bara tills lennart.cam har svarat. |
 | Annan pinne för DC, RST eller BL | `LCD_DC=`, `LCD_RST=`, `LCD_BL=` (GPIO-nummer) |
-| Fel GPIO-krets eller SPI-enhet hittas | `LCD_GPIOCHIP=` (t.ex. `13`) eller `LCD_SPI_DEV=` (t.ex. `10.0`). Normalt hittas de automatiskt: numren skiljer sig mellan kärnversioner, och på Marcus Pi heter kretsarna `gpiochip11`–`15`. |
+| Fel GPIO-krets hittas | `LCD_GPIOCHIP=` (t.ex. `13`). Normalt hittas den automatiskt: numren skiljer sig mellan kärnversioner, och på Marcus Pi heter kretsarna `gpiochip11`–`15`. |
+| "SPI på stiftlisten är inte påslaget" i adminvyn | SPI är avstängt, och då finns inte `/dev/spidev0.0`. Slå på SPI (steg 4a i [SETUP-PI.md](SETUP-PI.md)) och starta om Pi:n. 2026-11-20 fanns bara `/dev/spidev10.0` på Marcus Pi. Programmet använde den, och skärmen förblev svart. |
 
 ## Kameran
 
