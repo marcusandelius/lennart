@@ -87,3 +87,4 @@ Konstaterat i chatten, inte beslutat:
 | 2026-11-20 | Skärmens SPI-hastighet väljs i adminvyn (1–32 MHz), och skärmen kan startas om därifrån | Marcus önskemål: felsöka den svarta skärmen utan att redigera `.env` på Pi:n |
 | 2026-11-20 | Demoläge för skärmen: vid rörelse lottas ACCESS GRANTED eller ACCESS DENIED och visas i 4 sekunder. Samma rörelsedetektering och gränser som inspelningen. | Marcus önskemål: visa hur stationen ska bete sig innan igenkänningen finns |
 | 2026-11-20 | Bildigenkänningen ska köras lokalt på Pi:n, som objektdetektering med en klass för ekorre. Modellen är inte vald. | Marcus beslut. Ersätter rekommendationen om moln-API i `docs/beslut/bildigenkanning.md`. |
+| 2026-11-20 | Repot licensieras under AGPL-3.0 | Marcus beslut. Ultralytics-modellen för igenkänningen är AGPL-3.0, och med samma licens för repot går de ihop. Licens för innehåll som inte är kod är inte genomgången. |

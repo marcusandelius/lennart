@@ -81,4 +81,6 @@ Raspberry Pi 5 (8 GB), Camera Module 3 Wide, Waveshare 2" skärm, servon via PCA
 
 ## Licens
 
-**[Beslutas]**
+Repot licensieras under **GNU Affero General Public License v3.0** (AGPL-3.0), se [LICENSE](LICENSE). Beslutat av Marcus 2026-11-20. Skälet är att bildigenkänningen bygger på en modell från Ultralytics, som är AGPL-3.0.
+
+Lånade resurser (bibliotek, modeller, data, bilder) har sina egna licenser, och de står i [KALLOR.md](KALLOR.md). Om AGPL-3.0 också passar för innehåll som inte är kod, till exempel 3D-modellen och bilderna, eller om de ska ha en egen licens, är inte genomgånget [kräver granskning].
