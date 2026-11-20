@@ -95,7 +95,14 @@
         <label class="mode denied"><input type="radio" name="display_mode" value="denied"> ACCESS DENIED</label>
       </div>
       <p class="hint">Ändras direkt när du klickar. Senare ska igenkänningen sköta det här själv.</p>
+      <div class="row">
+        <label for="lcd_spi_mhz">SPI-hastighet</label>
+        <div><select id="lcd_spi_mhz"></select><p class="hint">Hur fort bilden skickas till skärmen. Blir bilden randig eller svart med långa kablar: prova lägre. Gäller direkt.</p></div>
+      </div>
+      <div class="buttons"><button type="button" class="secondary" id="displayrestart">Starta om skärmen</button></div>
+      <p class="hint">Skickar skärmens startkommandon igen. Behövs om skärmen fick ström efter att programmet startade.</p>
       <p class="hint">✓ betyder att programmet kunde starta skärmen. Skärmen kan inte svara tillbaka, så om den ändå är svart sitter felet i kopplingen.</p>
+      <p class="hint" id="displayinfo"></p>
       <p class="msg" id="displaymsg" role="status"></p>
     </section>
 
@@ -231,14 +238,16 @@
     return r.ok ? s : null;
   }
 
-  async function servo(cmd) {
-    $("servomsg").className = "msg"; $("servomsg").textContent = "Skickar …";
+  async function servo(cmd) { return command(cmd, "servomsg"); }
+
+  async function command(cmd, msgId) {
+    $(msgId).className = "msg"; $(msgId).textContent = "Skickar …";
     const r = await fetch("/api/admin/servo", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cmd),
     });
     const s = await r.json();
-    $("servomsg").className = "msg " + (r.ok && !s.varning ? "ok" : "no");
-    $("servomsg").textContent = !r.ok ? (s.fel || "Kunde inte skicka.") : (s.varning || "Skickat till stationen.");
+    $(msgId).className = "msg " + (r.ok && !s.varning ? "ok" : "no");
+    $(msgId).textContent = !r.ok ? (s.fel || "Kunde inte skicka.") : (s.varning || "Skickat till stationen.");
     setTimeout(load, 1500);  // stationen skickar en rapport direkt efter kommandot
   }
   let loaded = false;
@@ -257,6 +266,8 @@
       $("camera_rotation").innerHTML = s.rotations.map(v => `<option value="${v}">${v}°</option>`).join("");
       $("camera_rotation").value = s.settings.camera_rotation;
       if (radio(s.settings.display_mode)) radio(s.settings.display_mode).checked = true;
+      $("lcd_spi_mhz").innerHTML = s.lcd_spi_mhz.map(v => `<option value="${v}">${v} MHz</option>`).join("");
+      $("lcd_spi_mhz").value = s.settings.lcd_spi_mhz;
       for (const f of servoFields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
       $("dispensehint").textContent = `Ett litet vick, sedan till ${s.settings.dispense_angle}° och tillbaka till 0°.`;
       $("rec_resolution").innerHTML = s.rec_resolutions.map(v => `<option value="${v}">${v.replace("x", " × ")}</option>`).join("");
@@ -278,6 +289,7 @@
       : rep.display_ok === undefined ? "Ingen uppgift från stationen än."
       : rep.display_ok ? `✓ Skärmen är igång och visar ${displayNames[rep.display_mode] || "kamerabilden"}.`
       : `✗ ${displayProblem || "Skärmen gick inte att starta."}`;
+    $("displayinfo").textContent = st.online && rep.display_info ? `Tekniskt: ${rep.display_info}` : "";
     $("servostatus").textContent = !st.online ? "Stationen hörs inte av."
       : rep.servo_info ? `${rep.servo_ok ? "✓" : "✗"} ${rep.servo_info}` : "Ingen uppgift från stationen än.";
     $("recstatus").textContent = !st.online ? "Stationen hörs inte av."
@@ -305,6 +317,10 @@
   document.querySelectorAll("input[name=display_mode]").forEach(r => r.addEventListener("change", async () => {
     if (await saveSettings({ display_mode: r.value }, "displaymsg")) setTimeout(load, 1500);
   }));
+  $("lcd_spi_mhz").addEventListener("change", async () => {
+    if (await saveSettings({ lcd_spi_mhz: parseInt($("lcd_spi_mhz").value, 10) }, "displaymsg")) setTimeout(load, 1500);
+  });
+  $("displayrestart").addEventListener("click", () => command({ action: "display_restart" }, "displaymsg"));
   $("recording").addEventListener("submit", e => {
     e.preventDefault();
     const body = { recording_enabled: $("recording_enabled").checked, rec_resolution: $("rec_resolution").value };

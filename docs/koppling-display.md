@@ -30,7 +30,7 @@ Knapparna på kortet (KEY0–KEY3) kopplas inte in än.
 
 Kortet får ström via **VSYS** (Pico-pinne 39, andra uppifrån på höger sida med USB-änden uppåt). Prövat 2026-11-20: med 3,3 V på Pico-pinnen 3V3 (36) förblev skärmen helt släckt, och på VSYS tändes bakgrundsbelysningen.
 
-Koppla Pi:ns **3,3 V (pinne 1)**, inte 5 V. Logiken är 3,3 V, och om kortet tål 5 V på VSYS är [osäkert].
+Waveshares wiki anger VSYS som strömingång och driftspänningen 2,6–5,5 V (enligt sökresultat från [wikin](https://www.waveshare.com/wiki/Pico-LCD-2), läst 2026-11-20; själva sidan gick inte att hämta automatiskt). Både 3,3 V och 5 V ligger alltså inom gränserna. Kortet har en lödbrygga märkt 3V3/VSYS och en liten regulator bredvid [verifiera vad bryggan gör]. Vi kör med Pi:ns **3,3 V (pinne 1)**.
 
 ## Hitta pinnarna
 
@@ -55,6 +55,11 @@ Står GP-namnen tryckta på kortet gäller de framför den här listan.
 
 Under **Skärmen** i adminvyn på lennart.cam väljer du vad skärmen visar: **kamerabilden**, **ACCESS GRANTED** (helgrön) eller **ACCESS DENIED** (helröd). Valet gäller direkt.
 
+Där finns också:
+- **SPI-hastighet** (1–32 MHz). Lösa kopplingskablar klarar inte alltid 32 MHz. Gäller direkt.
+- **Starta om skärmen**, som skickar skärmens startkommandon igen.
+- En teknisk rad med vilken SPI-enhet och GPIO-krets programmet använder.
+
 ✓ i kortet betyder att programmet kunde starta skärmen. Skärmen kan inte svara tillbaka över SPI, så programmet märker inte om en datakabel sitter fel.
 
 ## Om skärmen är svart
@@ -63,7 +68,7 @@ Under **Skärmen** i adminvyn på lennart.cam väljer du vad skärmen visar: **k
 |---|---|---|
 | Helt släckt, inget sken | Ingen ström eller ingen bakgrundsbelysning | Kontrollera ström (VSYS → Pi 1), GND och BL (→ Pi 12). |
 | Svagt grått sken men ingen bild | Strömmen fick komma efter att programmet startade skärmen, eller en datakabel sitter fel | Starta om tjänsten, så att skärmen startas om (se nedan). Hjälper det inte: kontrollera DIN, CLK, CS, DC och RST. CLK (Pi 23) och CS (Pi 24) sitter i samma kolumn och är lätta att byta plats på. |
-| Randig eller trasig bild | För hög SPI-hastighet för kablarna | Kortare kablar, eller `LCD_SPI_HZ=16000000` i `.env` |
+| Randig eller trasig bild, eller svart trots att kablarna stämmer | För hög SPI-hastighet för kablarna | Sänk **SPI-hastighet** i adminvyn, t.ex. till 8 MHz. Kortare kablar hjälper också. |
 
 Starta om tjänsten på Pi:n:
 
@@ -80,7 +85,7 @@ Inställningarna läggs i `~/.config/lennart/.env` och börjar gälla när tjän
 | Bilden står upp och ner | `LCD_ROTATION=270` (standard är 90) |
 | Rött och blått byter plats | `LCD_BGR=1` |
 | Kamerabilden är vriden eller upp och ner | Välj rotation under **Kamera** i adminvyn på lennart.cam (0°, 90°, 180° eller 270°). |
-| Randig eller trasig bild | Kortare kablar, eller sänk `LCD_SPI_HZ=16000000` |
+| Randig eller trasig bild | Sänk **SPI-hastighet** i adminvyn, eller använd kortare kablar. `LCD_SPI_HZ` i `.env` gäller bara tills lennart.cam har svarat. |
 | Annan pinne för DC, RST eller BL | `LCD_DC=`, `LCD_RST=`, `LCD_BL=` (GPIO-nummer) |
 | Fel GPIO-krets eller SPI-enhet hittas | `LCD_GPIOCHIP=` (t.ex. `13`) eller `LCD_SPI_DEV=` (t.ex. `10.0`). Normalt hittas de automatiskt: numren skiljer sig mellan kärnversioner, och på Marcus Pi heter kretsarna `gpiochip11`–`15`. |
 

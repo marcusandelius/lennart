@@ -34,6 +34,8 @@ CAMERA_ROTATIONS = (0, 90, 180, 270)  # grader medsols
 # Vad 2"-skärmen på stationen visar. Igenkänningen ska sköta det själv senare,
 # men tills dess kan admin växla för hand, t.ex. för att testa skärmen.
 DISPLAY_MODES = ("camera", "granted", "denied")
+# SPI-hastigheter för skärmen i MHz. Långa eller lösa kopplingskablar kan kräva en lägre.
+LCD_SPI_MHZ = (1, 4, 8, 16, 24, 32)
 
 # Upplösningar för inspelade klipp. Kameran levererar 1280 × 720.
 REC_RESOLUTIONS = ("640x360", "1280x720")
@@ -46,6 +48,7 @@ DEFAULTS = {
     "max_view_min": 5,      # efter så här många minuter får besökaren klicka igen
     "camera_rotation": 0,   # vrid kamerabilden, t.ex. om kameran sitter på sidan
     "display_mode": "camera",  # kamerabilden, ACCESS GRANTED eller ACCESS DENIED på skärmen
+    "lcd_spi_mhz": 32,         # skärmens SPI-hastighet
     # Servona sitter på PCA9685-kortet. Pulsbredden styr vinkeln: min_us = 0°, max_us = 180°.
     "servo_doser_channel": 0,
     "servo_lucka_channel": 1,
@@ -76,10 +79,10 @@ LIMITS = {
 
 BOOL_KEYS = ("live_enabled", "recording_enabled")
 CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS, "rec_resolution": REC_RESOLUTIONS,
-           "display_mode": DISPLAY_MODES}
+           "display_mode": DISPLAY_MODES, "lcd_spi_mhz": LCD_SPI_MHZ}
 
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
-DEVICE_KEYS = ("camera_rotation", "display_mode", "servo_doser_channel", "servo_lucka_channel",
+DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "servo_doser_channel", "servo_lucka_channel",
                "servo_min_us", "servo_max_us", "dispense_angle",
                "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",
                "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")
@@ -116,7 +119,7 @@ def validate(changes: dict, current: dict) -> dict:
 
 
 def validate_command(cmd: dict, values: dict) -> dict:
-    """Kontrollera ett servokommando från adminvyn."""
+    """Kontrollera ett kommando från adminvyn: servona eller omstart av skärmen."""
     action = cmd.get("action")
     if action == "move":
         if cmd.get("servo") not in SERVOS:
@@ -134,6 +137,8 @@ def validate_command(cmd: dict, values: dict) -> dict:
         return {"action": "release", "servo": cmd["servo"]}
     if action == "test_dispense":
         return {"action": "test_dispense", "angle": values["dispense_angle"]}
+    if action == "display_restart":
+        return {"action": "display_restart"}
     raise ValueError("Okänt kommando")
 
 

@@ -85,6 +85,8 @@ class Display:
         self.bl = OutputPin(chip, bl_pin)
 
         bus, device = find_spi_device()
+        self.spi_device = f"/dev/spidev{bus}.{device}"
+        self.gpiochip = chip
         self.spi = spidev.SpiDev()
         self.spi.open(bus, device)  # SPI0 på stiftlisten, chip select CE0 (GPIO 8)
         self.spi.mode = 0
@@ -93,6 +95,30 @@ class Display:
         self._madctl = ROTATIONS.get(rotation, 0x60) | (0x08 if bgr else 0x00)
         self._init_panel()
         self.bl.on()
+
+    @property
+    def speed_hz(self) -> int:
+        return self.spi.max_speed_hz
+
+    def set_speed(self, hz: int) -> None:
+        """Byt SPI-hastighet. Gäller från nästa överföring, utan omstart av skärmen."""
+        self.spi.max_speed_hz = hz
+
+    def restart(self) -> None:
+        """Starta om skärmen: omstart via RST och alla startkommandon igen.
+
+        Behövs om skärmen fick ström efter att programmet startade den.
+        """
+        self._init_panel()
+        self.bl.on()
+
+    def info(self) -> str:
+        """Kort beskrivning för adminvyn, så att felsökning går utan att logga in på Pi:n."""
+        import glob
+
+        found = ", ".join(p.removeprefix("/dev/spidev") for p in sorted(glob.glob("/dev/spidev*")))
+        return (f"{self.spi_device} i {self.speed_hz / 1e6:g} MHz, gpiochip{self.gpiochip}"
+                f" (SPI-enheter: {found or 'inga'})")
 
     def _command(self, cmd: int, data: bytes = b"") -> None:
         self.dc.off()

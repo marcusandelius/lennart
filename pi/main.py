@@ -176,6 +176,9 @@ def main() -> int:
     # Inställningar från adminvyn. CAMERA_FLIP gäller bara tills servern har svarat.
     device = {"camera_rotation": 180 if os.environ.get("CAMERA_FLIP", "0") == "1" else 0,
               "display_mode": "camera"}
+    # Skärmkommandon från adminvyn utförs i huvudslingan, som är den enda tråden som pratar
+    # med skärmen. Annars kunde en omstart krocka med en bild som håller på att skickas.
+    display_requests = {"restart": False}
 
     # Efter varje servokommando skickas en rapport direkt, så att adminvyn ser resultatet.
     servo = ServoController(on_change=lambda: threading.Thread(target=heartbeat.send_once, daemon=True).start())
@@ -191,6 +194,7 @@ def main() -> int:
             problems.append(f"Skärm: {display_error}")
         report = {"camera_ok": camera is not None, "display_ok": display is not None, "fps": round(fps, 1),
                   "camera_rotation": device["camera_rotation"], "display_mode": device["display_mode"],
+                  "display_info": (display.info() if display is not None else display_error)[:200],
                   "servo_ok": servo.ok, "servo_info": servo.info()[:200]}
         rec_info = recorder.info(len(uploader.waiting()))
         if uploader.last_error:
@@ -215,7 +219,10 @@ def main() -> int:
     def on_commands(commands: list) -> None:
         for cmd in commands:
             print(f"Kommando från lennart.cam: {cmd}", flush=True)
-            servo.submit(cmd)
+            if cmd.get("action") == "display_restart":
+                display_requests["restart"] = True
+            else:
+                servo.submit(cmd)
 
     live = LiveSender(lambda: latest["rgb"], on_config, on_commands)
     live.start()
@@ -228,6 +235,24 @@ def main() -> int:
         # Läs läget en gång per varv: det kan ändras från adminvyn mitt i varvet.
         mode = device.get("display_mode", "camera")
         show_camera = display is not None and mode not in ACCESS_SCREENS
+        if display is not None:
+            # SPI-hastigheten väljs i adminvyn (i MHz). LCD_SPI_HZ i .env gäller tills servern svarat.
+            wanted_hz = int(device.get("lcd_spi_mhz", display.speed_hz / 1e6) * 1_000_000)
+            restart = display_requests["restart"]
+            display_requests["restart"] = False
+            changed = wanted_hz != display.speed_hz
+            try:
+                if changed:
+                    display.set_speed(wanted_hz)
+                    print(f"Skärmen: SPI-hastighet {wanted_hz / 1e6:g} MHz", flush=True)
+                if restart:
+                    display.restart()
+                    print("Skärmen startades om från adminvyn", flush=True)
+            except Exception as e:
+                print(f"Skärmen: {type(e).__name__}: {e}", flush=True)
+            if changed or restart:
+                shown = None  # skicka ACCESS-bilden igen, i den nya hastigheten eller efter omstarten
+                threading.Thread(target=heartbeat.send_once, daemon=True).start()  # adminvyn ser ändringen direkt
         if display is not None and not show_camera and shown != mode:
             display.show(access_screen(mode))
             shown = mode

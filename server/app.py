@@ -13,7 +13,7 @@ Adresser:
   POST /admin/logout     Logga ut.
   GET  /api/admin/state  Inställningar och läge för adminvyn (kräver inloggning).
   POST /api/admin/settings  Ändra inställningar (kräver inloggning).
-  POST /api/admin/servo  Skicka ett servokommando till Pi:n (kräver inloggning).
+  POST /api/admin/servo  Skicka ett kommando till Pi:n, för servona eller omstart av skärmen (kräver inloggning).
   POST /api/heartbeat    Pi:n rapporterar att den lever (kräver enhetsnyckel).
   GET  /api/live/wait    Pi:n väntar på tittare, kommandon eller nya inställningar (kräver enhetsnyckel).
   POST /api/live/frame   Pi:n skickar en bild till livebilden (kräver enhetsnyckel).
@@ -45,8 +45,8 @@ import re
 
 import admin
 from clips import LABELS, MAX_CLIP_BYTES, MAX_THUMB_BYTES, ClipStore
-from live import (CAMERA_ROTATIONS, DISPLAY_MODES, LIMITS, NO_FRAME_GIVE_UP_S, REC_RESOLUTIONS, RESOLUTIONS, LiveRelay,
-                  Settings, validate_command)
+from live import (CAMERA_ROTATIONS, DISPLAY_MODES, LCD_SPI_MHZ, LIMITS, NO_FRAME_GIVE_UP_S, REC_RESOLUTIONS,
+                  RESOLUTIONS, LiveRelay, Settings, validate_command)
 
 PORT = int(os.environ.get("PORT", "8000"))
 DEVICE_TOKEN = os.environ.get("LENNART_DEVICE_TOKEN", "")
@@ -72,12 +72,13 @@ ALLOWED_FIELDS = {
     "throttled": str,
     "camera_rotation": int,
     "display_mode": str,
+    "display_info": str,
     "servo_ok": bool,
     "servo_info": str,
     "recording_ok": bool,
     "recording_info": str,
 }
-LONG_FIELDS = ("message", "servo_info", "recording_info")
+LONG_FIELDS = ("message", "servo_info", "recording_info", "display_info")
 
 HERE = Path(__file__).parent
 PAGES = {name: (HERE / f"{name}.html").read_text(encoding="utf-8") for name in ("index", "demo", "admin", "login", "clips")}
@@ -268,6 +269,7 @@ class Handler(BaseHTTPRequestHandler):
                 "rec_resolutions": list(REC_RESOLUTIONS),
                 "rotations": list(CAMERA_ROTATIONS),
                 "display_modes": list(DISPLAY_MODES),
+                "lcd_spi_mhz": list(LCD_SPI_MHZ),
                 "limits": LIMITS,
                 "live": relay.info(),
                 "status": status_payload(),
@@ -489,7 +491,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(400, {"fel": str(e)})
                 return
             command_id = relay.add_command(cmd)
-            print(f"Admin skickade servokommando {command_id}: {cmd}", flush=True)
+            print(f"Admin skickade kommando {command_id}: {cmd}", flush=True)
             reply = {"ok": True, "id": command_id}
             if not status_payload()["online"]:
                 reply["varning"] = "Stationen hörs inte av. Kommandot kastas om det inte hämtas inom 20 sekunder."

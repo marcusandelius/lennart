@@ -72,6 +72,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 
 - **PCA9685-register** i `pi/servo.py` (MODE1, PRESCALE, LED0_ON_L, frekvens 50 Hz): från NXP:s datablad för PCA9685 [verifiera länk].
 - **ST7789-kommandon** i `pi/display.py`: från Sitronix datablad för ST7789 och Waveshares beskrivning av Pico-LCD-2 [verifiera länk].
+- **Pico-LCD-2, ström och SPI-stift:** [Waveshares wiki](https://www.waveshare.com/wiki/Pico-LCD-2), via sökresultat 2026-11-20 (sidan stänger ute automatiska anrop). Uppgifter: styrkrets ST7789VW, VCC till VSYS, 2,6–5,5 V, DIN = GP11, CLK = GP10, CS = GP9.
 
 - **Mått från standarder och datablad:** Raspberry Pi 5 och Camera Module 3 (hålmönster 21 × 12,5 mm), Waveshare 2" skärm för Pico (varianten med knappar) samt servomått för MG996R och MG90S. Alla ska kontrolleras mot de riktiga delarna.
 - **Bambu Lab wiki:** filamentgrupper för munstyckena ("H2D filament config limit") och munstyckenas räckvidd.
