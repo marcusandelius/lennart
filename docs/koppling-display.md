@@ -15,7 +15,7 @@ Skärmen (Electrokit art.nr 41036261, "2" LCD 320x240 for Raspberry Pi Pico 4x b
 
 | Signal | Skärmkortet (Pico-pinne) [verifiera] | Raspberry Pi 5 (GPIO) | Pi 5 fysisk pinne | Varför |
 |---|---|---|---|---|
-| Ström | VSYS eller 3V3 [verifiera] | 3,3 V | 1 | Skärmens logik går på 3,3 V. Se strömavsnittet nedan. |
+| Ström | VSYS (pinne 39) | 3,3 V | 1 | Skärmens logik går på 3,3 V. Se strömavsnittet nedan. |
 | Jord | GND | GND | 6 | Gemensam jord |
 | DIN (MOSI) | GP11 (pinne 15) | GPIO 10, SPI0 MOSI | 19 | Data från Pi:n till skärmen |
 | CLK | GP10 (pinne 14) | GPIO 11, SPI0 SCLK | 23 | Klocka för SPI |
@@ -28,7 +28,48 @@ Knapparna på kortet (KEY0–KEY3) kopplas inte in än.
 
 ## Ström
 
-Kontrollera i Waveshares schema om kortets strömingång tål 5 V eller ska ha 3,3 V. **Koppla 3,3 V (pinne 1) om du är osäker.** Logiken är 3,3 V, och 5 V på fel ställe kan skada kortet.
+Kortet får ström via **VSYS** (Pico-pinne 39, andra uppifrån på höger sida med USB-änden uppåt). Prövat 2026-11-20: med 3,3 V på Pico-pinnen 3V3 (36) förblev skärmen helt släckt, och på VSYS tändes bakgrundsbelysningen.
+
+Koppla Pi:ns **3,3 V (pinne 1)**, inte 5 V. Logiken är 3,3 V, och om kortet tål 5 V på VSYS är [osäkert].
+
+## Hitta pinnarna
+
+**Pi 5:** lägg Pi:n med stiftlisten längs överkanten och USB- och nätverksportarna åt höger. Pinne 1 sitter längst till vänster i den undre raden, och pinne 2 rakt ovanför. Udda nummer sitter i den undre raden, jämna i den övre. Pinne *n* sitter i kolumn *n ÷ 2, avrundat uppåt*. Undertill har pinne 1 en fyrkantig lödpunkt. Kommandot `pinout` på Pi:n ritar upp stiftlisten.
+
+**Skärmkortet:** titta på baksidan med USB-änden uppåt. Vänster sida är Pico-pinne 1–20 uppifrån och ned, höger sida 21–40 nerifrån och upp. Alla signaler utom strömmen sitter i en obruten rad, pinne 11–17 på vänster sida:
+
+```
+  GP8  DC   11 → Pi 22
+  GP9  CS   12 → Pi 24
+       GND  13 → Pi 6
+  GP10 CLK  14 → Pi 23
+  GP11 DIN  15 → Pi 19
+  GP12 RST  16 → Pi 13
+  GP13 BL   17 → Pi 12
+  VSYS      39 → Pi 1   (höger sida, andra uppifrån)
+```
+
+Står GP-namnen tryckta på kortet gäller de framför den här listan.
+
+## Testa från adminvyn
+
+Under **Skärmen** i adminvyn på lennart.cam väljer du vad skärmen visar: **kamerabilden**, **ACCESS GRANTED** (helgrön) eller **ACCESS DENIED** (helröd). Valet gäller direkt.
+
+✓ i kortet betyder att programmet kunde starta skärmen. Skärmen kan inte svara tillbaka över SPI, så programmet märker inte om en datakabel sitter fel.
+
+## Om skärmen är svart
+
+| Vad du ser | Troligt fel | Gör så här |
+|---|---|---|
+| Helt släckt, inget sken | Ingen ström eller ingen bakgrundsbelysning | Kontrollera ström (VSYS → Pi 1), GND och BL (→ Pi 12). |
+| Svagt grått sken men ingen bild | Strömmen fick komma efter att programmet startade skärmen, eller en datakabel sitter fel | Starta om tjänsten, så att skärmen startas om (se nedan). Hjälper det inte: kontrollera DIN, CLK, CS, DC och RST. CLK (Pi 23) och CS (Pi 24) sitter i samma kolumn och är lätta att byta plats på. |
+| Randig eller trasig bild | För hög SPI-hastighet för kablarna | Kortare kablar, eller `LCD_SPI_HZ=16000000` i `.env` |
+
+Starta om tjänsten på Pi:n:
+
+```bash
+systemctl --user restart lennart
+```
 
 ## Om bilden blir fel
 

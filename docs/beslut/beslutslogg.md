@@ -82,4 +82,5 @@ Konstaterat i chatten, inte beslutat:
 | 2026-11-18 | Rörelsedetekteringen är en enkel jämförelse med en bakgrundsbild, skriven i numpy, och videon görs med ffmpeg. Inget bibliotek för datorseende (t.ex. OpenCV). | Räcker för att avgöra *att* något rör sig, inte *vad*. Färre beroenden på Pi:n, och koden går att förklara rad för rad. |
 | 2026-11-18 | Upplösning, bilder per sekund, rörelsegräns, tid före och efter rörelsen, längsta klipp, ljusgräns och utrymme på servern ställs in i adminvyn | Marcus val. Gränserna behöver provas fram på plats. |
 | 2026-11-18 | LED-ringen väntar | Marcus beslut. Den ska användas senare. Tills dess spelas inget in i mörker. |
-
+| 2026-11-20 | Skärmkortet får ström via VSYS (Pico-pinne 39) | Prövat: på 3V3 (pinne 36) förblev skärmen släckt, på VSYS tändes den |
+| 2026-11-20 | I adminvyn väljer admin vad skärmen visar: kamerabilden, ACCESS GRANTED eller ACCESS DENIED. Valet sparas som en inställning och gäller tills det ändras. | Marcus önskemål, för att testa skärmen och visa den. Igenkänningen ska sköta det själv senare. |
