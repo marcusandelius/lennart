@@ -15,6 +15,7 @@ med packning (09b). Mått i husets koordinater (samma som 3D-vyn).
     med sina egna skruvar i servobrickan (26). Brickan sänks ner ovanifrån och skruvas med två
     M3 i insatser i en tvärvägg, genom förstorade hål (Ø6,5, ±1,7 mm). Tre varianter av brickan
     med servofickan 2 mm lägre (a), som ritat (b) och 2 mm högre (c).
+  * Handtaget på dörren är en egen svart del (07_farstukvist_svart), tre färger i ett objekt.
   * Taket (09): rundat brevlådetak med kjol, öppet bak mot husväggen, vilar på en TPU-packning
     (09b) ovanpå väggarna. Skrivs ut med framsidan mot plattan, utan stöd.
 Kör:  python3 brevlada.py <07_farstukvist_vit_original.stl> <utkatalog>
@@ -80,8 +81,9 @@ slot = box(44.0, 64.0, fr - 1.0, fr + 0.3, 31.0, 35.0)
 lip = box(43.6, 64.4, fr - 1.7, fr + 0.3, 35.0, 36.4)
 lip_ch = trimesh.convex.convex_hull(np.vstack([box(43.6, 64.4, fr - 1.7, fr, 35.0, 36.4).vertices,
                                                box(43.6, 64.4, fr - 0.01, fr, 33.3, 33.31).vertices]))
-lock = U([ycyl(1.1, fr - 1.2, fr + 0.3, XC, 25.0, 24), box(XC - 2.0, XC + 2.0, fr - 1.0, fr + 0.3, 24.5, 25.5)])
-body = U([body, slot, lip, lip_ch, lock])
+# handtaget (svart): rund knopp med en tvärslå, sticker ut 1,6 mm, sitter 0,4 mm in i väggen
+lock = U([ycyl(1.4, fr - 1.6, fr + 0.4, XC, 24.0, 32), box(XC - 2.8, XC + 2.8, fr - 1.4, fr + 0.4, 23.35, 24.65)])
+body = D(U([body, slot, lip, lip_ch]), [lock])
 assert body.is_watertight
 
 # ---------------- taket med kjol (vilar på packningen, z 46-47)
@@ -121,9 +123,12 @@ b_stl = body.copy(); b_stl.apply_translation(TO_STL)
 new_vit = U(keep + [b_stl])
 assert new_vit.is_watertight
 new_vit.export(os.path.join(OUT, "07_farstukvist_vit.stl"))
+l_stl = lock.copy(); l_stl.apply_translation(TO_STL)
+assert l_stl.is_watertight
+l_stl.export(os.path.join(OUT, "07_farstukvist_svart.stl"))                   # handtaget, svart, samma ram
 
 asm = os.path.join(OUT, "asm"); os.makedirs(asm, exist_ok=True)
-for n, m in (("brevlada_kropp", body), ("brevlada_tak", hat), ("brevlada_packning", gasket), ("servobricka", carrier(0.0))):
+for n, m in (("brevlada_kropp", body), ("brevlada_handtag", lock), ("brevlada_tak", hat), ("brevlada_packning", gasket), ("servobricka", carrier(0.0))):
     m.export(os.path.join(asm, n + ".stl"))
 
 
