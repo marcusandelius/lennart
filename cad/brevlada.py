@@ -2,7 +2,7 @@
 Brevlådan vid farstukvisten (9.9): servohus för luckservot (MG90S) i form av en brevlåda.
 
 Ersätter det gamla servohuset i 07_farstukvist_vit (för litet för MG90S) och stolphatten (09)
-med packning (09b). Mått i husets koordinater (samma som 3D-vyn).
+och dess packning (09b). Mått i husets koordinater (samma som 3D-vyn).
 
   * Luckans axel: y = -8, z = 32,2, längs x. Luckans högra ände är en fyrkanthylsa med ett
     Ø4,8 mm hål, 3 mm djupt (x 38,5-41,5). Servots axel trycks rakt in i hålet.
@@ -16,8 +16,10 @@ med packning (09b). Mått i husets koordinater (samma som 3D-vyn).
     M3 i insatser i en tvärvägg, genom förstorade hål (Ø6,5, ±1,7 mm). Tre varianter av brickan
     med servofickan 2 mm lägre (a), som ritat (b) och 2 mm högre (c).
   * Handtaget på dörren är en egen svart del (07_farstukvist_svart), tre färger i ett objekt.
-  * Taket (09): rundat brevlådetak med kjol, öppet bak mot husväggen, vilar på en TPU-packning
-    (09b) ovanpå väggarna. Skrivs ut med framsidan mot plattan, utan stöd.
+  * Locket (09, 9.10): rundad båge med samma bredd och djup som lådan, sitter direkt på väggarna
+    så att det ser ut som en del av brevlådan (som en Habo). Två läppar på sidornas insida styr
+    det. Ingen packning. Öppet bak mot husväggen. Skrivs ut med framsidan mot plattan, utan stöd.
+  * Framsidan: inramning (spår) längs sidor och båge, dörr, brevinkast under bågen.
 Kör:  python3 brevlada.py <07_farstukvist_vit_original.stl> <utkatalog>
 """
 import sys, os
@@ -72,33 +74,39 @@ body = D(body, [box(X0 - 1, X0 + T + 1, AX_Y - 4.5, AX_Y + 4.5, 27.5, ZT + 1)]) 
 bh = U([box(BH0, BH1, Y0 + T - 0.01, -16.5, T - 0.01, ZT), box(BH0, BH1, Y0 + T - 0.01, Y1, T - 0.01, 6.0)])
 bh = D(bh, [xcyl(2.0, BH0 - 1, BH1 + 1, y, z, 32) for y, z in INS])                     # hål för M3-insatser (Ø4)
 body = U([body, bh])
-# framsidan (y = -30): inramad dörr, brevinkast med lucka, lås
+# framsidan (y = -30), som en Habo-brevlåda: inramning (spår) längs sidor och båge, dörr,
+# brevinkast precis under bågen, svart handtag
 fr = Y0
-door = box(43.0, 65.0, fr - 0.01, fr + 0.6, 3.0, 28.0)
-door_in = box(43.6, 64.4, fr - 0.1, fr + 0.7, 3.6, 27.4)
-body = D(body, [D(door, [door_in])])
-slot = box(44.0, 64.0, fr - 1.0, fr + 0.3, 31.0, 35.0)
-lip = box(43.6, 64.4, fr - 1.7, fr + 0.3, 35.0, 36.4)
-lip_ch = trimesh.convex.convex_hull(np.vstack([box(43.6, 64.4, fr - 1.7, fr, 35.0, 36.4).vertices,
-                                               box(43.6, 64.4, fr - 0.01, fr, 33.3, 33.31).vertices]))
+GR_IN, GR_W, GR_D = 1.4, 0.6, 0.45            # inramningens spår: avstånd från kanten, bredd, djup
+frame = U([box(X0 + GR_IN, X0 + GR_IN + GR_W, fr - 0.01, fr + GR_D, GR_IN, ZT + 0.01),
+           box(X1 - GR_IN - GR_W, X1 - GR_IN, fr - 0.01, fr + GR_D, GR_IN, ZT + 0.01),
+           box(X0 + GR_IN, X1 - GR_IN, fr - 0.01, fr + GR_D, GR_IN, GR_IN + GR_W)])
+door = box(43.6, 64.4, fr - 0.01, fr + 0.6, 4.0, 33.0)
+door_in = box(44.2, 63.8, fr - 0.1, fr + 0.7, 4.6, 32.4)
+body = D(body, [frame, D(door, [door_in])])
+slot = box(44.0, 64.0, fr - 1.0, fr + 0.3, 36.8, 40.8)
+lip = box(43.6, 64.4, fr - 1.7, fr + 0.3, 40.8, 42.2)
+lip_ch = trimesh.convex.convex_hull(np.vstack([box(43.6, 64.4, fr - 1.7, fr, 40.8, 42.2).vertices,
+                                               box(43.6, 64.4, fr - 0.01, fr, 39.1, 39.11).vertices]))
 # handtaget (svart): rund knopp med en tvärslå, sticker ut 1,6 mm, sitter 0,4 mm in i väggen
-lock = U([ycyl(1.4, fr - 1.6, fr + 0.4, XC, 24.0, 32), box(XC - 2.8, XC + 2.8, fr - 1.4, fr + 0.4, 23.35, 24.65)])
+lock = U([ycyl(1.4, fr - 1.6, fr + 0.4, XC, 29.5, 32), box(XC - 2.8, XC + 2.8, fr - 1.4, fr + 0.4, 28.85, 30.15)])
 body = D(U([body, slot, lip, lip_ch]), [lock])
 assert body.is_watertight
 
-# ---------------- taket med kjol (vilar på packningen, z 46-47)
-HX0, HX1, HY0 = X0 - 1.5, X1 + 1.5, Y0 - 1.5
-R_O = (HX1 - HX0) / 2; SEAT = ZT + 1.0
-outer = sbox(HX0, 41.0, HX1, SEAT).union(Point(XC, SEAT).buffer(R_O, resolution=64)).intersection(sbox(HX0, 41.0, HX1, SEAT + R_O + 1))
-hat = ext_y(outer, HY0, Y1)
-cav1 = ext_y(sbox(X0 - 0.3, 40.0, X1 + 0.3, SEAT), Y0 - 0.3, Y1 + 0.5)                 # kjolen runt väggarna, öppen bak
-inner = Point(XC, SEAT).buffer(R_O - 3.5, resolution=64).intersection(sbox(HX0, SEAT - 0.1, HX1, SEAT + R_O)).union(sbox(X0 + T, SEAT - 0.2, X1 - T, SEAT + 0.1))
-cav2 = ext_y(inner, Y0 + T, Y1 + 0.5)                                                   # öppen bak (mot husväggen)
-hat = D(hat, [cav1, cav2])
+# ---------------- locket: samma bredd och djup som lådan, sitter direkt på väggarna (z 46)
+# Bågen fortsätter sidorna utan kjol. Två läppar på sidornas insida styr locket och skyddar mot stänk.
+R_O = (X1 - X0) / 2
+outer = sbox(X0, ZT, X1, ZT + 0.01).union(Point(XC, ZT).buffer(R_O, resolution=96)).intersection(sbox(X0, ZT, X1, ZT + R_O + 1))
+hat = ext_y(outer, Y0, Y1)
+inner = Point(XC, ZT).buffer(R_O - T, resolution=96).intersection(sbox(X0, ZT - 1, X1, ZT + R_O))
+hat = D(hat, [ext_y(inner, Y0 + T, Y1 + 0.5)])                                             # ihåligt, öppet bak
+arc = Point(XC, ZT).buffer(R_O - GR_IN, resolution=96).difference(Point(XC, ZT).buffer(R_O - GR_IN - GR_W, resolution=96)).intersection(sbox(X0, ZT - 0.01, X1, ZT + R_O))
+hat = D(hat, [ext_y(arc, Y0 - 0.01, Y0 + GR_D)])                                           # inramningen fortsätter över bågen
+CL, LT, LH = 0.25, 1.2, 4.0                    # läpparnas spel, tjocklek, höjd
+lips = U([box(X0 + T + CL, X0 + T + CL + LT, Y0 + T + CL, Y1 - 0.5, ZT - LH, ZT + 0.5),
+          box(X1 - T - CL - LT, X1 - T - CL, Y0 + T + CL, Y1 - 0.5, ZT - LH, ZT + 0.5)])
+hat = U([hat, lips])
 assert hat.is_watertight
-
-# ---------------- packning (TPU), U-form ovanpå väggarna
-gasket = U([box(X0, X1, Y0, Y0 + T, ZT, SEAT), box(X0, X0 + T, Y0, Y1, ZT, SEAT), box(X1 - T, X1, Y0, Y1, ZT, SEAT)])
 
 
 # ---------------- servobricka, tre varianter
@@ -128,7 +136,7 @@ assert l_stl.is_watertight
 l_stl.export(os.path.join(OUT, "07_farstukvist_svart.stl"))                   # handtaget, svart, samma ram
 
 asm = os.path.join(OUT, "asm"); os.makedirs(asm, exist_ok=True)
-for n, m in (("brevlada_kropp", body), ("brevlada_handtag", lock), ("brevlada_tak", hat), ("brevlada_packning", gasket), ("servobricka", carrier(0.0))):
+for n, m in (("brevlada_kropp", body), ("brevlada_handtag", lock), ("brevlada_tak", hat), ("servobricka", carrier(0.0))):
     m.export(os.path.join(asm, n + ".stl"))
 
 
@@ -142,7 +150,6 @@ def lay(m, R=None):
 Rx = lambda a: trimesh.transformations.rotation_matrix(np.radians(a), [1, 0, 0])
 Ry = lambda a: trimesh.transformations.rotation_matrix(np.radians(a), [0, 1, 0])
 lay(hat, Rx(90)).export(os.path.join(OUT, "09_brevlada_tak.stl"))               # framsidan mot plattan, öppen bak uppåt
-lay(gasket).export(os.path.join(OUT, "09b_brevlada_packning_tpu.stl"))
 for tag, dz in (("a_lagre", -2.0), ("b", 0.0), ("c_hogre", 2.0)):
     lay(carrier(dz), Ry(-90)).export(os.path.join(OUT, "26_servobricka_%s.stl" % tag))
 for f in sorted(os.listdir(OUT)):
