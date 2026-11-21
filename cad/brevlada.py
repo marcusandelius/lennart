@@ -1,0 +1,145 @@
+"""
+Brevlådan vid farstukvisten (9.9): servohus för luckservot (MG90S) i form av en brevlåda.
+
+Ersätter det gamla servohuset i 07_farstukvist_vit (för litet för MG90S) och stolphatten (09)
+med packning (09b). Mått i husets koordinater (samma som 3D-vyn).
+
+  * Luckans axel: y = -8, z = 32,2, längs x. Luckans högra ände är en fyrkanthylsa med ett
+    Ø4,8 mm hål, 3 mm djupt (x 38,5-41,5). Servots axel trycks rakt in i hålet.
+  * Brevlådan: x 40-68, y -30 till -2 (öppen baksida mot husväggen), z 0-46. Kabeln går genom
+    hålet i husväggen bakom (x 52-54, z 28-32).
+  * Väggen mot luckan har en slits, 9 mm bred och öppen uppåt, så att servots axel kan sänkas på
+    plats. Luckan sätts på sist och följer servots axel, så ±1,7 mm fel i läget gör inget.
+  * Servot (MG90S, antagna typiska mått: kropp 22,8 x 12,2, axeln 6 mm från kortänden,
+    öronhål 27,5 mm isär, örat 6,8 mm under ovansidan, axeln 4,4 mm ovanför ovansidan) skruvas
+    med sina egna skruvar i servobrickan (26). Brickan sänks ner ovanifrån och skruvas med två
+    M3 i insatser i en tvärvägg, genom förstorade hål (Ø6,5, ±1,7 mm). Tre varianter av brickan
+    med servofickan 2 mm lägre (a), som ritat (b) och 2 mm högre (c).
+  * Taket (09): rundat brevlådetak med kjol, öppet bak mot husväggen, vilar på en TPU-packning
+    (09b) ovanpå väggarna. Skrivs ut med framsidan mot plattan, utan stöd.
+Kör:  python3 brevlada.py <07_farstukvist_vit_original.stl> <utkatalog>
+"""
+import sys, os
+import numpy as np
+import trimesh
+from shapely.geometry import Point, box as sbox
+
+SRC_VIT, OUT = sys.argv[1:3]
+U = lambda ms: trimesh.boolean.union(ms, engine="manifold")
+D = lambda a, bs: trimesh.boolean.difference([a] + bs, engine="manifold")
+TO_STL = np.array([-12.4, 23.6, 0.0])         # husets ram -> 07-filens ram
+
+AX_Y, AX_Z = -8.0, 32.2                       # luckans axel
+X0, X1, Y0, Y1, ZT = 40.0, 68.0, -30.0, -2.0, 46.0
+T = 2.0
+S_W, S_L, S_SPL, S_HOLE = 12.2, 22.8, 6.0, 27.5
+X_TOP = 43.0                                  # servots ovansida; axeln når x 38,6 (luckans hål slutar 38,5)
+EAR = X_TOP + 6.8                             # örats undersida = brickans framsida
+CX0, CX1 = EAR, EAR + 3.0                     # servobrickan
+BH0, BH1 = X_TOP + 0.8, EAR                   # tvärväggen, mellan servots ovansida och örat
+INS = [(-22.3, 9.0), (-22.3, 38.0)]           # M3-insatser (y, z), i tvärväggens främre del
+ADJ = 1.7                                     # justering med förstorade hål
+
+
+def box(x0, x1, y0, y1, z0, z1):
+    b = trimesh.creation.box(extents=[x1 - x0, y1 - y0, z1 - z0]); b.apply_translation([(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]); return b
+
+
+def xcyl(r, x0, x1, y, z, s=40):
+    c = trimesh.creation.cylinder(radius=r, height=x1 - x0, sections=s)
+    c.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [0, 1, 0])); c.apply_translation([(x0 + x1) / 2, y, z]); return c
+
+
+def ycyl(r, y0, y1, x, z, s=40):
+    c = trimesh.creation.cylinder(radius=r, height=y1 - y0, sections=s)
+    c.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0])); c.apply_translation([x, (y0 + y1) / 2, z]); return c
+
+
+def ext_y(poly, y0, y1):
+    m = trimesh.creation.extrude_polygon(poly, y1 - y0)
+    m.apply_transform(np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], float))
+    if m.volume < 0: m.invert()
+    m.apply_translation([0, y0 - m.bounds[0][1], 0]); return m
+
+
+XC = (X0 + X1) / 2
+
+# ---------------- brevlådans kropp
+body = D(box(X0, X1, Y0, Y1, 0, ZT), [box(X0 + T, X1 - T, Y0 + T, Y1 + 1, T, ZT + 1)])
+body = D(body, [box(X0 - 1, X0 + T + 1, AX_Y - 4.5, AX_Y + 4.5, 27.5, ZT + 1)])          # slits för luckans hylsa
+# tvärvägg (L-form): främre del med insatserna + låg list i botten, öppen uppåt och bakåt för servot
+bh = U([box(BH0, BH1, Y0 + T - 0.01, -16.5, T - 0.01, ZT), box(BH0, BH1, Y0 + T - 0.01, Y1, T - 0.01, 6.0)])
+bh = D(bh, [xcyl(2.0, BH0 - 1, BH1 + 1, y, z, 32) for y, z in INS])                     # hål för M3-insatser (Ø4)
+body = U([body, bh])
+# framsidan (y = -30): inramad dörr, brevinkast med lucka, lås
+fr = Y0
+door = box(43.0, 65.0, fr - 0.01, fr + 0.6, 3.0, 28.0)
+door_in = box(43.6, 64.4, fr - 0.1, fr + 0.7, 3.6, 27.4)
+body = D(body, [D(door, [door_in])])
+slot = box(44.0, 64.0, fr - 1.0, fr + 0.3, 31.0, 35.0)
+lip = box(43.6, 64.4, fr - 1.7, fr + 0.3, 35.0, 36.4)
+lip_ch = trimesh.convex.convex_hull(np.vstack([box(43.6, 64.4, fr - 1.7, fr, 35.0, 36.4).vertices,
+                                               box(43.6, 64.4, fr - 0.01, fr, 33.3, 33.31).vertices]))
+lock = U([ycyl(1.1, fr - 1.2, fr + 0.3, XC, 25.0, 24), box(XC - 2.0, XC + 2.0, fr - 1.0, fr + 0.3, 24.5, 25.5)])
+body = U([body, slot, lip, lip_ch, lock])
+assert body.is_watertight
+
+# ---------------- taket med kjol (vilar på packningen, z 46-47)
+HX0, HX1, HY0 = X0 - 1.5, X1 + 1.5, Y0 - 1.5
+R_O = (HX1 - HX0) / 2; SEAT = ZT + 1.0
+outer = sbox(HX0, 41.0, HX1, SEAT).union(Point(XC, SEAT).buffer(R_O, resolution=64)).intersection(sbox(HX0, 41.0, HX1, SEAT + R_O + 1))
+hat = ext_y(outer, HY0, Y1)
+cav1 = ext_y(sbox(X0 - 0.3, 40.0, X1 + 0.3, SEAT), Y0 - 0.3, Y1 + 0.5)                 # kjolen runt väggarna, öppen bak
+inner = Point(XC, SEAT).buffer(R_O - 3.5, resolution=64).intersection(sbox(HX0, SEAT - 0.1, HX1, SEAT + R_O)).union(sbox(X0 + T, SEAT - 0.2, X1 - T, SEAT + 0.1))
+cav2 = ext_y(inner, Y0 + T, Y1 + 0.5)                                                   # öppen bak (mot husväggen)
+hat = D(hat, [cav1, cav2])
+assert hat.is_watertight
+
+# ---------------- packning (TPU), U-form ovanpå väggarna
+gasket = U([box(X0, X1, Y0, Y0 + T, ZT, SEAT), box(X0, X0 + T, Y0, Y1, ZT, SEAT), box(X1 - T, X1, Y0, Y1, ZT, SEAT)])
+
+
+# ---------------- servobricka, tre varianter
+def carrier(dz):
+    c = box(CX0, CX1, -27.0, -2.5, 4.0, ZT - 0.5)
+    z_lo = AX_Z - (S_L - S_SPL) + dz; z_hi = AX_Z + S_SPL + dz
+    c = D(c, [box(CX0 - 1, CX1 + 1, AX_Y - S_W / 2 - 0.2, Y1 + 1, z_lo - 0.2, z_hi + 0.2)])
+    zc = (z_lo + z_hi) / 2
+    c = D(c, [xcyl(0.85, CX0 - 1, CX1 + 1, AX_Y, zc + s * S_HOLE / 2, 20) for s in (-1, 1)])     # servots skruvar
+    c = D(c, [xcyl(1.6 + ADJ, CX0 - 1, CX1 + 1, y, z, 32) for y, z in INS])                     # M3, förstorade
+    assert c.is_watertight
+    return c
+
+
+# ---------------- 07_farstukvist_vit: gamla servohuset bort, brevlådan in
+vit = trimesh.load(SRC_VIT)
+parts = vit.split(only_watertight=False)
+old = [p for p in parts if p.bounds[0][0] > 27.0 and p.bounds[1][0] > 50.0]
+assert len(old) == 1, len(old)
+keep = [p for p in parts if p is not old[0]]
+b_stl = body.copy(); b_stl.apply_translation(TO_STL)
+new_vit = U(keep + [b_stl])
+assert new_vit.is_watertight
+new_vit.export(os.path.join(OUT, "07_farstukvist_vit.stl"))
+
+asm = os.path.join(OUT, "asm"); os.makedirs(asm, exist_ok=True)
+for n, m in (("brevlada_kropp", body), ("brevlada_tak", hat), ("brevlada_packning", gasket), ("servobricka", carrier(0.0))):
+    m.export(os.path.join(asm, n + ".stl"))
+
+
+def lay(m, R=None):
+    m = m.copy()
+    if R is not None: m.apply_transform(R)
+    m.apply_translation([-(m.bounds[0][0] + m.bounds[1][0]) / 2, -(m.bounds[0][1] + m.bounds[1][1]) / 2, -m.bounds[0][2]])
+    return m
+
+
+Rx = lambda a: trimesh.transformations.rotation_matrix(np.radians(a), [1, 0, 0])
+Ry = lambda a: trimesh.transformations.rotation_matrix(np.radians(a), [0, 1, 0])
+lay(hat, Rx(90)).export(os.path.join(OUT, "09_brevlada_tak.stl"))               # framsidan mot plattan, öppen bak uppåt
+lay(gasket).export(os.path.join(OUT, "09b_brevlada_packning_tpu.stl"))
+for tag, dz in (("a_lagre", -2.0), ("b", 0.0), ("c_hogre", 2.0)):
+    lay(carrier(dz), Ry(-90)).export(os.path.join(OUT, "26_servobricka_%s.stl" % tag))
+for f in sorted(os.listdir(OUT)):
+    if f.endswith(".stl"):
+        m = trimesh.load(os.path.join(OUT, f)); print(f, np.round(m.extents, 1), "tät", m.is_watertight)
