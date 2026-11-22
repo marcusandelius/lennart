@@ -22,8 +22,8 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 | 2 Problemet och planen | Fat, skata, kamera i sladd, moln, ja och nej | Klar. Landar ur panoreringen från 1.4, fatet snurrar vid nej, nötterna vilar på riktigt. |
 | 3 Designen | Claude-fönstret ritar huset, huset reser sig | Klar. Ett litet munstycke fälls ut under fönstret och projicerar ritningen. |
 | 4 Inköpen | Komponenterna på blå yta, filamentet | Klar. Allt annat som köptes landar längs kanterna, konturer visar var huvuddelarna ska ligga, fem filamentfärger. Det svarta filamentet är blankt så att det syns. |
-| 5 Utskriften | Lager för lager (5.1) och utskriftsväggen (5.2–5.3) | 5.1 är en stillbild ur 3D. Väggen visar sedan 19/11 åtta riktiga timelapse-klipp från skrivaren (`timelapse/`). |
-| 6 Monteringen | Sprängskiss, delarna hittar hem | Fyra byggklipp svävar bakom huset i 6.1–6.2, än så länge platshållare. Elektroniken från inköpen saknas. |
+| 5 Utskriften | Lager för lager (5.1) och utskriftsväggen (5.2–5.3) | 5.1 är sedan 22/11 Marcus film vid skrivaren när utskriften är klar (`byggklipp/original/24597.mp4`, 3,5–9,5 s i dubbel fart). Väggen visar sedan 19/11 åtta riktiga timelapse-klipp från skrivaren (`timelapse/`). |
+| 6 Monteringen | Sprängskiss, delarna hittar hem | Fyra byggklipp svävar bakom huset i 6.1–6.2, sedan 22/11 Marcus riktiga klipp från bygget (`byggklipp/riktiga/`). Elektroniken från inköpen saknas. |
 | 7 På riktigt | Huset ute, fågel nekas, Lennart får en nöt | Väntar på riktig film. Stillbilder tills dess. |
 
 ## Övergångar
@@ -45,9 +45,9 @@ Senast uppdaterad 2026-11-16. Skriven för att arbetet ska kunna fortsätta på 
 
 1. Klart 19/11: åtta timelapse-klipp i `timelapse/`, inbyggda i utskriftsväggen. Väggen har nu åtta rutor i stället för tolv. Varje ruta har en egen beskärning som följer delen när plattan sänks, och klippen spelas bara fram till att delen är färdig (`KLAR`), så att alla blir klara samtidigt. Blomlådan är beskuren utan filamenttornet. Fler klipp kan läggas till genom att utöka `LAYOUT`, `CROP` och `KLAR` i `akt_utskrift.py`.
 2. Riktig film till del 7 när huset står ute.
-3. Fyra riktiga klipp från bygget till monteringen. De ersätter platshållarna (se Byggklippen nedan).
+3. Klart 22/11: fyra riktiga klipp från bygget i monteringen, 16 s ur varje klipp i dubbel fart: skruvar i grundplattan (24563, från 0 s), elektroniken kopplas (24585, från 16 s), huset sätts ihop (24589, från 2 s) och nötmagasinet provas (24598, från 8 s). Två klipp till finns i `byggklipp/original/` och används inte än: fler kopplingar (24586) och krympslang (24588).
 4. Elektroniken i monteringen (del 6).
-5. 5.1: Marcus filmar byggplattan när den läggs i skrivaren, som en förberedelse för utskrifterna i väggen efter. Ersätter stillbilden ur 3D. Om Marcus syns i bild ska samtycket i KALLOR.md utökas till det klippet [verifiera].
+5. Klart 22/11: 5.1 är Marcus film vid skrivaren (Print Complete, luckan öppnas). Kan bytas mot en film där byggplattan läggs i, om Marcus vill.
 6. Storyboardens röstspalt har fortfarande den gamla manustexten, inte orden i inspelningen.
 
 ## Att kontrollera före publicering

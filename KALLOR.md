@@ -105,6 +105,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Claude-logotypen i trailerns del 3 | Ritad i `trailer/film/akt_design.py` | Egen tolkning av Anthropics logotyp, ritad i kod. Om logotypen får användas så [verifiera]. |
 | Videoklipp på Lennart | `trailer/PXL_*.mp4`, `trailer/1000007512.mp4`, `trailer/VID-20261114-WA0000~3.mp4` | Marcus mobilklipp. VID-klippet kom via WhatsApp, vem som filmade det [verifiera]. Marcus är den enda personen i bild. |
 | Timelapse-klippen i utskriftsväggen (5.2–5.3) | `trailer/film/timelapse/*.mp4`, inbyggda med `trailer/film/akt_utskrift.py` | Åtta timelapse-klipp från 3D-skrivaren, 15–18/11, från Marcus. Troligen skrivarens inbyggda kamera [verifiera]. Inga personer i bild. |
+| Klipp från bygget och skrivaren | `trailer/film/byggklipp/original/` (sju klipp, filmade 2026-11-22), inbyggda med `trailer/film/verktyg/byggklipp_6.py` (6.1–6.2) och som klipp 5.1 | Marcus klipp. Händer och armar syns. Vems händer, och om någon mer är med i bild, [verifiera]. |
 | Släppet i slutet av klipp 1.4 | `trailer/film/higgsfield_14/`, inbyggt med `trailer/film/verktyg/fall_14.py` | AI-genererat med Higgsfield (Seedance 2.5), inte filmat. Från ruta 177 (ca 1 s före klippet till 2.1) är det inte mobilklippet utan en genererad fortsättning där Lennart öppnar tassarna och tappar nöten. I tilten tar en renderad nöt över. Bör märkas som rekonstruktion om tävlingen kräver det [verifiera]. |
 
 ## Hjälp från personer och AI-sessioner
