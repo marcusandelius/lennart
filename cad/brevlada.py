@@ -102,11 +102,17 @@ inner = Point(XC, ZT).buffer(R_O - T, resolution=96).intersection(sbox(X0, ZT - 
 hat = D(hat, [ext_y(inner, Y0 + T, Y1 + 0.5)])                                             # ihåligt, öppet bak
 arc = Point(XC, ZT).buffer(R_O - GR_IN, resolution=96).difference(Point(XC, ZT).buffer(R_O - GR_IN - GR_W, resolution=96)).intersection(sbox(X0, ZT - 0.01, X1, ZT + R_O))
 hat = D(hat, [ext_y(arc, Y0 - 0.01, Y0 + GR_D)])                                           # inramningen fortsätter över bågen
-CL, LT, LH = 0.25, 1.2, 4.0                    # läpparnas spel, tjocklek, höjd
-lips = U([box(X0 + T + CL, X0 + T + CL + LT, Y0 + T + CL, Y1 - 0.5, ZT - LH, ZT + 0.5),
-          box(X1 - T - CL - LT, X1 - T - CL, Y0 + T + CL, Y1 - 0.5, ZT - LH, ZT + 0.5)])
+CL, LT, LH = 0.12, 1.4, 4.0                    # läpparnas spel mot lådans väggar, tjocklek, höjd
+# 9.11: läpparna sitter ihop med lockets sidovägg och framvägg (en förbindning ovanför z 46).
+# I 9.10 hade de spel åt alla håll och satt inte fast i locket alls.
+lips = []
+for xa, xb, xc, xd in ((X0 + T + CL, X0 + T + CL + LT, X0 + T - 0.6, X0 + T + CL + LT),
+                       (X1 - T - CL - LT, X1 - T - CL, X1 - T - CL - LT, X1 - T + 0.6)):
+    lips.append(box(xa, xb, Y0 + T + CL, Y1 - 0.5, ZT - LH, ZT + 0.01))        # läppen ner i lådan
+    lips.append(box(xc, xd, Y0 + T - 0.6, Y1 - 0.5, ZT, ZT + 2.5))              # förbindning in i lockets väggar
+lips = U(lips)
 hat = U([hat, lips])
-assert hat.is_watertight
+assert hat.is_watertight and len(hat.split(only_watertight=False)) == 1, 'locket ska vara en enda kropp'
 
 
 # ---------------- servobricka, tre varianter
