@@ -45,9 +45,9 @@ def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=38.
     CH_NECK = np.array([(CH_B[0] - CH_W, CH_B[1]), (CH_B[0] + CH_W, CH_B[1]), (CH_B[0] + CH_W, NECK), (CH_B[0] - CH_W, NECK)])
     CH_FUN = np.array([(CH_B[0] + CH_W, NECK), (EX[0] + CH_W0, yb), (EX[0] - CH_W0, yb), (EX[0] - CH_W0, EX[1] + 0.5), (CH_B[0] - CH_W, NECK)])   # moturs
     CH_POLY = np.array([CH_NECK[0], CH_NECK[1], CH_FUN[0], CH_FUN[1], CH_FUN[2], CH_FUN[3], CH_FUN[4]])
-CAB = dict(x=27.0, y1=37.5, z0=94.0, z1=122.0)       # plats för kontakterna i skärmkortets hylsor: |x| < 27, y < 37,5, z 94–122 (hylsornas topp y 21,7 + 14 mm + 1,8)
+CAB = dict(x=27.0, y1=37.5, z0=94.0)                 # plats för kontakterna: |x| < 27, y < 37,5 (skenornas bakkant 23,5 + kontakterna ca 6–9 mm + böjen), från z 94 och uppåt
 def cable_bulge(wall=2.4, top=None):
-    """Kanal i förrådets framvägg för kontakterna, öppen uppåt så att förrådet kan lyftas förbi dem; 45 graders sluttning nedtill (konvex)."""
+    """Kanal i förrådets framvägg för kontakterna, öppen uppåt; 45 graders sluttning nedtill (konvex)."""
     x, y1, z0 = CAB['x'] + wall, CAB['y1'] + wall, CAB['z0'] - wall
     zt = ZT if top is None else top
     yf = YF - WALL; d = y1 - yf

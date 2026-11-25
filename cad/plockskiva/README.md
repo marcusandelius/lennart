@@ -1,7 +1,6 @@
 # Plockskivan: ny dosering (ersätter 10_doserhus, 11_doserhjul och 14_notmagasin)
 
-> **Skriv inte ut ännu.** Ritad för nötter 16–22 mm långa (större sorteras bort). Kvar att bestämma: om skärmkortets
-> kontakter byts mot vinklade eller lödda, så att förrådet går att lyfta (se nedan).
+Ritad för hasselnötter 16–22 mm långa. Större nötter sorteras bort före påfyllning.
 
 En skiva (Ø85,2 mm) som lutar 45 grader åt sidan plockar en hasselnöt i taget ur förrådet och släpper den genom ett
 utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindrar nötterna från att valva sig ovanför skivan.
@@ -27,10 +26,11 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
 * Hålet i stativets platta runt servots axel är Ø31 mm och 2,5 mm djupt, så att skruvskallarna under hornet går fritt.
 
 ## Kanalen för skärmkortets kontakter
-Förrådets framvägg har en kanal, 54 mm bred, 8 mm djup (y 29,5–37,5) från z 94 och ända upp. Raka kontakter
-(14 mm bakom hylsorna) får plats när förrådet sitter på plats (minst 1,6 mm). Förrådet går dock inte att lyfta förbi
-dem: kanalens botten tar i den nedre raden efter ca 5 mm. Med vinklade kontakter eller fastlödda kablar som slutar
-inom ca 7 mm bakom hylsorna går förrådet fritt.
+Förrådets framvägg har en kanal, 54 mm bred och 8 mm djup (y 29,5–37,5), från z 94 och ända upp. Kontakterna på skärmkortet
+sticker enligt foto ut ca 6–9 mm bakom skärmfickans skenor (y ca 29–32) och kablarna viker av åt sidan, så de ryms i
+kanalen. Förrådet går inte att lyfta förbi kontakterna; dra först av dem bakåt i kanalen (ca 5–8 mm plats bakom dem,
+uppskattat ur foto) och lyft sedan förrådet. En 14 mm djup kanal gav plats att dra av kontakterna helt men sämre matning i
+simuleringen (243 av 280 med plan botten, 218 av 280 med sluttande, `sim/resultat_djupare_kanal.jsonl`) och valdes bort.
 
 ## Simulering med den här geometrin (`sim/resultat.jsonl`)
 40 nötter 16–20 mm långa (14–17,5 mm breda), vila 0,3 s, omröraren på. Friktion 0,35–0,5: 7 körningar, 274 av 280
@@ -90,7 +90,7 @@ För att ta ur förrådet: dra omröraren 10 mm snett uppåt ur skivan, lyft den
 * Utan omrörare (`sim/resultat_utan_omrorare.jsonl`): med 40 nötter tömdes förrådet i 5 av 8 körningar, i de andra tre
   valvade sig nötterna och 13–23 blev kvar. Med 15 nötter tömdes det i 4 av 4. Utan omrörare blev det färre dubbeldoser
   (8 på 271 slag) och servot stannade bara en gång.
-* Förrådet rymmer 64 nötter struket och 71 med råge (`sim/resultat_kapacitet_och_blad76.jsonl`).
+* Förrådet rymmer ca 75 nötter 16–20 mm långa (en fyllningssimulering, `sim/notlagen_forhandsgranskning.json`).
 
 ## Inte kontrollerat
 Servots och hornets verkliga mått, servots vridområde (114 grader plus vickning), kablarnas dragning, det utskrivna

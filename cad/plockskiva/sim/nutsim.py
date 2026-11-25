@@ -92,6 +92,7 @@ def nuts(n, rng, pointed=False, sizes=(15.0, 18.5, 18.0, 22.0)):
     N = []
     for _ in range(n):
         w = rng.uniform(sizes[0], sizes[1]); l = rng.uniform(sizes[2], sizes[3]); t = w * rng.uniform(0.9, 1.0)
+        if len(sizes) > 4 and rng.uniform() < sizes[4]: w = sizes[5]; l = sizes[6]; t = w * 0.95      # en andel stora nötter
         N.append((w / 2, t / 2, max(l, w + 0.5) / 2))
     return N
 
