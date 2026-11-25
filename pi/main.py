@@ -33,6 +33,7 @@ from recorder import ClipUploader, Recorder
 from servo import ServoController
 
 CAMERA_RETRY_S = 30
+FLASH_S = 4.0  # så länge ACCESS GRANTED eller DENIED visas när den triggas från statussidan
 # Kameran levererar 1280 × 720 (16:9). Livebilden skalas ner till vald upplösning,
 # och skärmen får var fjärde bildpunkt (320 × 180) med svarta kanter upptill och nedtill.
 CAMERA_SIZE = (1280, 720)
@@ -179,7 +180,8 @@ def main() -> int:
               "display_mode": "camera"}
     # Skärmkommandon från adminvyn utförs i huvudslingan, som är den enda tråden som pratar
     # med skärmen. Annars kunde en omstart krocka med en bild som håller på att skickas.
-    display_requests = {"restart": False}
+    # "flash" är en ACCESS-bild som visas en kort stund (från statussidan), och "flash_until" när den slutar.
+    display_requests = {"restart": False, "flash": None, "flash_until": 0.0}
     demo = DemoMode()
 
     # Efter varje servokommando skickas en rapport direkt, så att adminvyn ser resultatet.
@@ -226,6 +228,11 @@ def main() -> int:
             print(f"Kommando från lennart.cam: {cmd}", flush=True)
             if cmd.get("action") == "display_restart":
                 display_requests["restart"] = True
+            elif cmd.get("action") == "display_flash":
+                if cmd.get("screen") in ACCESS_SCREENS:
+                    # Sluttiden sätts först, så att huvudslingan aldrig ser bilden med en gammal sluttid.
+                    display_requests["flash_until"] = time.monotonic() + FLASH_S
+                    display_requests["flash"] = cmd["screen"]
             else:
                 servo.submit(cmd)
 
@@ -244,6 +251,10 @@ def main() -> int:
             mode = demo.screen(now)  # kamerabilden, eller ACCESS-bilden som lottades fram
         elif demo.background is not None:
             demo.reset()             # lär in bakgrunden på nytt nästa gång demoläget slås på
+        if display_requests["flash"] and now < display_requests["flash_until"]:
+            mode = display_requests["flash"]  # en ACCESS-bild från statussidan går före allt annat en stund
+        else:
+            display_requests["flash"] = None
         show_camera = display is not None and mode not in ACCESS_SCREENS
         if display is not None:
             # SPI-hastigheten väljs i adminvyn (i MHz). LCD_SPI_HZ i .env gäller tills servern svarat.

@@ -24,6 +24,12 @@ OSC_HZ = 25_000_000     # kortets inbyggda oscillator
 PWM_HZ = 50             # servon vill ha 50 pulser per sekund
 PERIOD_US = 1_000_000 / PWM_HZ
 RELEASE_AFTER_S = 1.0   # släpp signalen så här länge efter en rörelse
+# Ett 360°-servo har inget läge. Pulsens längd avgör i stället fart och riktning:
+# 1500 µs = stilla, längre = ena hållet, kortare = andra hållet. Utan puls stannar det.
+SPIN_NEUTRAL_US = 1500
+SPIN_OFFSET_US = 400    # lagom fart, långt från fullt ös
+SWEEP_ANGLES = (10, 170)  # inte ända ut till 0° och 180°, där servot kan ta i mot sitt stopp
+SWEEP_STEP_S = 0.5      # MG90S hinner 160° på cirka 0,25 s
 
 
 def _open_bus(number: int):
@@ -155,6 +161,24 @@ class ServoController:
             self._move("doser", a)
             time.sleep(pause)
 
+    def _spin(self, name: str, seconds: float) -> None:
+        """Snurra ett 360°-servo en stund och stanna det genom att släppa signalen."""
+        self.board.pulse(self._channel(name), SPIN_NEUTRAL_US + SPIN_OFFSET_US)
+        self.holding[name] = True
+        self.position[name] = None  # ett 360°-servo vet inte var det står
+        time.sleep(seconds)
+        self._release(name)
+
+    def _sweep(self, name: str, seconds: float) -> None:
+        """Svep ett vinkelservo fram och tillbaka en stund, sedan släpps signalen."""
+        end = time.monotonic() + seconds
+        i = 0
+        while time.monotonic() < end:
+            self._move(name, SWEEP_ANGLES[i % 2])
+            i += 1
+            time.sleep(SWEEP_STEP_S)
+        self._release(name)
+
     def _run(self) -> None:
         while True:
             cmd = self._queue.get()
@@ -176,6 +200,12 @@ class ServoController:
                     time.sleep(RELEASE_AFTER_S)
                     self._release("doser")
                     self.last = f"testade utmatning ({cmd['angle']}°)"
+                elif action == "spin":
+                    self._spin(cmd["servo"], cmd["seconds"])
+                    self.last = f"{cmd['servo']} snurrade {cmd['seconds']} s"
+                elif action == "sweep":
+                    self._sweep(cmd["servo"], cmd["seconds"])
+                    self.last = f"{cmd['servo']} svepte {cmd['seconds']} s"
                 print(f"Servo: {self.last}", flush=True)
             except Exception as e:
                 # Tappad kontakt med kortet: försök ansluta på nytt vid nästa kommando.

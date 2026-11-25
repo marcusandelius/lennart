@@ -89,6 +89,8 @@ DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "servo_doser_ch
                "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")
 
 SERVOS = ("doser", "lucka")
+TEST_S = 3                      # så länge servona rör sig vid ett test från statussidan
+FLASH_SCREENS = ("granted", "denied")
 COMMAND_MAX_AGE_S = 20      # äldre kommandon kastas, så att inget servo rör sig långt senare
 
 MAX_VIEWERS = 25            # skyddar Pi:ns uppkoppling och servern
@@ -120,7 +122,7 @@ def validate(changes: dict, current: dict) -> dict:
 
 
 def validate_command(cmd: dict, values: dict) -> dict:
-    """Kontrollera ett kommando från adminvyn: servona eller omstart av skärmen."""
+    """Kontrollera ett kommando från adminvyn eller statussidan: servona eller skärmen."""
     action = cmd.get("action")
     if action == "move":
         if cmd.get("servo") not in SERVOS:
@@ -140,6 +142,16 @@ def validate_command(cmd: dict, values: dict) -> dict:
         return {"action": "test_dispense", "angle": values["dispense_angle"]}
     if action == "display_restart":
         return {"action": "display_restart"}
+    if action in ("spin", "sweep"):
+        # spin: ett 360°-servo snurrar i TEST_S sekunder. sweep: ett vinkelservo sveper fram och tillbaka.
+        if cmd.get("servo") not in SERVOS:
+            raise ValueError("Okänt servo")
+        return {"action": action, "servo": cmd["servo"], "seconds": TEST_S}
+    if action == "display_flash":
+        # Visa ACCESS GRANTED eller ACCESS DENIED en kort stund, sedan tillbaka till det vanliga läget.
+        if cmd.get("screen") not in FLASH_SCREENS:
+            raise ValueError("Okänd skärmbild")
+        return {"action": "display_flash", "screen": cmd["screen"]}
     raise ValueError("Okänt kommando")
 
 
