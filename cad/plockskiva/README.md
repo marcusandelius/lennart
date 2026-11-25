@@ -54,7 +54,7 @@ För att ta ur förrådet: dra omröraren 5 mm snett uppåt ur skivan, lyft den 
 * Friktion 0,65 (klibbiga nötter): en av två körningar stannade med 23 nötter kvar.
 * Utan omrörare (`sim/resultat_utan_omrorare.jsonl`): med 40 nötter tömdes förrådet i 5 av 8 körningar, i de andra tre
   valvade sig nötterna och 13–23 blev kvar. Med 15 nötter tömdes det i 4 av 4. Utan omrörare blev det färre dubbeldoser
-  (8 på 278 slag) och servot stannade bara en gång.
+  (8 på 271 slag) och servot stannade bara en gång.
 * Förrådet rymmer 64 nötter struket och 71 med råge (`sim/resultat_kapacitet_och_blad76.jsonl`).
 
 ## Inte kontrollerat
