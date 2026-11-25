@@ -136,8 +136,11 @@ stand = clean(D(stand, holes))
 assert stand.is_watertight
 
 # ---------------------------------------------------------------- 11b omrörare: fyrkantsfot, pinne och blad (plan del, 8 mm tjock)
-A0, A1, AR = WT + 0.3, 92.0, 15.0                                                                  # bladets underkant vilar på förrådets lutande golv
-prof = unary_union([sbox(-5.5, GAP + 12.0, 5.5, GAP + TD), sbox(-4.0, GAP + TD - 0.1, 4.0, A1), sbox(-AR, A0, AR, A1)])   # foten är avlång (11 x 8) så att bladet bara kan hamna längs fickans riktning
+A0, A1, AR = WT + 1.0, 92.0, 15.0                                                                  # bladets underkant 1 mm över förrådets lutande golv
+WB = GAP + TD - 5.0                                                                                # fotens underkant: 5 mm ned i skivan (hålet är 6,6 mm djupt)
+fot_p = Polygon([(-5.45, WB), (5.45, WB), (5.85, WB + 8.0), (-5.85, WB + 8.0)])                     # svagt kilformad fot: 10,9 mm nedtill, 11,4 mm i höjd med skivans ovansida, kläms fast i hålet (11,4 mm)
+blad_p = Polygon([(-AR, A0), (AR, A0), (AR, A1 - 8.0), (AR - 8.0, A1), (-AR + 8.0, A1), (-AR, A1 - 8.0)])   # avfasade hörn upptill
+prof = unary_union([fot_p, sbox(-4.0, WB + 7.9, 4.0, A1 - 1.0), blad_p])
 ag = trimesh.creation.extrude_polygon(prof, 8.0)                                                    # (a, w) i planet, tjocklek längs z
 ag_print = ag.copy()
 ag_asm = ag.copy(); ag_asm.apply_transform(np.array([[0, 0, 1, -4.0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], float))   # tjocklek -> u, a -> v (mot fickan), w -> w
