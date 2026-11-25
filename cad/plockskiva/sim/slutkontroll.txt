@@ -3,9 +3,12 @@
 == stativ med servo, skiva och kåpa rakt ned (klämma och kamerasläde lossade): fritt hela vägen
 == samma, med klämma och kamerasläde kvar (väntas krocka): KROCK [(5.0, 'skivkapa', 'skarmklamma', 7.6), (8.0, 'skivkapa', 'skarmklamma', 85.1), (11.0, 'skivkapa', 'skarmklamma', 164.0), (14.0, 'doserstativ', 'skarmklamma', 6.7), (14.0, 'skivkapa', 'skarmklamma', 205.0), (17.0, 'doserstativ', 'skarmklamma', 30.9)] ... (147)
 == förrådet rakt upp med allt annat på plats: fritt hela vägen
-== omröraren upp längs skivans axel: KROCK [(10.0, 'omrorare', 'notforrad', 37.6), (13.0, 'omrorare', 'notforrad', 118.7), (16.0, 'omrorare', 'notforrad', 200.2), (19.0, 'omrorare', 'notforrad', 281.7), (22.0, 'omrorare', 'notforrad', 363.3), (25.0, 'omrorare', 'notforrad', 444.8)] ... (33)
 == skivan vriden ett helt varv: största överlapp 0.00 mm3
 == omröraren vriden -20..180 grader: största överlapp 0.00 mm3 
+== omröraren ur och i förrådet
+   rakt upp längs skivans axel 60 mm: KROCK [(8.0, 'notforrad', 4.6), (10.0, 'notforrad', 37.6), (12.0, 'notforrad', 91.5), (14.0, 'notforrad', 145.9), (16.0, 'notforrad', 200.2)] … (27) (30 lägen)
+   lodrätt upp 120 mm: KROCK [(2.0, 'plockskiva', 25.1), (4.0, 'plockskiva', 24.6)] … (2) (60 lägen)
+   5 mm längs axeln, sedan lodrätt upp 120 mm: fritt hela vägen (65 lägen)
 == punkter som ligger rakt under fasta hinder i huset (ska vara 0)
    plockskiva    0 
    doserstativ   0 
@@ -15,35 +18,36 @@
    servo_mg996r  0 
 == minsta avstånd
    plockskiva    elektroniklada     5.4 mm vid [-5.0, 108.0, 73.0]
-   plockskiva    monteringsplatta   8.6 mm vid [-6.0, 107.0, 74.0]
+   plockskiva    monteringsplatta   8.6 mm vid [-7.0, 107.0, 74.0]
    plockskiva    skarmklamma        8.0 mm vid [-15.0, 28.0, 83.0]
    plockskiva    kontakter         11.3 mm vid [-21.0, 34.0, 89.0]
-   doserstativ   kropp              3.3 mm vid [-15.0, 6.0, 36.0]
-   doserstativ   kropp_sockel       0.8 mm vid [-15.0, 9.0, 3.0]
-   doserstativ   elektroniklada     4.8 mm vid [-12.0, 108.0, 81.0]
+   doserstativ   kropp              3.3 mm vid [-16.0, 6.0, 15.0]
+   doserstativ   kropp_sockel       0.8 mm vid [-15.0, 8.0, 2.0]
+   doserstativ   elektroniklada     4.8 mm vid [-18.0, 108.0, 76.0]
    doserstativ   monteringsplatta   7.4 mm vid [-12.0, 108.0, 81.0]
-   doserstativ   skarmklamma        4.8 mm vid [-15.0, 25.0, 84.0]
+   doserstativ   skarmklamma        4.8 mm vid [-16.0, 25.0, 85.0]
    doserstativ   kontakter          8.1 mm vid [-22.0, 32.0, 91.0]
-   skivkapa      skarmklamma        3.0 mm vid [-10.0, 23.0, 85.0]
-   skivkapa      kontakter          7.3 mm vid [7.0, 29.0, 91.0]
-   notforrad     kropp              4.0 mm vid [70.0, 68.0, 148.0]
-   notforrad     fonsterrutor      10.2 mm vid [70.0, 66.0, 103.0]
-   notforrad     kamerafaste        3.7 mm vid [-15.0, 30.0, 151.0]
-   notforrad     elektroniklada     4.4 mm vid [-7.0, 109.0, 117.0]
-   notforrad     monteringsplatta   7.0 mm vid [-15.0, 109.0, 141.0]
-   notforrad     skarmklamma        8.5 mm vid [28.0, 30.0, 91.0]
-   notforrad     kontakter          2.5 mm vid [9.0, 30.0, 129.0]
-   plockskiva    doserstativ       0.60 mm vid [-7.0, 102.0, 51.0]
+   skivkapa      skarmklamma        3.0 mm vid [-4.0, 23.0, 85.0]
+   skivkapa      kontakter          7.3 mm vid [15.0, 29.0, 91.0]
+   notforrad     kropp              4.0 mm vid [70.0, 68.0, 149.0]
+   notforrad     fonsterrutor      10.2 mm vid [70.0, 66.0, 70.0]
+   notforrad     kamerafaste        3.7 mm vid [16.0, 30.0, 148.0]
+   notforrad     elektroniklada     4.4 mm vid [37.0, 109.0, 85.0]
+   notforrad     monteringsplatta   7.0 mm vid [-15.0, 109.0, 151.0]
+   notforrad     skarmklamma        8.5 mm vid [25.0, 30.0, 95.0]
+   notforrad     kontakter          2.5 mm vid [-9.0, 30.0, 127.0]
+   plockskiva    doserstativ       0.60 mm vid [-33.0, 93.0, 77.0]
    plockskiva    skivkapa          1.28 mm vid [-12.0, 25.0, 79.0]
-   plockskiva    omrorare          0.01 mm vid [-5.0, 62.0, 72.0]
-   plockskiva    notforrad         1.00 mm vid [-3.0, 107.0, 70.0]
-   plockskiva    servo_mg996r      1.10 mm vid [-7.0, 68.0, 57.0]
+   plockskiva    omrorare          0.20 mm vid [-6.0, 63.0, 72.0]
+   plockskiva    notforrad         1.00 mm vid [3.0, 107.0, 65.0]
+   plockskiva    servo_mg996r      1.10 mm vid [-6.0, 65.0, 56.0]
    doserstativ   skivkapa          0.00 mm vid [-16.0, 25.0, 85.0]
    doserstativ   notforrad         0.00 mm vid [-32.0, 52.0, 100.0]
-   doserstativ   servo_mg996r      0.01 mm vid [-9.0, 56.0, 41.0]
+   doserstativ   servo_mg996r      0.00 mm vid [-7.0, 73.0, 39.0]
    skivkapa      notforrad         0.40 mm vid [21.0, 31.0, 48.0]
+   omrorare      notforrad         0.61 mm vid [20.0, 70.0, 84.0]
 10_doserstativ.stl     höjd 101.8  första lagret 6792 mm2  svävande öar 2 [(np.float64(15.9), 0.4, [21.9, -19.0, 22.1, -16.1]), (np.float64(18.7), 0.1, [19.1, 6.5, 19.1, 9.4])]  ostödd yta totalt 28 mm2 (värsta lagret z 5.7: 12.8 mm2)  smalare än 0,8 mm som mest 13.6 mm2 (z 73.1)
 10b_skivkapa.stl       höjd 27.4  första lagret 297 mm2  svävande öar 0 []  ostödd yta totalt 2 mm2 (värsta lagret z 25.1: 1.7 mm2)  smalare än 0,8 mm som mest 1.7 mm2 (z 2.5)
-11_plockskiva.stl      höjd 16.0  första lagret 5019 mm2  svävande öar 0 []  ostödd yta totalt 4 mm2 (värsta lagret z 6.7: 3.9 mm2)  smalare än 0,8 mm som mest 2.8 mm2 (z 0.1)
-11b_omrorare.stl       höjd 8.0  första lagret 1615 mm2  svävande öar 0 []  ostödd yta totalt 0 mm2 (värsta lagret z 0.0: 0.0 mm2)  smalare än 0,8 mm som mest 0.3 mm2 (z 0.1)
-14_notforrad.stl       höjd 114.9  första lagret 941 mm2  svävande öar 1 [(np.float64(46.1), 0.1, [-44.0, 1.7, -43.9, 5.4])]  ostödd yta totalt 6 mm2 (värsta lagret z 46.3: 1.6 mm2)  smalare än 0,8 mm som mest 25.2 mm2 (z 67.5)
+11_plockskiva.stl      höjd 16.0  första lagret 4993 mm2  svävande öar 0 []  ostödd yta totalt 23 mm2 (värsta lagret z 6.7: 23.0 mm2)  smalare än 0,8 mm som mest 2.8 mm2 (z 0.1)
+11b_omrorare.stl       höjd 8.0  första lagret 1675 mm2  svävande öar 0 []  ostödd yta totalt 0 mm2 (värsta lagret z 0.0: 0.0 mm2)  smalare än 0,8 mm som mest 0.2 mm2 (z 7.9)
+14_notforrad.stl       höjd 114.9  första lagret 941 mm2  svävande öar 1 [(np.float64(46.1), 0.1, [-44.0, 1.7, -43.9, 5.4])]  ostödd yta totalt 6 mm2 (värsta lagret z 46.3: 1.6 mm2)  smalare än 0,8 mm som mest 27.6 mm2 (z 67.5)

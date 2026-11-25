@@ -71,7 +71,7 @@ def disc_local():
     hc = POCKET_R + 1.8                                                                   # fas 0,8 mm runt fickans överkant
     cone = trimesh.creation.cone(radius=hc, height=hc, sections=96); cone.apply_transform(trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0]))
     cone.apply_translation([0, -RP, GAP + TD + 1.0])
-    sq = trimesh.creation.box(extents=[SQ, SQ, TD]); sq.apply_translation([0, 0, GAP + 9.4 + TD / 2])    # fyrkantshål från hornskruvens urtag upp till ovansidan
+    sq = trimesh.creation.box(extents=[SQ, SQ + 3.0, TD]); sq.apply_translation([0, 0, GAP + 9.4 + TD / 2])    # avlångt hål (8,4 x 11,4, långsidan mot fickan) från hornskruvens urtag upp till ovansidan
     cuts = [cyl(POCKET_R, GAP - 1, GAP + TD + 1, 0, -RP), cone,
             cyl(12.7, GAP - 1, GAP + 3.5), cyl(4.6, GAP + 3.4, GAP + 9.5), cyl(3.5, GAP, GAP + TD + 1), sq]
     return D(m, cuts)
@@ -135,9 +135,9 @@ for sx in (-1, 1): holes.append(box(min(sx * 15.0, sx * 200), max(sx * 15.0, sx 
 stand = clean(D(stand, holes))
 assert stand.is_watertight
 
-# ---------------------------------------------------------------- 11b omrörare: fyrkantsfot, ansats, pinne och blad (plan del, 8 mm tjock)
-A0, A1, AR = 48.0, 92.0, 15.0
-prof = unary_union([sbox(-4.0, GAP + 12.0, 4.0, A1), sbox(-6.5, GAP + TD, 6.5, GAP + TD + 2.4), sbox(-AR, A0, AR, A1)])
+# ---------------------------------------------------------------- 11b omrörare: fyrkantsfot, pinne och blad (plan del, 8 mm tjock)
+A0, A1, AR = WT + 0.3, 92.0, 15.0                                                                  # bladets underkant vilar på förrådets lutande golv
+prof = unary_union([sbox(-5.5, GAP + 12.0, 5.5, GAP + TD), sbox(-4.0, GAP + TD - 0.1, 4.0, A1), sbox(-AR, A0, AR, A1)])   # foten är avlång (11 x 8) så att bladet bara kan hamna längs fickans riktning
 ag = trimesh.creation.extrude_polygon(prof, 8.0)                                                    # (a, w) i planet, tjocklek längs z
 ag_print = ag.copy()
 ag_asm = ag.copy(); ag_asm.apply_transform(np.array([[0, 0, 1, -4.0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], float))   # tjocklek -> u, a -> v (mot fickan), w -> w
@@ -160,7 +160,7 @@ wall_b = I(I(box(-BIG, BIG, K.YB + 0.02, YCB, -BIG, ZT), w_ge(WR)), region)     
 skirt = I(D(lcyl(RO + 2.8, WR - 8.0, WR + 3.0), [lcyl(RO + 0.4, WR - 9.0, WR), lcyl(RC, WR - 9.0, WR + 4.0)]), v_ge(10.0))   # hake över stativets överkant
 ybox = box(-BIG, BIG, YCF, YCB, -BIG, BIG)
 hopper = U([I(D(filled, [V_in]), ybox), wall_f, wall_b, I(skirt, ybox)])
-notch = lbox(-7.5, 7.5, VS - 1.0, 7.5, WS - 1.0, WT + 1.0)                                          # urtag i skärmen för omrörarens pinne
+notch = U([lcyl(6.0, WS - 1.0, WT + 1.0), lbox(-4.6, 4.6, VS - 1.0, 37.0, WS - 1.0, WT + 1.0)])    # hål för omrörarens pinne och ett 9 mm spår uppför golvet, så att omröraren kan lyftas rakt upp
 hopper = clean(D(hopper, [notch]))
 assert hopper.is_watertight
 
