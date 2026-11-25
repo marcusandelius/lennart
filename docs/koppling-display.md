@@ -13,7 +13,11 @@ Skärmen (Electrokit art.nr 41036261, "2" LCD 320x240 for Raspberry Pi Pico 4x b
 
 ## Via RJ45 (från 2026-11-25)
 
-Skärmen kopplas via ett keystone-uttag i elektroniklådan och en klippt patchkabel, vars klippta ände löds till skärmkortet. Skärmen lossas i uttaget. Ledarna i den klippta änden mäts fram med multimeter, eftersom patchkablar kan vara kopplade enligt T568A eller T568B. Alla uttag kopplas med färgkod **T568B**. Steg för steg med kontrollmätningar: [kopplingsguide.html](kopplingsguide.html) (publicerad som artefakt).
+Skärmen kopplas via två keystone-uttag, ett i elektroniklådan och ett vid skärmen, och en hel rak patchkabel. Båda uttagen får en kort bit Cat6 efter färgkod **T568B**, och på Cat6-bitarnas andra ände löds kopplingskablar: honor till Pi:n, hanar till skärmkortet. Med ett uttag i båda ändar spelar det ingen roll om patchkabeln är kopplad enligt A eller B. Steg för steg med kontroller: [kopplingsguide.html](kopplingsguide.html) (publicerad som artefakt).
+
+**Kopplingskablarnas färger:** CLK gul, GND grå, DIN grön, CS orange, DC blå, 3,3 V röd, RST vit, BL lila.
+
+**Erfarenhet 2026-11-25:** kopplingskablar som lades direkt i keystone-uttagen fick nästan ingen kontakt. Isoleringen är för tjock för knivarna, och bara två av åtta ledare fungerade. Det upptäcktes genom att låta Pi:n läsa av stiften med `pinctrl` (steg 2.3 i guiden), utan multimeter.
 
 | RJ45-stift | Färg (B) | Signal | Pi 5, fysiskt stift | Skärmkortet, Pico-stift |
 |---|---|---|---|---|
@@ -25,8 +29,6 @@ Skärmen kopplas via ett keystone-uttag i elektroniklådan och en klippt patchka
 | 6 | grön | 3,3 V | 1 | 39 (VSYS) |
 | 7 | vit-brun | RST | 13 | 16 (GP12) |
 | 8 | brun | BL | 12 | 17 (GP13) |
-
-**Kopplingskablar för bänktestet:** hane–hona-kablar klipps på mitten, så att varje signal har samma färg i båda ändar. Honan läggs direkt i uttaget och sätts på Pi:n, och hanen löds på patchkabeln vid skärmen. CLK gul, GND grå, DIN grön, CS orange, DC blå, 3,3 V röd, RST vit, BL lila. Inför monteringen ute är entrådig Cat6 i uttaget säkrare.
 
 Paren är valda så att CLK tvinnas med GND och DIN med 3,3 V. Uttaget märks **SKÄRM** och får aldrig förväxlas med Pi:ns nätverksuttag.
 
