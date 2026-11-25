@@ -4,7 +4,9 @@ Servona styrs via ett **PCA9685-kort** (16 kanaler, I2C). Kortet skapar servosig
 
 > **Stäng av all ström innan du kopplar.** Pi-sidan är standard för Raspberry Pi. Kontrollera märkningen på ditt PCA9685-kort, eftersom placeringen av stiften skiljer sig mellan tillverkare [verifiera].
 
-## PCA9685 till Pi 5 (4 kablar, hona–hona)
+## PCA9685 till Pi 5 (4 kablar med snabbkoppling)
+
+Kopplingskablar hona–hona på servokortet och hane–hona på Pi:n, ihopstuckna i mitten. Färger: VCC röd, GND svart, SDA orange, SCL brun. Varje knippe krymps ihop för sig.
 
 | PCA9685 | Raspberry Pi 5 | Fysisk pinne | Varför |
 |---|---|---|---|
