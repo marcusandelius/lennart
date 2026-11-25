@@ -13,7 +13,7 @@ Skärmen (Electrokit art.nr 41036261, "2" LCD 320x240 for Raspberry Pi Pico 4x b
 
 ## Via RJ45 (från 2026-11-25)
 
-Skärmen kopplas via två keystone-uttag och en rak patchkabel, så att den lätt kan lossas. Alla uttag kopplas med färgkod **T568B**. Steg för steg med kontrollmätningar: [kopplingsguide.html](kopplingsguide.html) (publicerad som artefakt).
+Skärmen kopplas via ett keystone-uttag i elektroniklådan och en klippt patchkabel, vars klippta ände löds till skärmkortet. Skärmen lossas i uttaget. Ledarna i den klippta änden mäts fram med multimeter, eftersom patchkablar kan vara kopplade enligt T568A eller T568B. Alla uttag kopplas med färgkod **T568B**. Steg för steg med kontrollmätningar: [kopplingsguide.html](kopplingsguide.html) (publicerad som artefakt).
 
 | RJ45-stift | Färg (B) | Signal | Pi 5, fysiskt stift | Skärmkortet, Pico-stift |
 |---|---|---|---|---|

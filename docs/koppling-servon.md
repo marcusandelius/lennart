@@ -15,7 +15,10 @@ Servona styrs via ett **PCA9685-kort** (16 kanaler, I2C). Kortet skapar servosig
 
 **V+ på PCA9685** får **inte** kopplas till Pi:n.
 
-## Servona via RJ45 (från 2026-11-25)
+## Servona via RJ45 (senare, valfritt)
+
+För bänktestet sitter servona direkt i PCA9685 (doseraren i kanal 0, luckan i kanal 1), eftersom deras egna kontakter redan går att lossa. RJ45 nedan läggs till vid monteringen om det behövs, med ett kretskort på 4 × 6 cm som servokoppling i stället för lödda Y-skarvar.
+
 
 PCA9685 sitter i elektroniklådan. En rak patchkabel går från uttaget **SERVON** i lådans vägg till en servokoppling vid doseraren, där båda servona ansluts med lödda Y-skarvar (Wago 221 går också bra). Färgkod **T568B**. Steg för steg: [kopplingsguide.html](kopplingsguide.html).
 
