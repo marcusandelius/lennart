@@ -25,9 +25,9 @@ Fri öppning rakt uppifrån mitt i huset: y 26–110,5 (84,5 mm). Den gamla skiv
 * Omrörare på skivans axel.
 
 ## Simuleringar (40 nötter, vila 0,3 s)
-`r1.jsonl`, `r2.jsonl`: mindre skiva utan omrörare. I 9 av 16 körningar valvade sig nötterna ovanför skivan
-och matningen stannade med 8–31 nötter kvar (bild `valv_utan_omrorare.png`).
+`r1.jsonl`, `r2.jsonl`: mindre skiva utan omrörare. I 10 av 16 körningar blev nötter kvar: nötterna valvade sig ovanför skivan
+och matningen stannade med 1–31 nötter kvar (bild `valv_utan_omrorare.png`).
 `r3.jsonl`: samma mått med ett blad på skivans axel (halv längd 15 mm, 48–76 mm över plattan).
-8 av 8 körningar tömde förrådet. Kvar att trimma: 19 stopp på vägen upp och 26 dubbeldoser på 324 slag.
+8 av 8 körningar tömde förrådet. Kvar att trimma: 19 stopp på vägen upp och 26 dubbeldoser på 323 slag.
 
 Inget i den här mappen är ritat som utskriftsfiler ännu.
