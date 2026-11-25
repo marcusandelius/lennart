@@ -88,10 +88,10 @@ def wheel_pieces(bump=None):
     return P
 
 
-def nuts(n, rng, pointed=False):
+def nuts(n, rng, pointed=False, sizes=(15.0, 18.5, 18.0, 22.0)):
     N = []
     for _ in range(n):
-        w = rng.uniform(15.0, 18.5); l = rng.uniform(18.0, 22.0); t = w * rng.uniform(0.9, 1.0)
+        w = rng.uniform(sizes[0], sizes[1]); l = rng.uniform(sizes[2], sizes[3]); t = w * rng.uniform(0.9, 1.0)
         N.append((w / 2, t / 2, max(l, w + 0.5) / 2))
     return N
 

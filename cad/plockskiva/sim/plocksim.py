@@ -2,7 +2,7 @@ import sys, json, time, numpy as np, mujoco
 from nutsim import nuts
 import plock as K
 
-def build(n, seed, mu=0.5, torque=1.0, dt=0.001, chute=True, geo=None, agit=None):
+def build(n, seed, mu=0.5, torque=1.0, dt=0.001, chute=True, geo=None, agit=None, sizes=None):
     if geo: K.configure(**geo)
     rng = np.random.default_rng(seed); mm = 0.001; meshes = []; sg = []; dg = []
     def add(pts, name, lst, rgba="0.3 0.3 0.3 0.3"):
@@ -13,13 +13,18 @@ def build(n, seed, mu=0.5, torque=1.0, dt=0.001, chute=True, geo=None, agit=None
     dc = K.disc_pieces()
     for i, p in enumerate(dc): add(p, "d%d" % i, dg, "0.8 0.66 0.4 1")      # lokala koordinater, kroppen bär lutningen
     if agit:                                    # omrörare på skivans axel: pinne genom skärmen och en arm ovanför (lokala mått i mm)
-        a0_, a1_, w0_, w1_, th_, fi_ = agit       # armen går från a0 till a1 i riktningen fi (grader, skivans egen ram: 270 = uppför skivan i plockläget, 180 = bakåt)
+        a0_, a1_, w0_, w1_, th_, fi_ = agit[:6]   # armen går från a0 till a1 i riktningen fi (grader, skivans egen ram: 270 = uppför skivan i plockläget, 180 = bakåt)
+        rt_ = agit[6] if len(agit) > 6 else 0.0   # rundad topp med den radien
+        w1r_ = w1_; w1_ = w1_ - rt_
         dg.append('<geom type="cylinder" fromto="0 0 %.4f 0 0 %.4f" size="0.005" rgba="0.8 0.3 0.2 1" contype="0" conaffinity="1"/>' % ((K.GAP + K.TD) * mm, w0_ * mm))
         cen, hl, f_ = (a0_ + a1_) / 2, (a1_ - a0_) / 2, np.radians(fi_)
         dg.append('<geom type="box" pos="%.4f %.4f %.4f" euler="0 0 %.5f" size="%.4f %.4f %.4f" rgba="0.8 0.3 0.2 1" contype="0" conaffinity="1"/>' % (cen * np.cos(f_) * mm, cen * np.sin(f_) * mm, (w0_ + w1_) / 2 * mm, f_, hl * mm, th_ * mm, (w1_ - w0_) / 2 * mm))
+    if agit and rt_ > 0:
+        tx, ty = -np.sin(f_) * th_, np.cos(f_) * th_
+        dg.append('<geom type="cylinder" fromto="%.4f %.4f %.4f %.4f %.4f %.4f" size="%.4f" rgba="0.8 0.3 0.2 1" contype="0" conaffinity="1"/>' % (cen * np.cos(f_) * mm - tx * mm, cen * np.sin(f_) * mm - ty * mm, w1_ * mm, cen * np.cos(f_) * mm + tx * mm, cen * np.sin(f_) * mm + ty * mm, w1_ * mm, rt_ * mm))
     R = K.T[:3, :3]; q = mujoco.mju_mat2Quat if False else None
     quat = np.zeros(4); mujoco.mju_mat2Quat(quat, R.flatten())
-    nl = nuts(n, rng); nb = []; k = 0; z = K.ZT + 15.0
+    nl = nuts(n, rng, sizes=tuple(sizes)) if sizes else nuts(n, rng); nb = []; k = 0; z = K.ZT + 15.0
     xs = np.arange(K.XL + 14, K.XARC0 - 6, 23.0); ys = np.arange(K.YF + 13, K.YB - 12, 23.0)
     while k < n:
         for x in xs:

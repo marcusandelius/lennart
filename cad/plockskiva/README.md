@@ -1,5 +1,10 @@
 # Plockskivan: ny dosering (ersätter 10_doserhus, 11_doserhjul och 14_notmagasin)
 
+> **Skriv inte ut ännu.** Allt nedan är ritat och simulerat för nötter 15–18,5 mm breda och 18–22 mm långa.
+> Nötterna som ska användas är ungefär 20–21 mm breda och 23–25 mm långa (uppmätt från ett foto mot linjal,
+> `omritning/notter_linjal.png`). Med 20–22 × 23–25 mm stannade doseringen i alla sex simuleringarna
+> (16 av 180 nötter levererade, `sim/resultat_nottstorlek.jsonl`). Delarna måste ritas om för den storleken.
+
 En skiva (Ø85,2 mm) som lutar 45 grader åt sidan plockar en hasselnöt i taget ur förrådet och släpper den genom ett
 utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindrar nötterna från att valva sig ovanför skivan.
 
@@ -8,7 +13,7 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
 | 10_doserstativ.stl | Lutande platta med kant runt skivan, servofäste, utfall och ränna | Står på sin fot. Inget stöd |
 | 10b_skivkapa.stl | Kåpa över skivans främre kant, snett avskuren under skärmklämman | Står på sin underkant. Inget stöd, brim |
 | 11_plockskiva.stl | Skiva med en ficka Ø26,5 mm och ett avlångt hål (8,4 × 11,4 mm) för omröraren | Ovansidan mot plattan. Inget stöd |
-| 11b_omrorare.stl | Svagt kilformad fot (10,6–11,7 × 8 mm, 8 mm ned i skivan), pinne 8 × 8 mm och blad 30 × 46 mm med avfasade hörn, allt 8 mm tjockt | Ligger platt. Inget stöd |
+| 11b_omrorare.stl | Svagt kilformad fot (10,6–11,7 × 8 mm, 8 mm ned i skivan), pinne 8 × 8 mm och blad 30 × 46 mm med halvrund topp, allt 8 mm tjockt | Ligger platt. Inget stöd |
 | 14_notforrad.stl | Förrådet, lyfts rakt upp | Upp och ner på sin överkant. Inget stöd, brim |
 
 ## Förutsättningar i huset
@@ -20,7 +25,8 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
 Skivans mitt (-13, 65,5, 57), axeln lutar 45 grader mot +x. Fickan plockar längst ned (180 grader) och släpper vid
 66 grader, alltså 114 graders slag. Servot (MG996R) sitter under plattan med samma mått mot hornet som i det gamla
 doserhuset: hornurtag Ø25,4 × 3,5 mm, öronplan 9,0 mm under skivans undersida, fyra Ø4-hål för M3-bussningar.
-Rännan är 28–30 mm bred (en nöt i bredd) och lutar 34 grader. Mynningen slutar 3,3 mm från framväggen.
+Rännan är 28–30 mm bred (en nöt i bredd). Under utfallet lutar golvet 38 grader; de sista 12,5 mm före mynningen
+lutar det bara 12 grader, så att nöten inte kommer snett mot öppningen i framväggen.
 
 Servorörelse: 180 -> 66 grader på ca 0,9 s, vila 0,3 s, tillbaka, vicka 40 grader fram och tillbaka i botten.
 Om servot inte når fram: vrid tillbaka och försök igen.

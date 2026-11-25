@@ -107,10 +107,15 @@ assert kapa.is_watertight
 inner = Polygon(K.CH_POLY); outer = inner.buffer(WALL, join_style=2).intersection(sbox(-200, K.CH_B[1], 200, K.EX[1] + 15.1))
 inner = unary_union([inner, sbox(K.CH_B[0] - K.CH_W, K.CH_B[1] - 2, K.CH_B[0] + K.CH_W, K.CH_B[1] + 1)])
 nrm = np.array([K.CH_K * K.CH_T[0], K.CH_K * K.CH_T[1], 1.0]); nrm /= np.linalg.norm(nrm)        # golvplanets normal (uppåt)
-R_ = trimesh.geometry.align_vectors([0, 0, 1], nrm); below = box(-BIG, BIG, -BIG, BIG, -BIG, 0.0); below.apply_transform(R_); below.apply_translation(K.CH_B)
+R_ = trimesh.geometry.align_vectors([0, 0, 1], nrm); below = box(-BIG, BIG, -BIG, BIG, -BIG, 0.0); below.apply_transform(R_); below.apply_translation(K.CH_J)
+nrm_l = np.array([0.0, -K.CH_LAND, 1.0]); nrm_l /= np.linalg.norm(nrm_l)                            # den flacka delen närmast mynningen
+below_l = box(-BIG, BIG, -BIG, BIG, -BIG, 0.0); below_l.apply_transform(trimesh.geometry.align_vectors([0, 0, 1], nrm_l)); below_l.apply_translation(K.CH_B)
+below = U([below, below_l])                                                                          # under golvet = under något av planen (golvet är det högsta av dem)
 channel = D(ext(inner, -20, 200), [below])
 under_slab = lbox(-BIG, BIG, -BIG, BIG, -BIG, -ST + 0.6)                                           # allt under plattans undersida
-cap = box(-BIG, BIG, -BIG, BIG, -BIG, 0.0); cap.apply_transform(R_); cap.apply_translation(K.CH_B + np.array([0, 0, 30.0 / nrm[2]]))    # 30 mm över golvet
+cap = box(-BIG, BIG, -BIG, BIG, -BIG, 0.0); cap.apply_transform(R_); cap.apply_translation(K.CH_J + np.array([0, 0, 30.0 / nrm[2]]))    # 30 mm över golvet
+cap_l = box(-BIG, BIG, -BIG, BIG, -BIG, 0.0); cap_l.apply_transform(trimesh.geometry.align_vectors([0, 0, 1], nrm_l)); cap_l.apply_translation(K.CH_B + np.array([0, 0, 30.0 / nrm_l[2]]))
+cap = U([cap, cap_l])
 allowed = U([I(under_slab, lcyl(RO - 0.5, -BIG, 0.0)), I(under_slab, cap)])                        # väggarna går upp till plattan under den, annars 30 mm över golvet
 chute = D(I(ext(outer, 0.0, 200), allowed), [channel])
 # stöd under plattan: bakre gavel och vägg under plattans nederkant, kapade så att inget sticker ut utanför plattan
@@ -139,7 +144,8 @@ assert stand.is_watertight
 A0, A1, AR = WT + 1.0, 92.0, 15.0                                                                  # bladets underkant 1 mm över förrådets lutande golv
 WB = GAP + TD - 8.0                                                                                # fotens underkant: 8 mm ned i skivan (hålet är 9,0 mm djupt)
 fot_p = Polygon([(-5.3, WB), (5.3, WB), (5.85, WB + 11.0), (-5.85, WB + 11.0)])                    # svagt kilformad fot: 10,6 mm nedtill, 11,4 mm i höjd med skivans ovansida, kläms fast i hålet (11,4 mm)
-blad_p = Polygon([(-AR, A0), (AR, A0), (AR, A1 - 8.0), (AR - 8.0, A1), (-AR + 8.0, A1), (-AR, A1 - 8.0)])   # avfasade hörn upptill
+from shapely.geometry import Point
+blad_p = unary_union([sbox(-AR, A0, AR, A1 - AR), Point(0, A1 - AR).buffer(AR, 64)]).buffer(-4.0).buffer(4.0, 32)   # halvrund topp, nedre hörnen rundade med 4 mm
 prof = unary_union([fot_p, sbox(-4.0, WB + 10.9, 4.0, A1 - 1.0), blad_p])
 ag = trimesh.creation.extrude_polygon(prof, 8.0)                                                    # (a, w) i planet, tjocklek längs z
 ag_print = ag.copy()

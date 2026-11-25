@@ -19,7 +19,7 @@ KK = 61.76                           # det sneda takets ovansida: z = y + KK (3 
 YF, YB = 31.9, 106.2                 # förrådets innermått i y
 CH_W, CH_W0, CH_H = 14.0, 15.0, 30.0  # rännans halva innerbredd nedtill och upptill, kanthöjd
 
-def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=34.0, ymouth=6.5, qx=66.0, vs=-4.0):
+def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=38.0, ymouth=6.5, qx=66.0, vs=-4.0, land=12.0):
     """dl = hur långt kragen fortsätter luta utåt ovanför skärmens plan innan väggen blir lodrät (ger bredare öppning)."""
     global C, T, DL, ZT, XL, UF, UB, PLANE, XARC0, EX, CH_A, CH_B, WTOP
     global QX, VS
@@ -31,14 +31,19 @@ def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=34.
     XARC0 = C[0] + c * np.sqrt(RC ** 2 - UF ** 2) + s * WTOP
     EX = W([-RP * np.sin(QX), RP * np.cos(QX), -SLAB_T])[0]
     global CH_B, CH_T, CH_K, CH_POLY
-    CH_B = np.array([0.0, ymouth, 3.5]); CH_K = np.tan(np.radians(slope))
-    t_ = CH_B[:2] - EX[:2]; CH_T = t_ / np.linalg.norm(t_)                                 # rännans riktning i planet
-    yb = EX[1] + 13.5; NECK = 19.0                                                         # rännans bakkant; halsen är rak fram till y = 12 (sockeln)
+    global CH_LAND, CH_J
+    NECK = 19.0
+    CH_B = np.array([0.0, ymouth, 3.5]); CH_K = np.tan(np.radians(slope)); CH_LAND = np.tan(np.radians(land))
+    CH_J = np.array([CH_B[0], NECK, CH_B[2] + CH_LAND * (NECK - ymouth)])                  # knät: därifrån lutar golvet bara svagt, rakt mot mynningen
+    t_ = CH_J[:2] - EX[:2]; CH_T = t_ / np.linalg.norm(t_)                                 # den branta delens fallriktning i planet
+    yb = EX[1] + 13.5                                                         # rännans bakkant; halsen är rak fram till y = 12 (sockeln)
     global CH_NECK, CH_FUN
     CH_NECK = np.array([(CH_B[0] - CH_W, CH_B[1]), (CH_B[0] + CH_W, CH_B[1]), (CH_B[0] + CH_W, NECK), (CH_B[0] - CH_W, NECK)])
     CH_FUN = np.array([(CH_B[0] + CH_W, NECK), (EX[0] + CH_W0, yb), (EX[0] - CH_W0, yb), (EX[0] - CH_W0, EX[1] + 0.5), (CH_B[0] - CH_W, NECK)])   # moturs
     CH_POLY = np.array([CH_NECK[0], CH_NECK[1], CH_FUN[0], CH_FUN[1], CH_FUN[2], CH_FUN[3], CH_FUN[4]])
-def chute_z(p): return CH_B[2] + CH_K * float(np.dot(CH_B[:2] - np.asarray(p)[:2], CH_T))  # golvets höjd
+def chute_low(p): return CH_B[2] + CH_LAND * (float(np.asarray(p)[1]) - CH_B[1])              # flack del närmast mynningen
+def chute_up(p): return CH_J[2] + CH_K * float(np.dot(CH_J[:2] - np.asarray(p)[:2], CH_T))   # brant del under utfallet
+def chute_z(p): return max(chute_low(p), chute_up(p))                                        # golvets höjd
 def W(p): p = np.atleast_2d(np.asarray(p, float)); return p @ T[:3, :3].T + C
 zplane = lambda x: PLANE - x
 configure()
@@ -99,7 +104,7 @@ def static_pieces(chute=True):
     P.append(np.array([(x, y, z) for x in (XL - WALL, 80.0) for y in (yq, YF) for z in (yq + KK - 1.7, ZT)]))         # framväggen går ned till det sneda taket
     if chute:
         import trimesh
-        Q = [np.array([(x, y, chute_z((x, y)) + dz) for x, y in poly for dz in (-WALL, 0.0)]) for poly in (CH_NECK, CH_FUN)]             # golv i två konvexa delar
+        Q = [np.array([(x, y, z) for x, y in poly for z in (-19.0, f((x, y)))]) for poly in (CH_NECK, CH_FUN) for f in (chute_low, chute_up)]   # golvet: det högsta av två plan, som konvexa bitar
         edges = [(CH_NECK[1], CH_NECK[2]), (CH_NECK[3], CH_NECK[0])] + [(CH_FUN[i], CH_FUN[i + 1]) for i in range(4)]                  # väggar (mynningen och skarven är öppna)
         for p0, p1 in edges:
             e = p1 - p0; nrm = np.array([e[1], -e[0]]) / np.linalg.norm(e)                                                        # utåt (konturen går moturs)
