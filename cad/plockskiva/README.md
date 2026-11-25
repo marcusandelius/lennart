@@ -1,8 +1,7 @@
 # Plockskivan: ny dosering (ersätter 10_doserhus, 11_doserhjul och 14_notmagasin)
 
-> **Skriv inte ut ännu.** Ritad för nötter 16–22 mm långa (större sorteras bort). Två saker är inte bestämda:
-> hornets höjd över servots fästöron (avgör skivans och servots läge) och om skärmkortets kontakter sitter kvar
-> när förrådet lyfts (se nedan).
+> **Skriv inte ut ännu.** Ritad för nötter 16–22 mm långa (större sorteras bort). Kvar att bestämma: om skärmkortets
+> kontakter byts mot vinklade eller lödda, så att förrådet går att lyfta (se nedan).
 
 En skiva (Ø85,2 mm) som lutar 45 grader åt sidan plockar en hasselnöt i taget ur förrådet och släpper den genom ett
 utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindrar nötterna från att valva sig ovanför skivan.
@@ -20,8 +19,9 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
 * Fickan är Ø25 mm (simulerad som Ø24,5), för nötter 16–22 mm långa. Större nötter sorteras bort före påfyllning.
 * Skivans undersida har ett urtag för MG996R:s stjärnhorn, armarna 45 grader från fickan. Armarna är 2,0 mm tjocka
   (uppmätta), når ca 19 mm ut, är ca 8 mm breda vid navet och ca 5,5 mm längst ut (ur foto, `omritning/horn_matt.png`).
-  Urtagets botten ligger 3,5 mm in i skivan, samma höjd mot servot som förut. Den höjden är inte uppmätt: hornarmarnas
-  ovansida antas ligga ca 12,5 mm över servots fästöron [verifiera].
+  Urtagets botten ligger 3,5 mm in i skivan. Hornarmarnas ovansida ligger ca 15,0 mm över ovansidan av servots
+  fästöron (ur foto mot tumstock, ±0,5 mm, `omritning/servo_horn_hojd.png`). Därför är stativets platta 10,9 mm tjock
+  (förut 8,4): servots öron ligger an mot undersidan, och servot sitter 2,5 mm lägre än förut.
 * Fyra förborrade hål Ø1,0 mm, 10,5 mm djupa, i det andra hålet på varje arm (11,2 mm från mitten: 8,0 mm till det
   innersta hålet, uppmätt, och 3,2 mm mellan hålen, ur foto), för de fyra silverfärgade skruvarna (ca 1,1 mm, ca 12 mm).
 * Hålet i stativets platta runt servots axel är Ø31 mm och 2,5 mm djupt, så att skruvskallarna under hornet går fritt.

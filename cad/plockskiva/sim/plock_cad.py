@@ -67,7 +67,10 @@ HORN_R0, HORN_R1, HORN_L = 4.4, 2.9, 16.6   # armens halva bredd vid navet och l
 HORN_HOLE_R = 11.2      # andra hålet på armen: 8,0 mm till det innersta (uppmätt), 3,2 mm mellan hålen (ur foto)
 HORN_PILOT = 1.0        # förborrning för de silverfärgade skruvarna (ca 1,1 mm, ca 12 mm långa); utskrivna hål blir lite mindre
 HORN_GAP = 0.2          # spel runt hornet
-HORN_FLOOR = 3.5        # urtagets botten över skivans undersida = hornarmarnas ovansida; samma höjd mot servot som förut [verifiera: ca 12,5 mm över servots fästöron]
+HORN_FLOOR = 3.5        # urtagets botten över skivans undersida = hornarmarnas ovansida
+HORN_ABOVE_EARS = 15.0  # hornarmarnas ovansida över ovansidan av servots fästöron (ur foto mot tumstock, ±0,5)
+SERVO_DROP = HORN_ABOVE_EARS - (K.SLAB_T + GAP + HORN_FLOOR)   # så mycket lägre servots fästöron ska sitta (2,5 mm)
+ST = K.SLAB_T + SERVO_DROP                                     # plattan är tjockare nedåt; öronen ligger an mot undersidan (10,9 mm)
 LUGS = [(-39.8, -31.6), (-25.5, -43.9)]        # skruvöron för kåpan (lokala u, v), radie 50,8
 SQ = 8.4                                       # fyrkantshål i skivans mitt för omröraren
 
@@ -92,6 +95,7 @@ def disc_local():
         arms.append(arm)
         p = d * HORN_HOLE_R; cuts.append(cyl(HORN_PILOT / 2, GAP - 1, hd + 10.5, p[0], p[1]))   # förborrning för skruven genom armen
     star = unary_union(arms + [Point(0, 0).buffer(HORN_HUB / 2 + 0.4, 48)])
+    hubrel = cyl(HORN_HUB / 2 + 0.4, GAP - 1, hd + 0.5); cuts.append(hubrel)                 # navringen på hornets ovansida är lite högre än armarna
     st = trimesh.creation.extrude_polygon(star, hd - (GAP - 1)); st.apply_translation([0, 0, GAP - 1]); cuts.append(st)
     return D(m, cuts)
 disc = clean(disc_local())
@@ -144,7 +148,9 @@ shadow = trimesh.convex.convex_hull(np.vstack([slab.vertices, slab.vertices * [1
 yg = C[1] + 12.6
 gavel_bak = I(ext_xz(tri(-80.0, PL - 1.0), yg, yg + 3.0), shadow)
 xk = C[0] + c * RO - s * ST                                                                         # plattans nederkant (undersidan)
-kantvagg = I(ext_xz(tri(xk - 4.5, xk - 1.5), C[1] - 26.0, yg + 2.0), shadow)
+zk = PL - 0.8 - xk                                                                                 # plattans lägsta kant
+kant_p = Polygon([(xk - 4.5, 0), (xk + 1.5, 0), (xk + 1.5, zk + 1.5 + 0.8), (xk, zk + 0.8), (xk - 4.5, PL - (xk - 4.5))])   # följer undersidan och kanten upp förbi plattans lägsta punkt
+kantvagg = I(ext_xz(kant_p, C[1] - 26.0, yg + 2.0), shadow)
 fot_poly = unary_union([sbox(-40, 22, 40, 100), outer])
 fot = ext(fot_poly, 0.0, 3.0)
 stand = U([slab, rim, chute, gavel_bak, kantvagg, fot] + ears)
@@ -217,7 +223,11 @@ hopper = clean(hopper)
 assert hopper.is_watertight
 
 # ---------------------------------------------------------------- servo (bara för bilder och passform)
-servo = U([lbox(-9.85, 9.85, 10.15 - 20.35, 10.15 + 20.35, -ST - 30.0, -1.1), lbox(-9.85, 9.85, 10.15 - 27.25, 10.15 + 27.25, -ST - 2.5, -ST), lcyl(5.5, -1.2, 3.0)])
+_e = -ST                                                                                        # öronens ovansida = plattans undersida
+servo = U([lbox(-9.85, 9.85, 10.15 - 20.35, 10.15 + 20.35, _e - 26.6, _e + 4.9),                      # huset: 4,9 mm över öronen (foto), totalt ca 37 mm (datablad, ungefär)
+           lbox(-9.85, 9.85, 10.15 - 27.25, 10.15 + 27.25, _e - 2.5, _e),                            # öronen
+           lcyl(6.5, _e + 4.8, _e + 7.0), lcyl(3.0, _e + 6.9, _e + HORN_ABOVE_EARS - 2.0 - 0.5),     # krage och axel
+           lcyl(HORN_HUB / 2, _e + 6.9, _e + HORN_ABOVE_EARS - 2.0)])                               # hornets nav under armarna
 
 def report(name, m):
     nz = m.face_normals[:, 2]; cz = m.triangles_center[:, 2]; ar = m.area_faces
