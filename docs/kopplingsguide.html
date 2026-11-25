@@ -180,6 +180,7 @@ details.later summary { cursor: pointer; padding: .8rem 1rem; font-weight: 600; 
   </div>
   <nav class="jump" aria-label="Delar">
     <a href="#oversikt">Översikt</a>
+    <a href="#langder">Längder</a>
     <a href="#strom">1 Ström</a>
     <a href="#skarm">2 Skärm</a>
     <a href="#servon">3 Servon</a>
@@ -268,6 +269,58 @@ details.later summary { cursor: pointer; padding: .8rem 1rem; font-weight: 600; 
     <p class="muted">Har du ingen entrådig Cat6: ta den andra halvan av den klippta patchkabeln till uttaget. Mångtrådig ledare fäster sämre i keystone-uttag, men räcker för bänktestet. Byt innan allt monteras.</p>
   </section>
 
+  <!-- ================= KABELLÄNGDER ================= -->
+  <section id="langder">
+    <div class="part-head"><span class="eyebrow">Inför klippningen</span><h2>Kabellängder</h2>
+      <p class="muted">Klipp kablarna till de här längderna redan nu, så slipper du göra om dem vid monteringen. Längderna är uppskattade ur 3D-modellens mått [uppskattat]. Kontrollera dem gärna med ett snöre i den utskrivna kroppen.</p></div>
+
+    <figure class="fig"><svg viewBox="0 0 520 480" role="img" aria-label="Huset sett uppifrån med skärmen fram, doseraren i mitten och elektroniklådan längst bak">
+      <rect x="200" y="14" width="120" height="86" rx="10" style="fill:var(--code-bg);stroke:var(--ink-2);stroke-dasharray:5 4"/>
+      <text class="note" x="214" y="40">Farstukvisten</text><text class="note" x="214" y="56">luckservot</text>
+      <circle class="pin-i" cx="300" cy="76" r="7"/>
+      <rect x="90" y="110" width="340" height="300" rx="6" style="fill:var(--surface);stroke:var(--ink);stroke-width:1.5"/>
+      <text class="note" x="100" y="430">Kroppen sedd uppifrån, 170 × 150 mm. Framsidan uppåt.</text>
+      <rect x="190" y="112" width="100" height="12" rx="2" class="pin-s"/>
+      <text class="lbl-r" x="296" y="123">skärmen</text>
+      <circle cx="260" cy="224" r="62" style="fill:none;stroke:var(--ink-2);stroke-width:1.5"/>
+      <text class="note" x="226" y="228">doserhjulet</text>
+      <rect x="312" y="204" width="40" height="80" rx="4" class="pin-i"/>
+      <text class="lbl-r" x="358" y="248">servo</text>
+      <rect x="112" y="336" width="276" height="68" rx="4" style="fill:var(--code-bg);stroke:var(--ink);stroke-width:1.2"/>
+      <text class="boxlabel" x="124" y="360">Elektroniklåda</text>
+      <text class="note" x="124" y="378">Pi, servokort, omvandlare</text>
+      <rect x="222" y="330" width="36" height="12" rx="2" class="jack"/>
+      <path d="M240 330 V130" style="stroke:var(--accent);stroke-width:2;stroke-dasharray:6 4;fill:none"/>
+      <text class="lbl-l" x="234" y="310">ca 30–35 cm</text>
+      <path d="M332 284 V336" style="stroke:var(--w-blue);stroke-width:2;stroke-dasharray:6 4;fill:none"/>
+      <text class="lbl-r" x="338" y="318">ca 15 cm</text>
+      <path d="M380 336 V140 H440 V76 H307" style="stroke:var(--w-blue);stroke-width:2;stroke-dasharray:6 4;fill:none"/>
+      <text class="lbl-r" x="446" y="200">ca 35–45 cm</text>
+    </svg><figcaption>Sträckade linjer visar en trolig kabelväg runt doseraren, inte fågelvägen. Falurött är skärmkabeln, blått servokablarna.</figcaption></figure>
+
+    <div class="scroll">
+      <table class="pintable">
+        <thead><tr><th>Kabel</th><th>Från → till</th><th>Längd</th><th>Kommentar</th></tr></thead>
+        <tbody>
+          <tr><td>Patchkabel till skärmen</td><td>Uttaget SKÄRM → skärmkortet</td><td class="num">köp 0,5 m, använd ca 35 cm</td><td>Kabeln går runt doseraren och upp till skärmen. Lämna några cm extra innan du kortar.</td></tr>
+          <tr><td>Cat6 från uttaget SKÄRM</td><td>Uttaget → Pi:ns stift</td><td class="num">15 cm</td><td>Inne i lådan.</td></tr>
+          <tr><td>USB-C till Pi:n</td><td>5 A-omvandlaren → Pi:n</td><td class="num">15–20 cm</td><td>Kort ger mindre spänningsfall.</td></tr>
+          <tr><td>12 V inne i lådan</td><td>DC-jacket → 5 A-omvandlaren → 3 A-omvandlaren</td><td class="num">10 cm + 10 cm</td><td>Röd och svart 0,75 mm².</td></tr>
+          <tr><td>Servoström</td><td>3 A-omvandlaren → servokortets plint</td><td class="num">10–15 cm</td><td>Röd och svart 0,75 mm².</td></tr>
+          <tr><td>I2C</td><td>Servokortet → Pi:n</td><td class="num">20 cm (som de är)</td><td>Vanliga kopplingskablar räcker.</td></tr>
+          <tr><td>Doserarservot</td><td>Servot → servokortet</td><td class="num">ca 15 cm behövs</td><td>Servots egen kabel är troligen cirka 30 cm och räcker [verifiera].</td></tr>
+          <tr><td>Luckservot</td><td>Farstukvisten → servokortet</td><td class="num">ca 35–45 cm behövs</td><td>MG90S har troligen en kabel på cirka 25 cm [verifiera], så en servoförlängning på 30 cm behövs troligen.</td></tr>
+          <tr><td>Kamerans flatkabel</td><td>Kameran → Pi:n</td><td class="num">50 cm (köpt)</td><td>Räcker från kamerakragen fram i huset.</td></tr>
+          <tr><td>12 V utomhus</td><td>Adaptern → stationen</td><td class="num">efter avståndet</td><td>Adapterns egen kabel är 1,5 m enligt Kjell. Längre sträcka: tvåledare för utomhusbruk.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout note">
+      <strong class="t">Tumregel</strong>
+      <p>Mät kabelvägen och lägg till <b>5 cm</b>. Plattan med elektroniken lyfts upp ur lådan, så allt som går ut ur lådan behöver antingen en kontakt som lossas (uttaget SKÄRM och servonas kontakter) eller så mycket slack att plattan kan lyftas cirka 10 cm.</p>
+    </div>
+  </section>
+
   <!-- ================= 1 STRÖM ================= -->
   <section id="strom">
     <div class="part-head"><span class="eyebrow">Del 1</span><h2>Ström</h2>
@@ -303,7 +356,7 @@ details.later summary { cursor: pointer; padding: .8rem 1rem; font-weight: 600; 
         <div class="step-head"><input type="checkbox" id="c-p4"><label for="c-p4"><span class="step-no">1.4</span><span class="step-title">USB-C-kabeln till Pi:n</span></label></div>
         <div class="step-body">
           <ol class="plain">
-            <li>Klipp kabeln cirka 10 cm från den <b>andra</b> kontakten, så att en kort stump blir kvar där.</li>
+            <li>Klipp kabeln cirka 10 cm från den <b>andra</b> kontakten, så att en kort stump blir kvar där. Den långa delen med USB-C kortas sedan till 15–20 cm.</li>
             <li>Skala stumpen och sätt dess kontakt i en vanlig USB-laddare. Mät mellan röd och svart ledare: <span class="mono">+5 V</span> betyder att röd är plus och svart minus. Färgerna är desamma i den långa delen.</li>
             <li>Skala den långa delen och skruva plus i 5 A-omvandlarens <code>OUT+</code> och minus i <code>OUT−</code>.</li>
             <li>Isolera de andra ledarna var för sig med krympslang.</li>
@@ -381,7 +434,7 @@ details.later summary { cursor: pointer; padding: .8rem 1rem; font-weight: 600; 
       <li class="step" data-id="d1">
         <div class="step-head"><input type="checkbox" id="c-d1"><label for="c-d1"><span class="step-no">2.1</span><span class="step-title">Uttaget SKÄRM med kablar till Pi:n</span></label></div>
         <div class="step-body">
-          <p>Klipp cirka 20 cm entrådig Cat6. Skala manteln cirka 3 cm, lägg ledarna i uttagets spår enligt färgkod <b>B</b> (står på uttaget) och tvinna upp paren så lite som möjligt, högst cirka 1 cm. Tryck ner locket och klipp av överskottet.</p>
+          <p>Klipp cirka 15 cm entrådig Cat6. Skala manteln cirka 3 cm, lägg ledarna i uttagets spår enligt färgkod <b>B</b> (står på uttaget) och tvinna upp paren så lite som möjligt, högst cirka 1 cm. Tryck ner locket och klipp av överskottet.</p>
           <figure class="fig wide"><svg viewBox="0 0 520 120" role="img" aria-label="Färgordning T568B i keystone-uttaget, stift 1 till 8"><defs><pattern id="st-o" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" style="fill:var(--w-white)"/><rect width="5" height="10" style="fill:var(--w-orange)"/></pattern><pattern id="st-g" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" style="fill:var(--w-white)"/><rect width="5" height="10" style="fill:var(--w-green)"/></pattern><pattern id="st-b" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" style="fill:var(--w-white)"/><rect width="5" height="10" style="fill:var(--w-blue)"/></pattern><pattern id="st-br" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" style="fill:var(--w-white)"/><rect width="5" height="10" style="fill:var(--w-brown)"/></pattern></defs><rect class="hdr" x="20" y="24" width="480" height="60" rx="6"/><rect x="34" y="34" width="44" height="40" rx="4" style="fill:url(#st-o);stroke:var(--ink-2);stroke-width:1"/><text class="pinlbl" x="56" y="18">1</text><text class="pinlbl" x="56" y="100">CLK</text><rect x="92" y="34" width="44" height="40" rx="4" style="fill:var(--w-orange);stroke:var(--ink-2);stroke-width:1"/><text class="pinlbl" x="114" y="18">2</text><text class="pinlbl" x="114" y="100">GND</text><rect x="150" y="34" width="44" height="40" rx="4" style="fill:url(#st-g);stroke:var(--ink-2);stroke-width:1"/><text class="pinlbl" x="172" y="18">3</text><text class="pinlbl" x="172" y="100">DIN</text><rect x="208" y="34" width="44" height="40" rx="4" style="fill:var(--w-blue);stroke:var(--ink-2);stroke-width:1"/><text class="pinlbl" x="230" y="18">4</text><text class="pinlbl" x="230" y="100">CS</text><rect x="266" y="34" width="44" height="40" rx="4" style="fill:url(#st-b);stroke:var(--ink-2);stroke-width:1"/><text class="pinlbl" x="288" y="18">5</text><text class="pinlbl" x="288" y="100">DC</text><rect x="324" y="34" width="44" height="40" rx="4" style="fill:var(--w-green);stroke:var(--ink-2);stroke-width:1"/><text class="pinlbl" x="346" y="18">6</text><text class="pinlbl" x="346" y="100">3V3</text><rect x="382" y="34" width="44" height="40" rx="4" style="fill:url(#st-br);stroke:var(--ink-2);stroke-width:1"/><text class="pinlbl" x="404" y="18">7</text><text class="pinlbl" x="404" y="100">RST</text><rect x="440" y="34" width="44" height="40" rx="4" style="fill:var(--w-brown);stroke:var(--ink-2);stroke-width:1"/><text class="pinlbl" x="462" y="18">8</text><text class="pinlbl" x="462" y="100">BL</text><text class="note" x="20" y="116">Stift 1–8 sett framifrån, hullingen nedåt. Följ ändå färgerna som står tryckta vid B på uttaget.</text></svg><figcaption>Färgkod B (T568B) och vilken signal varje ledare får för skärmen.</figcaption></figure>
           <p>I andra änden: klipp åtta kopplingskablar <b>hona–hona</b> på mitten, löd en halva med hona på varje ledare och dra krympslang över. Sätt honorna på Pi:ns stift enligt tabellen.</p>
           <div class="why"><b>Varför</b>Entrådig ledare passar inte direkt på Pi:ns stift, men en lödd hylsa gör det. Du behöver ingen krimptång.</div>
@@ -391,7 +444,7 @@ details.later summary { cursor: pointer; padding: .8rem 1rem; font-weight: 600; 
       <li class="step" data-id="d2">
         <div class="step-head"><input type="checkbox" id="c-d2"><label for="c-d2"><span class="step-no">2.2</span><span class="step-title">Skärmsidan: klipp patchkabeln och mät fram ledarna</span></label></div>
         <div class="step-body">
-          <p>Klipp patchkabeln så att du har en bit med kontakt, lagom lång för att nå skärmen. Skala ledarna i den klippta änden. Sätt kontakten i uttaget SKÄRM.</p>
+          <p>Klipp patchkabeln så att du har en bit med kontakt på cirka 35 cm (se Kabellängder). Skala ledarna i den klippta änden. Sätt kontakten i uttaget SKÄRM.</p>
           <p>Ta loss honorna från Pi:n. Ställ multimetern på genomgång (pip) och håll ena proben i hylsan för t.ex. CLK. Leta upp ledaren i den klippta änden som piper. Märk den med tejp, och gör likadant för alla åtta.</p>
           <div class="why"><b>Varför</b>Patchkablar kan vara kopplade enligt färgkod A eller B. Därför kan färgerna i den klippta änden skilja sig från uttaget. Genom att mäta fram dem behöver du inte veta hur kabeln är kopplad.</div>
         </div>
