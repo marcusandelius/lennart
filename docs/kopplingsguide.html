@@ -207,7 +207,7 @@ footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line
         <rect class="box" x="310" y="46" width="110" height="50" rx="7"/>
         <text class="boxlabel" x="322" y="68">DC-jack</text><text class="small" x="322" y="85">skruvplint</text>
         <rect class="box" x="450" y="46" width="100" height="50" rx="7"/>
-        <text class="boxlabel" x="462" y="68">Wago 221</text><text class="small" x="462" y="85">delar 12 V</text>
+        <text class="boxlabel" x="462" y="68">Y-skarv</text><text class="small" x="462" y="85">delar 12 V</text>
         <path class="w12" d="M136 71 H160"/><path class="w12" d="M270 71 H310"/><path class="w12" d="M420 71 H450"/>
         <text class="small" x="236" y="120">↑ genomföring</text>
 
@@ -238,7 +238,7 @@ footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line
         <rect class="box" x="620" y="410" width="150" height="54" rx="7"/>
         <text class="boxlabel" x="632" y="432">Skärmen</text><text class="small" x="632" y="450">keystone + kabel</text>
         <rect class="box" x="250" y="376" width="142" height="54" rx="7"/>
-        <text class="boxlabel" x="262" y="398">Servokoppling</text><text class="small" x="262" y="416">keystone + Wago</text>
+        <text class="boxlabel" x="262" y="398">Servokoppling</text><text class="small" x="262" y="416">keystone + skarvar</text>
         <path class="w5" d="M250 393 H200"/><path class="w5" d="M250 413 H200 V450 H160"/>
         <rect class="box" x="90" y="374" width="110" height="40" rx="7"/><text class="boxlabel" x="102" y="399">Doseraren</text>
         <rect class="box" x="50" y="432" width="110" height="40" rx="7"/><text class="boxlabel" x="62" y="457">Luckan</text>
@@ -258,7 +258,7 @@ footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line
       <li>Båda DC/DC-omvandlarna, servokortet PCA9685, kondensatorn 1000 µF 16 V.</li>
       <li>En kort, kraftig USB-C-kabel att klippa.</li>
       <li>4 keystone-uttag, 2 patchkablar (gärna olika färger), cirka 1 m <b>entrådig</b> Cat6-installationskabel.</li>
-      <li>Kopplingskablar (Dupont) hona–hona och hane–hane att klippa itu, röd/svart tvåledare 0,75 mm², Wago 221, krympslang.</li>
+      <li>Kopplingskablar (Dupont) hona–hona och hane–hane att klippa itu, röd/svart tvåledare 0,75 mm², krympslang och lodtenn. Wago 221 behövs inte: skarvarna löds.</li>
       <li>Multimeter, lödpenna, avbitare och avskalare, eltejp eller etiketter för märkning.</li>
     </ul>
     <div class="callout warn">
@@ -291,7 +291,21 @@ footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line
       <li class="step" data-id="s3">
         <div class="step-head"><input type="checkbox" id="c-s3"><label for="c-s3"><span class="step-no">1.3</span><span class="step-title">Dela 12 V till båda omvandlarna</span></label></div>
         <div class="step-body">
-          <p>Ta två Wago 221 med tre hål vardera: en för plus, en för minus. Från varje Wago går en röd och en svart ledare till <b>ingången</b> på respektive omvandlare (märkt <code>IN+</code>/<code>IN−</code> eller <code>VIN</code>/<code>GND</code>).</p>
+          <p>Plus och minus från DC-jacket ska till <b>ingången</b> på båda omvandlarna (märkt <code>IN+</code>/<code>IN−</code> eller <code>VIN</code>/<code>GND</code>). Två sätt utan Wago:</p>
+          <ul class="plain">
+            <li><b>Kedja via plintarna (enklast):</b> röd och svart ledare från DC-jacket till 5 A-omvandlarens ingång. Från samma ingångsplint går ett andra par vidare till 3 A-omvandlarens ingång. Två ledare på 0,75 mm² brukar få plats i samma skruvplint [prova, och dra i ledarna efteråt]. Har omvandlaren lödpunkter i stället för plint löder du båda ledarna i samma punkt.</li>
+            <li><b>Lödd Y-skarv:</b> en ledare in och två ut tvinnas ihop, löds och täcks med krympslang. En skarv för plus och en för minus.</li>
+          </ul>
+          <div class="callout note">
+            <strong class="t">Så blir en lödd skarv bra</strong>
+            <ol class="plain">
+              <li>Trä på krympslang, cirka 3 cm, <b>innan</b> du löder. Annars kommer den inte på sedan.</li>
+              <li>Skala cirka 1 cm av varje ledare och tvinna ihop ändarna hårt.</li>
+              <li>Värm skarven med lödpennan och mata tenn mot skarven, inte mot pennan, tills tennet flyter in mellan trådarna.</li>
+              <li>Låt den svalna utan att röra den. En blank skarv är bra, en matt och grynig är kall och kan släppa.</li>
+              <li>Dra krympslangen över och krymp den. Dra i ledarna för att kontrollera att skarven håller.</li>
+            </ol>
+          </div>
           <div class="check"><b>Kontroll</b>Läs på båda omvandlarna att ingången tål 12 V. 8–23 V-omvandlaren gör det. För 5 A-omvandlaren (Electrokit 41023301) står ingångsspänningen inte i vår lista [verifiera på kortet].</div>
           <div class="why"><b>Varför</b>Servona får egen omvandlare så att deras strömtoppar inte drar ner spänningen till Pi:n. Annars kan Pi:n starta om varje gång ett servo rör sig.</div>
         </div>
@@ -319,7 +333,7 @@ footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line
           <ol class="plain">
             <li>Klipp kabeln cirka 10 cm från den <b>andra</b> kontakten (USB-A eller USB-C), så att en kort stump blir kvar på den sidan.</li>
             <li>Skala stumpen och sätt dess kontakt i en vanlig USB-laddare. Mät mellan röd och svart ledare: <span class="mono">+5 V</span> betyder att röd är plus (VBUS) och svart minus (GND). Färgerna är desamma i den långa delen.</li>
-            <li>Skala den långa delen med USB-C-kontakten. Koppla plusledaren till 5 A-omvandlarens <code>OUT+</code> och minusledaren till <code>OUT−</code>, med Wago eller omvandlarens plint.</li>
+            <li>Skala den långa delen med USB-C-kontakten. Koppla plusledaren till 5 A-omvandlarens <code>OUT+</code> och minusledaren till <code>OUT−</code>, i omvandlarens skruvplint eller med en lödd skarv.</li>
             <li>Isolera de andra ledarna (oftast vit och grön, ibland fler) var för sig med krympslang. Skärmflätan kan isoleras eller kopplas till minus.</li>
           </ol>
           <div class="why"><b>Varför</b>USB-C gör att Pi:n får ström genom sitt eget skydd. Mätningen på stumpen avgör säkert vilken färg som är plus, så du slipper gissa. Billiga kablar följer inte alltid färgkoden.</div>
@@ -434,9 +448,9 @@ footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line
         <thead><tr><th>Stift</th><th>Färg (B)</th><th>Signal</th><th>PCA9685 (lådan)</th><th>Servokopplingen</th></tr></thead>
         <tbody>
           <tr><td class="num">1</td><td><span class="wire"><span class="sw wo"></span>vit-orange</span></td><td>Doserare, signal</td><td>Kanal 0, PWM-stiftet</td><td>Doserarservots orange/gula</td></tr>
-          <tr><td class="num">2</td><td><span class="wire"><span class="sw o"></span>orange</span></td><td>GND</td><td>Kanal 0, GND-stiftet</td><td>Wago GND → båda servonas bruna</td></tr>
+          <tr><td class="num">2</td><td><span class="wire"><span class="sw o"></span>orange</span></td><td>GND</td><td>Kanal 0, GND-stiftet</td><td>Lödd Y-skarv → båda servonas bruna</td></tr>
           <tr><td class="num">3</td><td><span class="wire"><span class="sw wg"></span>vit-grön</span></td><td>Lucka, signal</td><td>Kanal 1, PWM-stiftet</td><td>Luckservots orange/gula</td></tr>
-          <tr><td class="num">6</td><td><span class="wire"><span class="sw g"></span>grön</span></td><td>V+ 5 V</td><td>Kanal 0, V+-stiftet</td><td>Wago V+ → båda servonas röda</td></tr>
+          <tr><td class="num">6</td><td><span class="wire"><span class="sw g"></span>grön</span></td><td>V+ 5 V</td><td>Kanal 0, V+-stiftet</td><td>Lödd Y-skarv → båda servonas röda</td></tr>
           <tr class="unused"><td class="num">4, 5, 7, 8</td><td><span class="wire"><span class="sw b"></span><span class="sw wb"></span><span class="sw wbr"></span><span class="sw br"></span></span></td><td>Används inte</td><td colspan="2">Läggs i uttaget men klipps korta och isoleras i andra änden</td></tr>
         </tbody>
       </table>
@@ -482,19 +496,19 @@ footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line
         <div class="step-body">
           <p>Det fjärde uttaget med 10–15 cm entrådig Cat6, färgkod B:</p>
           <ul class="plain">
-            <li><b>Ledare 6 (V+)</b> → en Wago med tre hål. I de två andra hålen sitter varsin halva av en kopplingskabel <b>hane–hane</b>, som går till servonas <b>röda</b> stift.</li>
-            <li><b>Ledare 2 (GND)</b> → en Wago med tre hål, likadant, till servonas <b>bruna</b> stift.</li>
+            <li><b>Ledare 6 (V+)</b> löds ihop med två halvor av kopplingskablar <b>hane–hane</b> i en Y-skarv med krympslang. Hanarna går till servonas <b>röda</b> stift.</li>
+            <li><b>Ledare 2 (GND)</b> likadant, till servonas <b>bruna</b> stift.</li>
             <li><b>Ledare 1</b> → en halva med hane, till doserarservots <b>orange/gula</b> stift.</li>
             <li><b>Ledare 3</b> → en halva med hane, till luckservots <b>orange/gula</b> stift.</li>
             <li>Ledarna 4, 5, 7 och 8 klipps korta och isoleras.</li>
           </ul>
-          <div class="why"><b>Varför</b>Servonas kontakter är hylsor, så hanstift passar direkt i dem. Wago delar strömmen till båda servona utan lödning och går lätt att ändra när allt ska in i huset.</div>
+          <div class="why"><b>Varför</b>Servonas kontakter är hylsor, så hanstift passar direkt i dem. Skarven är fast, men det gör inget: patchkabeln är stället där servona kopplas loss, och varje servo lossas i sin egen kontakt.</div>
         </div>
       </li>
       <li class="step" data-id="v5">
         <div class="step-head"><input type="checkbox" id="c-v5"><label for="c-v5"><span class="step-no">3.5</span><span class="step-title">Mät servokabeln</span></label></div>
         <div class="step-body">
-          <p>Med all ström av och patchkabeln ikopplad, mät på genomgång mellan servokortets V+ och GND, och mellan Wago V+ och Wago GND.</p>
+          <p>Med all ström av och patchkabeln ikopplad, mät på genomgång mellan servokortets V+ och GND, och mellan V+-skarven och GND-skarven i servokopplingen.</p>
           <div class="check"><b>Kontroll</b>Det får <b>inte</b> pipa mellan V+ och GND. Kondensatorn kan ge ett kort pip i början medan den laddas. Det är normalt, men ett pip som håller i sig betyder kortslutning.</div>
           <div class="why"><b>Varför</b>En kortslutning på servoströmmen löser ut omvandlarens skydd eller säkringen, eller värmer ledarna i värsta fall.</div>
         </div>
@@ -574,7 +588,7 @@ footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line
           <tr><td>Skärmen lyser men är svart</td><td>Fel ledare i ett uttag, eller fel stift</td><td>Gör om steg 2.4. Kolla <i>Tekniskt</i>: ska vara <span class="mono">/dev/spidev0.0</span>.</td></tr>
           <tr><td>Skärmen randig eller med fel bild</td><td>För hög SPI-hastighet för kabeln</td><td>Sänk SPI-hastigheten i adminvyn.</td></tr>
           <tr><td><code>i2cdetect</code> visar inte <span class="mono">40</span></td><td>I2C avstängt eller fel kabel</td><td>Steg 9 i <code>docs/SETUP-PI.md</code>. Kontrollera SDA/SCL (stift 3 och 5).</td></tr>
-          <tr><td>Servot brummar men rör sig inte</td><td>Ingen V+ eller för låg spänning</td><td>Mät 5 V mellan Wago V+ och GND i servokopplingen.</td></tr>
+          <tr><td>Servot brummar men rör sig inte</td><td>Ingen V+ eller för låg spänning</td><td>Mät 5 V mellan V+-skarven och GND-skarven i servokopplingen.</td></tr>
           <tr><td>Fel servo rör sig</td><td>Ledare 1 och 3 har bytt plats</td><td>Byt plats i servokopplingen, eller ändra kanalerna i adminvyn.</td></tr>
         </tbody>
       </table>
