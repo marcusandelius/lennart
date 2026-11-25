@@ -7,6 +7,10 @@
 # i två spår i skenorna när kortet sitter på plats. Fickan skruvas fast i klackarna
 # med samma två M3 som den gamla klämman.
 #
+# Utskrift: fickan stående som i huset (hyllan och skenornas underkant mot plattan).
+# Då behöver bara de två flikarna stöd underifrån. Regeln skrivs ut som den ligger
+# i huset, utan stöd.
+#
 # Användning (läser modellen ur förhandsgranskningen, se tools/extract_from_html.py):
 #   python3 skarmficka.py parts_from_html.json [utmapp]
 import sys, os, json
