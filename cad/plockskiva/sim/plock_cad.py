@@ -59,7 +59,14 @@ WR, WS, WT, WTOP, VS = K.WR, K.WS, K.WT, K.WTOP, K.VS
 UF, UB, XL, ZT = K.UF, K.UB, K.XL, K.ZT; ST, RX, KK = K.SLAB_T, K.RX, K.KK
 YCF, YCB = K.YF - WALL, K.YB + WALL            # förrådets ytterväggar fram och bak (raka)
 uE, vE = -RP * np.sin(K.QX), RP * np.cos(K.QX)
-POCKET_R = 13.25
+POCKET_R = 12.5                                  # ficka Ø25 (simulerad som Ø24,5 med åttkantigt hål), för nötter 16–22 mm långa
+# stjärnhornet till MG996R, mätt ur foto mot tumstock 2026-11-25 [verifiera med skjutmått]
+HORN_T = 2.6            # armarnas tjocklek [antaget, inte uppmätt]
+HORN_HUB = 11.0         # navringens diameter
+HORN_R0, HORN_R1, HORN_L = 4.4, 2.9, 16.6   # armens halva bredd vid navet och längst ut, avstånd mellan de två bågarna (armen når 19,5 mm ut)
+HORN_HOLE_R = 11.0      # skruvhålet som används, avstånd från mitten [verifiera]
+HORN_PILOT = 1.8        # förborrning för de silverfärgade skruvarna (ca 2,2 mm gänga, ca 12 mm långa) [verifiera]
+HORN_GAP = 0.2          # spel runt hornet
 LUGS = [(-39.8, -31.6), (-25.5, -43.9)]        # skruvöron för kåpan (lokala u, v), radie 50,8
 SQ = 8.4                                       # fyrkantshål i skivans mitt för omröraren
 
@@ -73,7 +80,18 @@ def disc_local():
     cone.apply_translation([0, -RP, GAP + TD + 1.0])
     sq = trimesh.creation.box(extents=[SQ, SQ + 3.0, TD]); sq.apply_translation([0, 0, GAP + 7.0 + TD / 2])    # avlångt hål (8,4 x 11,4, långsidan mot fickan) från hornskruvens urtag upp till ovansidan
     cuts = [cyl(POCKET_R, GAP - 1, GAP + TD + 1, 0, -RP), cone,
-            cyl(12.7, GAP - 1, GAP + 3.5), cyl(4.6, GAP + 3.4, GAP + 7.1), cyl(3.5, GAP, GAP + TD + 1), sq]   # 3,5 mm fritt över hornet för hornskruvens skalle
+            cyl(4.6, GAP + HORN_T, GAP + 7.1), cyl(3.5, GAP, GAP + TD + 1), sq]          # fritt över hornet för mittskruvens skalle
+    hd = GAP + HORN_T + HORN_GAP                                                          # urtagets botten
+    from shapely.geometry import Point
+    arms = []
+    for k in range(4):
+        a = np.radians(45 + 90 * k)                                                       # armarna snett, 45 grader från fickan
+        d = np.array([np.cos(a), np.sin(a)])
+        arm = unary_union([Point(0, 0).buffer(HORN_R0 + HORN_GAP, 48), Point(*(d * HORN_L)).buffer(HORN_R1 + HORN_GAP, 48)]).convex_hull
+        arms.append(arm)
+        p = d * HORN_HOLE_R; cuts.append(cyl(HORN_PILOT / 2, GAP - 1, hd + 10.0, p[0], p[1]))   # förborrning för skruven genom armen
+    star = unary_union(arms + [Point(0, 0).buffer(HORN_HUB / 2 + 0.4, 48)])
+    st = trimesh.creation.extrude_polygon(star, hd - (GAP - 1)); st.apply_translation([0, 0, GAP - 1]); cuts.append(st)
     return D(m, cuts)
 disc = clean(disc_local())
 assert disc.is_watertight
@@ -130,7 +148,7 @@ fot_poly = unary_union([sbox(-40, 22, 40, 100), outer])
 fot = ext(fot_poly, 0.0, 3.0)
 stand = U([slab, rim, chute, gavel_bak, kantvagg, fot] + ears)
 holes = [lcyl(RX, -ST - 0.2, 2.0, uE, vE), I(channel, lbox(-BIG, BIG, -BIG, BIG, -BIG, -K.SKIN)),    # utfall genom plattan; över rännan är plattan urtagen underifrån till 3 mm
-         lbox(-10.15, 10.15, -10.4, 30.7, -ST - 60, -1.0), lcyl(13.0, -2.0, 1.0)]                   # servots kropp och horn
+         lbox(-10.15, 10.15, -10.4, 30.7, -ST - 60, -1.0), lcyl(15.5, -2.5, 1.0)]                   # servots kropp, hornets nav och skruvskallarna under hornet
 for su in (-5.0, 5.0):
     for vv in (10.15 - 24.75, 10.15 + 24.75): holes.append(lcyl(2.0, -ST - 1, -ST + 7.0, su, vv, n=32))   # M3-bussningar för servot
 for u, v in LUGS: holes.append(lcyl(2.0, WR - 6.5, WR + 1.0, u, v, n=32))                           # M3-bussningar för kåpan

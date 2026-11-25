@@ -17,6 +17,15 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
 | 11c_omrorare_motiv.stl | Valfritt inlägg som fyller hasselnötsmotivet (0,6 mm) i en annan färg | Läggs till som del i samma objekt som 11b |
 | 14_notforrad.stl | Förrådet, lyfts rakt upp | Upp och ner på sin överkant. Inget stöd, brim |
 
+## Stjärnhornet och fickan (preliminärt)
+* Fickan är Ø25 mm (simulerad som Ø24,5), för nötter 16–22 mm långa. Större nötter sorteras bort före påfyllning.
+* Skivans undersida har ett urtag för MG996R:s stjärnhorn, 2,8 mm djupt, med armarna 45 grader från fickan, och fyra
+  förborrade hål Ø1,8 mm, 10 mm djupa, 11 mm från mitten, för de fyra silverfärgade skruvarna från servopåsen.
+  Måtten är avlästa ur ett foto mot tumstock (`omritning/horn_matt.png`): armarna når ca 19 mm ut, ca 8 mm breda vid
+  navet och ca 5,5 mm längst ut, navringen ca 11 mm. Armarnas tjocklek (2,6 mm) och hålens avstånd från mitten är
+  antagna [verifiera].
+* Hålet i stativets platta runt servots axel är nu Ø31 mm och 2,5 mm djupt, så att skruvskallarna under hornet går fritt.
+
 ## Motivet på omröraren
 Hasselnötsmotivet (`motiv/notmotiv.webp`) är nedsänkt 0,6 mm i bladets ovansida, 21 × 22 mm. Linjerna är förtjockade
 till minst 0,45 mm och mellanrummen till minst 0,40 mm så att en 0,4 mm dysa klarar dem (`motiv/motiv_linjebredd.png`).
