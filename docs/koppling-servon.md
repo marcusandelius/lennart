@@ -15,6 +15,20 @@ Servona styrs via ett **PCA9685-kort** (16 kanaler, I2C). Kortet skapar servosig
 
 **V+ på PCA9685** får **inte** kopplas till Pi:n.
 
+## Servona via RJ45 (från 2026-11-25)
+
+PCA9685 sitter i elektroniklådan. En rak patchkabel går från uttaget **SERVON** i lådans vägg till en servokoppling vid doseraren, där båda servona ansluts med Wago 221. Färgkod **T568B**. Steg för steg: [kopplingsguide.html](kopplingsguide.html).
+
+| RJ45-stift | Färg (B) | Signal | PCA9685 | Servokopplingen |
+|---|---|---|---|---|
+| 1 | vit-orange | Doserare, signal | Kanal 0, PWM | Doserarservots orange/gula |
+| 2 | orange | GND | Kanal 0, GND | Wago → båda servonas bruna |
+| 3 | vit-grön | Lucka, signal | Kanal 1, PWM | Luckservots orange/gula |
+| 6 | grön | V+ 5 V | Kanal 0, V+ | Wago → båda servonas röda |
+| 4, 5, 7, 8 | – | Används inte | Klipps korta och isoleras | Klipps korta och isoleras |
+
+**Varför bara fyra ledare:** uttagen för skärm och servon ser likadana ut. Stiften är valda så att en förväxling inte kortsluter Pi:ns styrstift. Skärmen får då 5 V på VSYS (tål 2,6–5,5 V enligt Waveshare) och servosignaler på CLK och DIN. Servona får Pi:ns 3,3 V och SPI-signaler [verifiera, prova inte med flit]. En ledare var för V+ och GND ger cirka 0,2 V spänningsfall vid 2,5 A på 0,5 m [uppskattat].
+
 ## Ström till servona
 
 | Från | Till | Varför |

@@ -1,0 +1,647 @@
+<title>Kopplingsguide Lennart</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: en smal arbetskolumn för mobilen i verkstaden. Klistrig rubrik med framsteg, delar i byggordning, varje steg en bock. */
+:root {
+  --bg: #f5f2f0;
+  --surface: #ffffff;
+  --ink: #1f1918;
+  --ink-2: #5e5552;
+  --line: #ddd4d0;
+  --accent: #9a2b1e;        /* faluröd, husets färg */
+  --accent-soft: #f3e3df;
+  --on-accent: #ffffff;
+  --ok: #2c7a4b;
+  --warn: #9a6200;
+  --warn-soft: #fbefd9;
+  --danger: #b0261c;
+  --danger-soft: #fbe3e0;
+  --code-bg: #efe9e6;
+  /* Ledarfärger enligt T568B. Fysiska färger, samma i båda teman. */
+  --w-orange: #e8771a;
+  --w-green: #2f9a47;
+  --w-blue: #2a63c7;
+  --w-brown: #7a4b2a;
+  --w-white: #f7f7f2;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161212; --surface: #211b1a; --ink: #f2ebe9; --ink-2: #b7aca9; --line: #3b3230;
+    --accent: #e57a65; --accent-soft: #3a211c; --on-accent: #1b0f0c;
+    --ok: #6cc690; --warn: #e5a640; --warn-soft: #33270f; --danger: #ff8073; --danger-soft: #3a1b18;
+    --code-bg: #2a2321; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161212; --surface: #211b1a; --ink: #f2ebe9; --ink-2: #b7aca9; --line: #3b3230;
+  --accent: #e57a65; --accent-soft: #3a211c; --on-accent: #1b0f0c;
+  --ok: #6cc690; --warn: #e5a640; --warn-soft: #33270f; --danger: #ff8073; --danger-soft: #3a1b18;
+  --code-bg: #2a2321; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 4rem;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 46rem; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; letter-spacing: .01em; line-height: 1.1; margin: 0; }
+h1 { font-size: clamp(2.2rem, 7vw, 3rem); font-weight: 700; }
+h2 { font-size: 1.9rem; font-weight: 700; }
+h3 { font-size: 1.3rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--font-mono); font-size: .92em; }
+code { background: var(--code-bg); padding: .08em .35em; border-radius: 4px; }
+.muted { color: var(--ink-2); }
+.eyebrow { font-family: var(--font-mono); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+
+/* Klistrig rubrik med framsteg */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 0;
+  padding: .7rem max(16px, env(safe-area-inset-right, 0px)) .7rem max(16px, env(safe-area-inset-left, 0px));
+}
+.top-inner { max-width: 46rem; margin: 0 auto; display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+.top-title { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; }
+.bar { flex: 1 1 8rem; height: .55rem; background: var(--line); border-radius: 99px; overflow: hidden; min-width: 6rem; }
+.bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+.count { font-family: var(--font-mono); font-size: .85rem; font-variant-numeric: tabular-nums; }
+nav.jump { max-width: 46rem; margin: .5rem auto 0; display: flex; gap: .4rem; flex-wrap: wrap; }
+nav.jump a { font-size: .85rem; text-decoration: none; color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: .15rem .65rem; background: var(--surface); }
+nav.jump a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+header.intro { display: grid; gap: .8rem; padding-block: 1.6rem 1rem; }
+section { display: grid; gap: 1rem; padding-block: 1.6rem .4rem; scroll-margin-top: 7rem; }
+.part-head { display: grid; gap: .3rem; border-top: 3px solid var(--accent); padding-top: .8rem; }
+
+.callout { border-radius: 10px; padding: .85rem 1rem; display: grid; gap: .4rem; }
+.callout.danger { background: var(--danger-soft); border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent); }
+.callout.warn { background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent); }
+.callout.note { background: var(--accent-soft); }
+.callout strong.t { font-family: var(--font-display); font-size: 1.1rem; letter-spacing: .02em; }
+ul.plain { margin: 0; padding-left: 1.2rem; display: grid; gap: .25rem; }
+
+/* Diagram och tabeller får rulla i sidled i egen behållare */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.diagram svg { display: block; min-width: 680px; width: 100%; height: auto; }
+svg .box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.4; }
+svg .box.hot { stroke: var(--accent); stroke-width: 2; }
+svg .boxlabel { fill: var(--ink); font: 600 13px var(--font-body); }
+svg .small { fill: var(--ink-2); font: 11px var(--font-mono); }
+svg .w12 { stroke: var(--danger); stroke-width: 3; fill: none; }
+svg .w5 { stroke: var(--warn); stroke-width: 3; fill: none; }
+svg .wsig { stroke: var(--w-blue); stroke-width: 2.4; fill: none; }
+svg .wcat { stroke: var(--ok); stroke-width: 5; fill: none; stroke-linecap: round; }
+svg .enclosure { fill: none; stroke: var(--ink-2); stroke-width: 1.4; stroke-dasharray: 6 5; }
+svg .jack { fill: var(--ok); }
+svg .jacklabel { fill: var(--ink); font: 600 11px var(--font-mono); }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; padding: .6rem .9rem; font-size: .85rem; color: var(--ink-2); border-top: 1px solid var(--line); }
+.legend i { display: inline-block; width: 1.4rem; height: .3rem; border-radius: 2px; vertical-align: middle; margin-right: .35rem; }
+
+table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); font-weight: 500; background: var(--code-bg); }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.unused td { color: var(--ink-2); }
+.pintable { min-width: 560px; }
+
+.wire { display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; }
+.sw { width: 1.6rem; height: .85rem; border-radius: 3px; border: 1px solid var(--line); flex: none; }
+.sw.o { background: var(--w-orange); } .sw.g { background: var(--w-green); } .sw.b { background: var(--w-blue); } .sw.br { background: var(--w-brown); }
+.sw.wo { background: repeating-linear-gradient(90deg, var(--w-white) 0 5px, var(--w-orange) 5px 9px); }
+.sw.wg { background: repeating-linear-gradient(90deg, var(--w-white) 0 5px, var(--w-green) 5px 9px); }
+.sw.wb { background: repeating-linear-gradient(90deg, var(--w-white) 0 5px, var(--w-blue) 5px 9px); }
+.sw.wbr { background: repeating-linear-gradient(90deg, var(--w-white) 0 5px, var(--w-brown) 5px 9px); }
+.sw.red { background: #c4291c; } .sw.blk { background: #1d1d1d; }
+
+/* Stegen */
+ol.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
+li.step { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: .9rem 1rem 1rem; display: grid; gap: .6rem; }
+li.step.done { border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); }
+li.step.done .step-title { color: var(--ink-2); text-decoration: line-through; text-decoration-thickness: 1px; }
+.step-head { display: flex; gap: .75rem; align-items: flex-start; }
+.step-head input[type=checkbox] { width: 1.5rem; height: 1.5rem; margin: .1rem 0 0; accent-color: var(--ok); flex: none; cursor: pointer; }
+.step-head label { cursor: pointer; display: grid; gap: .1rem; min-width: 0; }
+.step-no { font-family: var(--font-mono); font-size: .78rem; color: var(--accent); letter-spacing: .05em; }
+.step-title { font-weight: 600; font-size: 1.05rem; }
+.step-body { display: grid; gap: .55rem; padding-left: 2.25rem; min-width: 0; }
+.why, .check { border-left: 3px solid var(--line); padding: .1rem 0 .1rem .75rem; font-size: .94rem; }
+.why b, .check b { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; display: block; color: var(--ink-2); font-weight: 500; }
+.check { border-left-color: var(--ok); }
+.cmd { display: flex; align-items: stretch; gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--code-bg); min-width: 0; }
+.cmd code { flex: 1; background: none; padding: .55rem .7rem; overflow-x: auto; white-space: pre; border-radius: 0; min-width: 0; }
+.cmd button { border: 0; border-left: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 500 .8rem var(--font-body); padding: 0 .8rem; cursor: pointer; }
+.cmd button.copied { color: var(--ok); }
+@media (max-width: 30rem) { .step-body { padding-left: 0; } }
+
+button.reset { font: 500 .85rem var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: .35rem .7rem; cursor: pointer; }
+.confirm { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; font-size: .9rem; }
+.confirm button { font: 600 .85rem var(--font-body); border-radius: 8px; padding: .35rem .7rem; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.confirm button.yes { background: var(--danger); color: var(--surface); border-color: var(--danger); }
+
+footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: .85rem; color: var(--ink-2); display: grid; gap: .4rem; }
+@media (prefers-reduced-motion: reduce) { .bar > span { transition: none; } }
+</style>
+
+<div class="top" role="banner">
+  <div class="top-inner">
+    <span class="top-title">Kopplingsguide</span>
+    <div class="bar" role="progressbar" aria-label="Avklarade steg" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="bar"></span></div>
+    <span class="count" id="count">0 av 0</span>
+  </div>
+  <nav class="jump" aria-label="Delar">
+    <a href="#oversikt">Översikt</a>
+    <a href="#strom">1 Ström</a>
+    <a href="#skarm">2 Skärm</a>
+    <a href="#servon">3 Servon</a>
+    <a href="#test">4 Helhetstest</a>
+    <a href="#fel">Felsökning</a>
+  </nav>
+</div>
+
+<main class="wrap">
+  <header class="intro">
+    <span class="eyebrow">Lennarts matstation · elektronik på bänken</span>
+    <h1>Koppla ihop allt och testa hela paketet</h1>
+    <p>Ström, skärm via RJ45 och servon via RJ45, i den ordning det är säkrast att bygga. Varje steg har en bock. Den sparas bara i den här webbläsaren. Bygg först allt löst på bänken och testa. Monteringen i huset kommer sedan.</p>
+    <p class="muted">Du kör allt själv. Fastnar du, eller ser något konstigt ut: skicka ett foto eller vad som står i adminvyn, så tittar vi på det innan du går vidare.</p>
+  </header>
+
+  <div class="callout danger">
+    <strong class="t">Fyra regler som gäller hela tiden</strong>
+    <ul class="plain">
+      <li><b>All ström av</b> (adaptern ur vägguttaget) innan du kopplar, flyttar eller lossar något.</li>
+      <li><b>Mät innan du ansluter.</b> Pi:n får bara 5 V, aldrig 12 V. Ett fel här förstör den direkt.</li>
+      <li><b>Sätt aldrig skärm- eller servokabeln i Pi:ns eget nätverksuttag</b>, och aldrig en nätverkskabel i stationens uttag. Märk uttagen.</li>
+      <li><b>230 V-sidan rör vi inte.</b> Adaptern sitter i ett vanligt uttag med sin kontakt. Nätsladden klipps aldrig.</li>
+    </ul>
+  </div>
+
+  <!-- ================= ÖVERSIKT ================= -->
+  <section id="oversikt">
+    <div class="part-head"><span class="eyebrow">Översikt</span><h2>Så hänger det ihop</h2></div>
+    <div class="scroll diagram">
+      <svg viewBox="0 0 800 480" role="img" aria-labelledby="dia-t dia-d">
+        <title id="dia-t">Kopplingsschema</title>
+        <desc id="dia-d">12 V från nätadaptern går via säkring och DC-jack till två omvandlare. Den ena ger 5 V till Raspberry Pi via USB-C, den andra 5 V till servokortet PCA9685. Pi och servokort pratar via I2C. Två keystone-uttag i elektroniklådans vägg leder via patchkablar till skärmen och till servokopplingen vid doseraren.</desc>
+        <rect class="enclosure" x="290" y="12" width="500" height="330" rx="10"/>
+        <text class="small" x="300" y="30">ELEKTRONIKLÅDA</text>
+
+        <!-- 12 V-kedjan -->
+        <rect class="box" x="16" y="46" width="120" height="50" rx="7"/>
+        <text class="boxlabel" x="28" y="68">Nätadapter</text><text class="small" x="28" y="85">12 V 3 A</text>
+        <rect class="box" x="160" y="46" width="110" height="50" rx="7"/>
+        <text class="boxlabel" x="172" y="68">Säkring</text><text class="small" x="172" y="85">3–5 A, plus</text>
+        <rect class="box" x="310" y="46" width="110" height="50" rx="7"/>
+        <text class="boxlabel" x="322" y="68">DC-jack</text><text class="small" x="322" y="85">skruvplint</text>
+        <rect class="box" x="450" y="46" width="100" height="50" rx="7"/>
+        <text class="boxlabel" x="462" y="68">Wago 221</text><text class="small" x="462" y="85">delar 12 V</text>
+        <path class="w12" d="M136 71 H160"/><path class="w12" d="M270 71 H310"/><path class="w12" d="M420 71 H450"/>
+        <text class="small" x="236" y="120">↑ genomföring</text>
+
+        <!-- omvandlare -->
+        <rect class="box" x="440" y="140" width="130" height="54" rx="7"/>
+        <text class="boxlabel" x="452" y="162">DC/DC 5 V 3 A</text><text class="small" x="452" y="180">servoström</text>
+        <rect class="box hot" x="620" y="140" width="150" height="54" rx="7"/>
+        <text class="boxlabel" x="632" y="162">DC/DC 5 V 5 A</text><text class="small" x="632" y="180">Pi:n, mät 5 V!</text>
+        <path class="w12" d="M500 96 V140"/><path class="w12" d="M550 71 H695 V140"/>
+
+        <!-- Pi och PCA9685 -->
+        <rect class="box" x="420" y="232" width="170" height="62" rx="7"/>
+        <text class="boxlabel" x="432" y="256">PCA9685</text><text class="small" x="432" y="274">+ 1000 µF på V+</text>
+        <rect class="box" x="620" y="232" width="150" height="62" rx="7"/>
+        <text class="boxlabel" x="632" y="256">Raspberry Pi 5</text><text class="small" x="632" y="274">kamera via flatkabel</text>
+        <path class="w5" d="M505 194 V232"/>
+        <path class="w5" d="M695 194 V232"/><text class="small" x="702" y="218">USB-C</text>
+        <path class="wsig" d="M590 263 H620"/><text class="small" x="594" y="255">I2C</text>
+
+        <!-- keystone i lådans vägg -->
+        <path class="wsig" d="M505 294 V342"/><path class="wsig" d="M695 294 V342"/>
+        <rect class="jack" x="487" y="334" width="36" height="16" rx="3"/><text class="jacklabel" x="530" y="347">SERVON</text>
+        <rect class="jack" x="677" y="334" width="36" height="16" rx="3"/><text class="jacklabel" x="720" y="347">SKÄRM</text>
+
+        <!-- patchkablar ut -->
+        <path class="wcat" d="M505 350 V400 H392"/>
+        <path class="wcat" d="M695 350 V410"/>
+        <rect class="box" x="620" y="410" width="150" height="54" rx="7"/>
+        <text class="boxlabel" x="632" y="432">Skärmen</text><text class="small" x="632" y="450">keystone + kabel</text>
+        <rect class="box" x="250" y="376" width="142" height="54" rx="7"/>
+        <text class="boxlabel" x="262" y="398">Servokoppling</text><text class="small" x="262" y="416">keystone + Wago</text>
+        <path class="w5" d="M250 393 H200"/><path class="w5" d="M250 413 H200 V450 H160"/>
+        <rect class="box" x="90" y="374" width="110" height="40" rx="7"/><text class="boxlabel" x="102" y="399">Doseraren</text>
+        <rect class="box" x="50" y="432" width="110" height="40" rx="7"/><text class="boxlabel" x="62" y="457">Luckan</text>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--danger)"></i>12 V</span>
+        <span><i style="background:var(--warn)"></i>5 V</span>
+        <span><i style="background:var(--w-blue)"></i>signaler</span>
+        <span><i style="background:var(--ok)"></i>patchkabel (RJ45)</span>
+      </div>
+    </div>
+    <p class="muted">Alla minus (GND) sitter ihop: omvandlarna delar jord på ingångssidan, och Pi:n och servokortet får gemensam jord via I2C-kabeln. Kameran sitter kvar på sin flatkabel, den går inte via RJ45.</p>
+
+    <h3>Det här behöver du</h3>
+    <ul class="plain">
+      <li>Nätadaptern 12 V 3 A (Kjell), DC-jacket med skruvplint, säkringshållare och säkring 3–5 A om du köpt dem.</li>
+      <li>Båda DC/DC-omvandlarna, servokortet PCA9685, kondensatorn 1000 µF 16 V.</li>
+      <li>En kort, kraftig USB-C-kabel att klippa.</li>
+      <li>4 keystone-uttag, 2 patchkablar (gärna olika färger), cirka 1 m <b>entrådig</b> Cat6-installationskabel.</li>
+      <li>Kopplingskablar (Dupont) hona–hona och hane–hane att klippa itu, röd/svart tvåledare 0,75 mm², Wago 221, krympslang.</li>
+      <li>Multimeter, lödpenna, avbitare och avskalare, eltejp eller etiketter för märkning.</li>
+    </ul>
+    <div class="callout warn">
+      <strong class="t">Om du bara har patchkabel</strong>
+      <p>Keystone-uttagen är gjorda för <b>entrådiga</b> ledare. Mångtrådig ledare från en klippt patchkabel fäster sämre och kan glappa [verifiera på uttagets förpackning]. Det fungerar för ett bänktest, men byt till entrådig kabel innan allt monteras.</p>
+    </div>
+  </section>
+
+  <!-- ================= 1 STRÖM ================= -->
+  <section id="strom">
+    <div class="part-head"><span class="eyebrow">Del 1</span><h2>Ström, utan något anslutet</h2>
+      <p class="muted">Först bygger och mäter du hela strömkedjan med varken Pi eller servon inkopplade. Då kan ett misstag inte skada något dyrt.</p></div>
+    <ol class="steps">
+      <li class="step" data-id="s1">
+        <div class="step-head"><input type="checkbox" id="c-s1"><label for="c-s1"><span class="step-no">1.1</span><span class="step-title">Mät adapterns polaritet</span></label></div>
+        <div class="step-body">
+          <p>Skruva fast en röd och en svart ledare i DC-jackets plint (<code>+</code> och <code>−</code>). Sätt i adapterns kontakt i jacket och adaptern i vägguttaget. Mät med multimetern på likspänning (V⎓) mellan ledarna: röd prob på röd ledare, svart på svart.</p>
+          <div class="check"><b>Kontroll</b>Ungefär <span class="mono">+12 V</span>. Visar mätaren <span class="mono">−12 V</span> är polariteten omvänd: byt plats på ledarna i plinten och märk om dem.</div>
+          <div class="why"><b>Varför</b>Kjell anger inte adapterns polaritet. Omvandlarna kan gå sönder om plus och minus byts, så du vet säkert vilken ledare som är plus innan något kopplas vidare.</div>
+          <p class="muted">Dra ur adaptern igen innan nästa steg.</p>
+        </div>
+      </li>
+      <li class="step" data-id="s2">
+        <div class="step-head"><input type="checkbox" id="c-s2"><label for="c-s2"><span class="step-no">1.2</span><span class="step-title">Säkring i plusledaren</span></label></div>
+        <div class="step-body">
+          <p>Koppla säkringshållaren i serie på <b>plusledaren</b>, direkt efter DC-jacket, med en säkring på 3–5 A. Hoppa över steget om du inte köpt någon och lägg till den innan stationen ställs ute.</p>
+          <div class="why"><b>Varför</b>Om något kortsluts i stationen bryter säkringen strömmen innan ledare hinner bli varma. Adaptern har troligen eget skydd, men en säkring är billig och gör skadan mindre om något går fel.</div>
+        </div>
+      </li>
+      <li class="step" data-id="s3">
+        <div class="step-head"><input type="checkbox" id="c-s3"><label for="c-s3"><span class="step-no">1.3</span><span class="step-title">Dela 12 V till båda omvandlarna</span></label></div>
+        <div class="step-body">
+          <p>Ta två Wago 221 med tre hål vardera: en för plus, en för minus. Från varje Wago går en röd och en svart ledare till <b>ingången</b> på respektive omvandlare (märkt <code>IN+</code>/<code>IN−</code> eller <code>VIN</code>/<code>GND</code>).</p>
+          <div class="check"><b>Kontroll</b>Läs på båda omvandlarna att ingången tål 12 V. 8–23 V-omvandlaren gör det. För 5 A-omvandlaren (Electrokit 41023301) står ingångsspänningen inte i vår lista [verifiera på kortet].</div>
+          <div class="why"><b>Varför</b>Servona får egen omvandlare så att deras strömtoppar inte drar ner spänningen till Pi:n. Annars kan Pi:n starta om varje gång ett servo rör sig.</div>
+        </div>
+      </li>
+      <li class="step" data-id="s4">
+        <div class="step-head"><input type="checkbox" id="c-s4"><label for="c-s4"><span class="step-no">1.4</span><span class="step-title">Ställ in och mät 5 V-omvandlaren för Pi:n</span></label></div>
+        <div class="step-body">
+          <p>5 A-omvandlaren kan ge antingen 3,3 V eller 5 V. Se efter på kortet hur 5 V väljs (bygel, lödpunkt eller ratt) [verifiera på kortet] och välj <b>5 V</b>. Sätt i adaptern och mät på omvandlarens <b>utgång</b>, utan något anslutet.</p>
+          <div class="check"><b>Kontroll</b>Mellan <span class="mono">5,0</span> och <span class="mono">5,25 V</span>. Visar den 3,3 V eller över 5,3 V: ansluten inte Pi:n.</div>
+          <div class="why"><b>Varför</b>Pi 5 vill ha 5,1 V. Under cirka 4,8 V varnar den för låg spänning och kan sakta ner [verifiera]. Över 5,5 V riskerar den att gå sönder.</div>
+        </div>
+      </li>
+      <li class="step" data-id="s5">
+        <div class="step-head"><input type="checkbox" id="c-s5"><label for="c-s5"><span class="step-no">1.5</span><span class="step-title">Mät servoomvandlaren</span></label></div>
+        <div class="step-body">
+          <p>Mät på 3 A-omvandlarens utgång, utan något anslutet.</p>
+          <div class="check"><b>Kontroll</b>Ungefär <span class="mono">5 V</span> (4,9–5,2 V).</div>
+          <div class="why"><b>Varför</b>Servona tål 4,8–6 V [verifiera i servonas datablad]. Med en mätning nu vet du att felet sitter någon annanstans om ett servo beter sig konstigt senare.</div>
+          <p class="muted">Dra ur adaptern.</p>
+        </div>
+      </li>
+      <li class="step" data-id="s6">
+        <div class="step-head"><input type="checkbox" id="c-s6"><label for="c-s6"><span class="step-no">1.6</span><span class="step-title">Gör USB-C-kabeln till Pi:n</span></label></div>
+        <div class="step-body">
+          <ol class="plain">
+            <li>Klipp kabeln cirka 10 cm från den <b>andra</b> kontakten (USB-A eller USB-C), så att en kort stump blir kvar på den sidan.</li>
+            <li>Skala stumpen och sätt dess kontakt i en vanlig USB-laddare. Mät mellan röd och svart ledare: <span class="mono">+5 V</span> betyder att röd är plus (VBUS) och svart minus (GND). Färgerna är desamma i den långa delen.</li>
+            <li>Skala den långa delen med USB-C-kontakten. Koppla plusledaren till 5 A-omvandlarens <code>OUT+</code> och minusledaren till <code>OUT−</code>, med Wago eller omvandlarens plint.</li>
+            <li>Isolera de andra ledarna (oftast vit och grön, ibland fler) var för sig med krympslang. Skärmflätan kan isoleras eller kopplas till minus.</li>
+          </ol>
+          <div class="why"><b>Varför</b>USB-C gör att Pi:n får ström genom sitt eget skydd. Mätningen på stumpen avgör säkert vilken färg som är plus, så du slipper gissa. Billiga kablar följer inte alltid färgkoden.</div>
+          <div class="check"><b>Kontroll</b>Sätt i adaptern utan att USB-C sitter i Pi:n, och kontrollera att inget blir varmt. Dra ur igen.</div>
+        </div>
+      </li>
+      <li class="step" data-id="s7">
+        <div class="step-head"><input type="checkbox" id="c-s7"><label for="c-s7"><span class="step-no">1.7</span><span class="step-title">Servoström till PCA9685</span></label></div>
+        <div class="step-body">
+          <p>Röd tvåledare 0,75 mm² från 3 A-omvandlarens <code>OUT+</code> till PCA9685:s skruvplint <code>V+</code>, svart från <code>OUT−</code> till plintens <code>GND</code>. Skruva i kondensatorn 1000 µF i samma plint: <b>långa benet (+) i V+</b>, sidan med randen (−) i GND.</p>
+          <div class="callout warn"><p>Elektrolytkondensatorn tål inte omvänd polaritet. Fel håll kan få den att gå sönder och läcka.</p></div>
+          <div class="why"><b>Varför</b>Servot på 11 kg kan dra flera ampere när det startar [verifiera]. Kondensatorn jämnar ut dippen, och servoströmmen går aldrig genom Pi:n.</div>
+        </div>
+      </li>
+      <li class="step" data-id="s8">
+        <div class="step-head"><input type="checkbox" id="c-s8"><label for="c-s8"><span class="step-no">1.8</span><span class="step-title">Första start av Pi:n</span></label></div>
+        <div class="step-body">
+          <p>Koppla <b>bara</b> USB-C till Pi:n: ingen skärm, inget servokort. Sätt i adaptern. Vänta en minut och öppna adminvyn på lennart.cam.</p>
+          <div class="check"><b>Kontroll</b>Under <b>Just nu</b> står <i>Stationen: igång</i>. Kör sedan på Pi:n:</div>
+          <div class="cmd"><code>vcgencmd get_throttled</code><button type="button" data-copy="vcgencmd get_throttled">Kopiera</button></div>
+          <div class="check"><b>Förväntat</b><span class="mono">throttled=0x0</span>: ingen låg spänning. Något annat: se Felsökning.</div>
+          <div class="why"><b>Varför</b>Strömmen testas först utan andra laster. Pi:n kan varna för att strömkällan inte klarar 5 A och begränsa strömmen till USB-portarna. Det gör inget nu, eftersom skärm och kamera inte går via USB. Det tar vi hand om när 4G-modemet ska in.</div>
+          <p class="muted">Pi:n har inte hörts av sedan 20 november. Vid starten hämtar den också den nya koden med igenkänningsmodellen, som stod i kö. Det kan ta några minuter.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ================= 2 SKÄRM ================= -->
+  <section id="skarm">
+    <div class="part-head"><span class="eyebrow">Del 2</span><h2>Skärmen via RJ45</h2>
+      <p class="muted">Alla fyra keystone-uttag kopplas med färgkoden <b>B</b> (T568B), som står tryckt på uttaget. Med en rak patchkabel blir stift 1 alltid stift 1 i andra änden.</p></div>
+
+    <div class="scroll">
+      <table class="pintable">
+        <thead><tr><th>Stift</th><th>Färg (B)</th><th>Signal</th><th>Pi 5, fysiskt stift</th><th>Skärmkortet, Pico-stift</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td><span class="wire"><span class="sw wo"></span>vit-orange</span></td><td>CLK</td><td class="num">23</td><td class="num">14 (GP10)</td></tr>
+          <tr><td class="num">2</td><td><span class="wire"><span class="sw o"></span>orange</span></td><td>GND</td><td class="num">6</td><td class="num">13</td></tr>
+          <tr><td class="num">3</td><td><span class="wire"><span class="sw wg"></span>vit-grön</span></td><td>DIN</td><td class="num">19</td><td class="num">15 (GP11)</td></tr>
+          <tr><td class="num">4</td><td><span class="wire"><span class="sw b"></span>blå</span></td><td>CS</td><td class="num">24</td><td class="num">12 (GP9)</td></tr>
+          <tr><td class="num">5</td><td><span class="wire"><span class="sw wb"></span>vit-blå</span></td><td>DC</td><td class="num">22</td><td class="num">11 (GP8)</td></tr>
+          <tr><td class="num">6</td><td><span class="wire"><span class="sw g"></span>grön</span></td><td>3,3 V</td><td class="num">1</td><td class="num">39 (VSYS)</td></tr>
+          <tr><td class="num">7</td><td><span class="wire"><span class="sw wbr"></span>vit-brun</span></td><td>RST</td><td class="num">13</td><td class="num">16 (GP12)</td></tr>
+          <tr><td class="num">8</td><td><span class="wire"><span class="sw br"></span>brun</span></td><td>BL</td><td class="num">12</td><td class="num">17 (GP13)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">Paren är valda så att klockan (CLK) tvinnas med GND och data (DIN) med 3,3 V. Det gör SPI mindre störkänsligt i kabeln.</p>
+
+    <ol class="steps">
+      <li class="step" data-id="d1">
+        <div class="step-head"><input type="checkbox" id="c-d1"><label for="c-d1"><span class="step-no">2.1</span><span class="step-title">Uttaget SKÄRM, lådsidan</span></label></div>
+        <div class="step-body">
+          <p>Klipp cirka 20 cm entrådig Cat6. Skala manteln cirka 3 cm i ena änden. Lägg ledarna i uttagets spår enligt färgkod <b>B</b> och tvinna upp paren så lite som möjligt, högst cirka 1 cm. Tryck ner locket och klipp av överskottet.</p>
+          <div class="why"><b>Varför</b>Paren hålls tvinnade ända fram till uttaget, så att de skyddar mot störningar hela vägen.</div>
+          <p>Märk uttaget <b>SKÄRM</b>, gärna med blå tejp.</p>
+        </div>
+      </li>
+      <li class="step" data-id="d2">
+        <div class="step-head"><input type="checkbox" id="c-d2"><label for="c-d2"><span class="step-no">2.2</span><span class="step-title">Pi-änden: hylsor på ledarna</span></label></div>
+        <div class="step-body">
+          <p>Klipp åtta kopplingskablar <b>hona–hona</b> på mitten. Skala och löd varje Cat6-ledare mot en halva med hona, och dra krympslang över. Sätt honorna på Pi:ns stift enligt tabellen (kolumnen Pi 5).</p>
+          <div class="why"><b>Varför</b>Entrådig ledare passar inte direkt på Pi:ns stift, men en lödd hylsa gör det. Du behöver ingen krimptång.</div>
+          <div class="check"><b>Kontroll</b>Räkna stiften som förut: stiftlisten mot överkanten, USB-portarna åt höger, stift 1 längst till vänster i den undre raden.</div>
+        </div>
+      </li>
+      <li class="step" data-id="d3">
+        <div class="step-head"><input type="checkbox" id="c-d3"><label for="c-d3"><span class="step-no">2.3</span><span class="step-title">Skärmänden: uttag och stift</span></label></div>
+        <div class="step-body">
+          <p>Gör likadant med det andra uttaget och 10–15 cm entrådig Cat6. Den här gången lödar du halvor med <b>hane</b> (från hane–hane-kablar), eftersom skärmkortet har hylsor. Sätt hanarna i skärmkortets Pico-stift enligt tabellen: 11–17 på vänster sida och 39 (VSYS) på höger sida.</p>
+          <div class="why"><b>Varför</b>Samma färgkod och samma raka kabel i båda ändar gör att varje ledare hamnar rätt utan korskoppling.</div>
+        </div>
+      </li>
+      <li class="step" data-id="d4">
+        <div class="step-head"><input type="checkbox" id="c-d4"><label for="c-d4"><span class="step-no">2.4</span><span class="step-title">Mät genom hela kabeln</span></label></div>
+        <div class="step-body">
+          <p>Med all ström av: koppla patchkabeln mellan uttagen. Lossa båda ändarna från Pi:n och skärmkortet. Ställ multimetern på genomgång (pip) och mät varje ledare från Pi-änden till skärmänden.</p>
+          <div class="check"><b>Kontroll</b>Alla 8 piper mot rätt motsvarighet. Ledare 6 (3,3 V) och 2 (GND) får <b>inte</b> pipa mot varandra.</div>
+          <div class="why"><b>Varför</b>Ett fel i ett uttag är svårt att se. Det tar en minut att hitta med multimetern nu, och en kortslutning mellan 3,3 V och GND hittas innan den gör skada.</div>
+        </div>
+      </li>
+      <li class="step" data-id="d5">
+        <div class="step-head"><input type="checkbox" id="c-d5"><label for="c-d5"><span class="step-no">2.5</span><span class="step-title">Testa skärmen</span></label></div>
+        <div class="step-body">
+          <p>Sätt tillbaka ändarna på Pi:n och skärmkortet. Starta. Gå till adminvyn, kortet <b>Skärmen</b>.</p>
+          <div class="check"><b>Kontroll</b>Raden <i>Tekniskt</i> visar <span class="mono">/dev/spidev0.0</span>. Klicka <b>ACCESS DENIED</b>: skärmen blir röd. Klicka <b>Kamerabilden</b>: kamerabilden syns.</div>
+          <div class="why"><b>Varför</b>En helröd skärm visar att alla åtta ledare fungerar. Kamerabilden visar att den högre bildtakten också klarar kabeln.</div>
+          <p class="muted">Randig bild: sänk <b>SPI-hastighet</b> i samma kort till 16 eller 8 MHz.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ================= 3 SERVON ================= -->
+  <section id="servon">
+    <div class="part-head"><span class="eyebrow">Del 3</span><h2>Servon via RJ45</h2>
+      <p class="muted">Servokortet sitter i elektroniklådan bredvid Pi:n. En patchkabel går till en liten koppling vid doseraren, där båda servona ansluts. Lossar du patchkabeln är servona bortkopplade.</p></div>
+
+    <div class="callout note">
+      <strong class="t">Varför bara fyra av åtta ledare</strong>
+      <p>Uttagen ser likadana ut, och någon gång kommer kablarna att förväxlas. Därför används bara stiften 1, 2, 3 och 6, och de är valda så att en förväxling inte förstör något:</p>
+      <ul class="plain">
+        <li><b>Skärmen i servouttaget:</b> skärmen får 5 V på VSYS, som tål 2,6–5,5 V enligt Waveshare, och servosignaler på CLK och DIN. Inga andra ledare är kopplade.</li>
+        <li><b>Servona i skärmuttaget:</b> servona får Pi:ns 3,3 V och SPI-signaler. De kan rycka till, men Pi:ns styrstift kortsluts aldrig [verifiera, prova inte med flit].</li>
+      </ul>
+      <p>Om stiften 4, 5, 7 och 8 också hade använts för servoström, hade en förväxling kunnat kortsluta Pi:ns stift. En ledare var för plus och minus räcker för de korta sträckorna i huset: cirka 0,2 V spänningsfall vid 2,5 A på 0,5 m [uppskattat].</p>
+    </div>
+
+    <div class="scroll">
+      <table class="pintable">
+        <thead><tr><th>Stift</th><th>Färg (B)</th><th>Signal</th><th>PCA9685 (lådan)</th><th>Servokopplingen</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td><span class="wire"><span class="sw wo"></span>vit-orange</span></td><td>Doserare, signal</td><td>Kanal 0, PWM-stiftet</td><td>Doserarservots orange/gula</td></tr>
+          <tr><td class="num">2</td><td><span class="wire"><span class="sw o"></span>orange</span></td><td>GND</td><td>Kanal 0, GND-stiftet</td><td>Wago GND → båda servonas bruna</td></tr>
+          <tr><td class="num">3</td><td><span class="wire"><span class="sw wg"></span>vit-grön</span></td><td>Lucka, signal</td><td>Kanal 1, PWM-stiftet</td><td>Luckservots orange/gula</td></tr>
+          <tr><td class="num">6</td><td><span class="wire"><span class="sw g"></span>grön</span></td><td>V+ 5 V</td><td>Kanal 0, V+-stiftet</td><td>Wago V+ → båda servonas röda</td></tr>
+          <tr class="unused"><td class="num">4, 5, 7, 8</td><td><span class="wire"><span class="sw b"></span><span class="sw wb"></span><span class="sw wbr"></span><span class="sw br"></span></span></td><td>Används inte</td><td colspan="2">Läggs i uttaget men klipps korta och isoleras i andra änden</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ol class="steps">
+      <li class="step" data-id="v1">
+        <div class="step-head"><input type="checkbox" id="c-v1"><label for="c-v1"><span class="step-no">3.1</span><span class="step-title">Servokortet till Pi:n (inne i lådan)</span></label></div>
+        <div class="step-body">
+          <p>Fyra kopplingskablar hona–hona, som i <code>docs/koppling-servon.md</code>:</p>
+          <div class="scroll"><table>
+            <thead><tr><th>PCA9685</th><th>Pi 5, fysiskt stift</th></tr></thead>
+            <tbody>
+              <tr><td>VCC</td><td class="num">17 (3,3 V)</td></tr>
+              <tr><td>GND</td><td class="num">9</td></tr>
+              <tr><td>SDA</td><td class="num">3</td></tr>
+              <tr><td>SCL</td><td class="num">5</td></tr>
+            </tbody>
+          </table></div>
+          <div class="why"><b>Varför</b>Stift 1 (3,3 V) är upptaget av skärmen, så kortet tar 3,3 V från stift 17. Servokortets <code>V+</code> får aldrig kopplas till Pi:n. Den matas bara från servoomvandlaren (steg 1.7).</div>
+        </div>
+      </li>
+      <li class="step" data-id="v2">
+        <div class="step-head"><input type="checkbox" id="c-v2"><label for="c-v2"><span class="step-no">3.2</span><span class="step-title">Kontrollera att Pi:n ser servokortet</span></label></div>
+        <div class="step-body">
+          <p>Starta och kör på Pi:n:</p>
+          <div class="cmd"><code>i2cdetect -y 1</code><button type="button" data-copy="i2cdetect -y 1">Kopiera</button></div>
+          <div class="check"><b>Förväntat</b>Talet <span class="mono">40</span> syns i tabellen. Det är kortets adress.</div>
+          <div class="why"><b>Varför</b>Kortet testas på I2C innan servona kopplas in, så att ett eventuellt fel sitter på ett känt ställe.</div>
+          <p class="muted">Saknas kommandot, eller syns inget alls: steg 9 i <code>docs/SETUP-PI.md</code> (slå på I2C och installera <code>i2c-tools</code>) har inte gjorts. Gör det och starta om.</p>
+        </div>
+      </li>
+      <li class="step" data-id="v3">
+        <div class="step-head"><input type="checkbox" id="c-v3"><label for="c-v3"><span class="step-no">3.3</span><span class="step-title">Uttaget SERVON, lådsidan</span></label></div>
+        <div class="step-body">
+          <p>Koppla ett uttag med cirka 20 cm entrådig Cat6, färgkod B, som i steg 2.1. I andra änden lödar du halvor med hona på ledarna <b>1, 2, 3 och 6</b> och sätter dem på servokortets stiftrad enligt tabellen. Klipp ledarna 4, 5, 7 och 8 korta och isolera dem var för sig med krympslang.</p>
+          <div class="why"><b>Varför</b>V+-stiften på servokortets stiftrad sitter ihop med skruvplinten V+ [verifiera på ditt kort]. Därför räcker det att ta ström och GND från kanal 0, även för servot på kanal 1.</div>
+          <p>Märk uttaget <b>SERVON</b>, gärna med gul tejp. Ta en patchkabel i en annan färg än skärmens.</p>
+        </div>
+      </li>
+      <li class="step" data-id="v4">
+        <div class="step-head"><input type="checkbox" id="c-v4"><label for="c-v4"><span class="step-no">3.4</span><span class="step-title">Servokopplingen vid doseraren</span></label></div>
+        <div class="step-body">
+          <p>Det fjärde uttaget med 10–15 cm entrådig Cat6, färgkod B:</p>
+          <ul class="plain">
+            <li><b>Ledare 6 (V+)</b> → en Wago med tre hål. I de två andra hålen sitter varsin halva av en kopplingskabel <b>hane–hane</b>, som går till servonas <b>röda</b> stift.</li>
+            <li><b>Ledare 2 (GND)</b> → en Wago med tre hål, likadant, till servonas <b>bruna</b> stift.</li>
+            <li><b>Ledare 1</b> → en halva med hane, till doserarservots <b>orange/gula</b> stift.</li>
+            <li><b>Ledare 3</b> → en halva med hane, till luckservots <b>orange/gula</b> stift.</li>
+            <li>Ledarna 4, 5, 7 och 8 klipps korta och isoleras.</li>
+          </ul>
+          <div class="why"><b>Varför</b>Servonas kontakter är hylsor, så hanstift passar direkt i dem. Wago delar strömmen till båda servona utan lödning och går lätt att ändra när allt ska in i huset.</div>
+        </div>
+      </li>
+      <li class="step" data-id="v5">
+        <div class="step-head"><input type="checkbox" id="c-v5"><label for="c-v5"><span class="step-no">3.5</span><span class="step-title">Mät servokabeln</span></label></div>
+        <div class="step-body">
+          <p>Med all ström av och patchkabeln ikopplad, mät på genomgång mellan servokortets V+ och GND, och mellan Wago V+ och Wago GND.</p>
+          <div class="check"><b>Kontroll</b>Det får <b>inte</b> pipa mellan V+ och GND. Kondensatorn kan ge ett kort pip i början medan den laddas. Det är normalt, men ett pip som håller i sig betyder kortslutning.</div>
+          <div class="why"><b>Varför</b>En kortslutning på servoströmmen löser ut omvandlarens skydd eller säkringen, eller värmer ledarna i värsta fall.</div>
+        </div>
+      </li>
+      <li class="step" data-id="v6">
+        <div class="step-head"><input type="checkbox" id="c-v6"><label for="c-v6"><span class="step-no">3.6</span><span class="step-title">Testa servona från adminvyn</span></label></div>
+        <div class="step-body">
+          <p>Ta bort servoarmarna, eller se till att servona kan snurra fritt. Starta och gå till adminvyn, kortet <b>Servon</b>.</p>
+          <div class="check"><b>Kontroll</b>Dra doserarens reglage till 90° och tryck <b>Flytta</b>: servot vrider sig och statusen visar <i>✓ PCA9685 på I2C-buss 1</i>. Tryck sedan <b>Testa utmatning</b>. Flytta luckan med <i>Långsamt</i> ibockat.</div>
+          <div class="why"><b>Varför</b>Fritt snurrande servon kan inte skada doseringshjulet eller luckan om ändlägena är fel. Ändlägena ställs in senare, när servona sitter i huset.</div>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ================= 4 HELHETSTEST ================= -->
+  <section id="test">
+    <div class="part-head"><span class="eyebrow">Del 4</span><h2>Hela paketet</h2>
+      <p class="muted">Allt kopplat samtidigt, som det blir i huset.</p></div>
+    <ol class="steps">
+      <li class="step" data-id="t1">
+        <div class="step-head"><input type="checkbox" id="c-t1"><label for="c-t1"><span class="step-no">4.1</span><span class="step-title">Allt igång samtidigt</span></label></div>
+        <div class="step-body">
+          <p>Kamera, skärm och servokort inkopplade. Starta och vänta en minut.</p>
+          <div class="check"><b>Kontroll i adminvyn</b>Stationen igång · Skärmen ✓ med <span class="mono">/dev/spidev0.0</span> · Servon ✓ · Version på stationen <span class="mono">19969f0</span> eller nyare. Kör <code>vcgencmd get_throttled</code> igen: fortfarande <span class="mono">0x0</span>.</div>
+          <div class="why"><b>Varför</b>Delarna drar ström samtidigt först nu. Låg spänning syns på strypningen innan den ger konstiga fel.</div>
+        </div>
+      </li>
+      <li class="step" data-id="t2">
+        <div class="step-head"><input type="checkbox" id="c-t2"><label for="c-t2"><span class="step-no">4.2</span><span class="step-title">Servo och skärm samtidigt</span></label></div>
+        <div class="step-body">
+          <p>Visa kamerabilden på skärmen och tryck <b>Testa utmatning</b> några gånger.</p>
+          <div class="check"><b>Kontroll</b>Skärmen fortsätter visa bild, Pi:n startar inte om, och strypningen är fortfarande <span class="mono">0x0</span>.</div>
+          <div class="why"><b>Varför</b>Det här visar att servonas egen strömförsörjning fungerar och inte stör Pi:n.</div>
+        </div>
+      </li>
+      <li class="step" data-id="t3">
+        <div class="step-head"><input type="checkbox" id="c-t3"><label for="c-t3"><span class="step-no">4.3</span><span class="step-title">Demoläget</span></label></div>
+        <div class="step-body">
+          <p>Välj <b>Demo</b> i kortet Skärmen. Vänta 3 sekunder medan bakgrunden lärs in, och vifta sedan med handen framför kameran.</p>
+          <div class="check"><b>Kontroll</b>Skärmen visar ACCESS GRANTED eller ACCESS DENIED i 4 sekunder, sedan kamerabilden igen.</div>
+          <div class="why"><b>Varför</b>Det här är hela kedjan från kamera till rörelse till skärm. Bara slumpen ska bytas ut mot igenkänningen.</div>
+        </div>
+      </li>
+      <li class="step" data-id="t4">
+        <div class="step-head"><input type="checkbox" id="c-t4"><label for="c-t4"><span class="step-no">4.4</span><span class="step-title">Testa igenkänningen på klippen</span></label></div>
+        <div class="step-body">
+          <p>När versionen <span class="mono">19969f0</span> eller nyare syns i adminvyn är modellen och ONNX Runtime installerade. Kör på Pi:n:</p>
+          <div class="cmd"><code>~/lennart-app/.venv/bin/python ~/lennart-app/detect.py --limit 20</code><button type="button" data-copy="~/lennart-app/.venv/bin/python ~/lennart-app/detect.py --limit 20">Kopiera</button></div>
+          <div class="check"><b>Förväntat</b>En rad per klipp med den högsta sannolikheten för ekorre, fågel, människa och annat djur, och sist tiden per bild. Skicka utskriften, så jämför vi med din märkning av klippen.</div>
+          <div class="why"><b>Varför</b>Svaret avgör om den färdiga modellen räcker eller om den behöver tränas på dina egna klipp.</div>
+        </div>
+      </li>
+    </ol>
+    <div class="callout note">
+      <strong class="t">Sedan: montering i huset</strong>
+      <p>När allt fungerar på bänken: mät keystone-uttagen och skärmkortet med skjutmått. Då ritas hållare för uttagen i elektroniklådans vägg och den nya skärmklämman med plats för uttaget.</p>
+    </div>
+    <p><button type="button" class="reset" id="reset">Nollställ alla bockar</button></p>
+    <div class="confirm" id="confirm" hidden>
+      <span>Ta bort alla bockar i guiden?</span>
+      <button type="button" class="yes" id="confirm-yes">Ja, nollställ</button>
+      <button type="button" id="confirm-no">Avbryt</button>
+    </div>
+  </section>
+
+  <!-- ================= FELSÖKNING ================= -->
+  <section id="fel">
+    <div class="part-head"><span class="eyebrow">Felsökning</span><h2>Om något inte stämmer</h2></div>
+    <div class="scroll">
+      <table class="pintable">
+        <thead><tr><th>Vad du ser</th><th>Troligt fel</th><th>Gör så här</th></tr></thead>
+        <tbody>
+          <tr><td>Pi:n startar inte, ingen lampa</td><td>Ingen ström på USB-C, eller plus och minus omkastade</td><td>Mät omvandlarens utgång igen. Kontrollera färgerna från steg 1.6.</td></tr>
+          <tr><td><code>throttled</code> är inte <span class="mono">0x0</span></td><td>För låg spänning (t.ex. <span class="mono">0x50005</span>)</td><td>Kortare eller kraftigare USB-C-kabel. Mät spänningen vid omvandlaren medan Pi:n arbetar.</td></tr>
+          <tr><td>Pi:n startar om när ett servo rör sig</td><td>Servona får ström från Pi:ns sida</td><td>Kontrollera att servokortets V+ bara matas från 3 A-omvandlaren och att kondensatorn sitter i.</td></tr>
+          <tr><td>Skärmen lyser men är svart</td><td>Fel ledare i ett uttag, eller fel stift</td><td>Gör om steg 2.4. Kolla <i>Tekniskt</i>: ska vara <span class="mono">/dev/spidev0.0</span>.</td></tr>
+          <tr><td>Skärmen randig eller med fel bild</td><td>För hög SPI-hastighet för kabeln</td><td>Sänk SPI-hastigheten i adminvyn.</td></tr>
+          <tr><td><code>i2cdetect</code> visar inte <span class="mono">40</span></td><td>I2C avstängt eller fel kabel</td><td>Steg 9 i <code>docs/SETUP-PI.md</code>. Kontrollera SDA/SCL (stift 3 och 5).</td></tr>
+          <tr><td>Servot brummar men rör sig inte</td><td>Ingen V+ eller för låg spänning</td><td>Mät 5 V mellan Wago V+ och GND i servokopplingen.</td></tr>
+          <tr><td>Fel servo rör sig</td><td>Ledare 1 och 3 har bytt plats</td><td>Byt plats i servokopplingen, eller ändra kanalerna i adminvyn.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p>Guiden bygger på projektets dokumentation (<code>docs/koppling-display.md</code>, <code>docs/koppling-servon.md</code>, <code>docs/SETUP-PI.md</code>) och delarna i <code>docs/hardvara.md</code>, läget 2026-11-25. Uppgifter märkta [verifiera] eller [uppskattat] är inte kontrollerade mot datablad eller mätta.</p>
+    <p>Elsäkerheten för det som är nätanslutet ska stämmas av med en behörig person.</p>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var KEY = "lennart-kopplingsguide-v1";
+  var steps = Array.prototype.slice.call(document.querySelectorAll("li.step"));
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function render() {
+    var done = 0;
+    steps.forEach(function (li) {
+      var id = li.getAttribute("data-id");
+      var box = li.querySelector("input[type=checkbox]");
+      var on = !!state[id];
+      box.checked = on;
+      li.classList.toggle("done", on);
+      if (on) done++;
+    });
+    var pct = steps.length ? Math.round(done / steps.length * 100) : 0;
+    document.getElementById("bar").style.width = pct + "%";
+    document.querySelector("[role=progressbar]").setAttribute("aria-valuenow", String(pct));
+    document.getElementById("count").textContent = done + " av " + steps.length;
+  }
+  steps.forEach(function (li) {
+    var id = li.getAttribute("data-id");
+    li.querySelector("input[type=checkbox]").addEventListener("change", function (e) {
+      state[id] = e.target.checked; save(); render();
+    });
+  });
+
+  document.querySelectorAll("button[data-copy]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var text = b.getAttribute("data-copy");
+      function ok() { b.textContent = "Kopierat"; b.classList.add("copied"); setTimeout(function () { b.textContent = "Kopiera"; b.classList.remove("copied"); }, 1600); }
+      function fallback() {
+        var code = b.parentNode.querySelector("code");
+        var r = document.createRange(); r.selectNodeContents(code);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        b.textContent = "Markerat";
+        setTimeout(function () { b.textContent = "Kopiera"; }, 1600);
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fallback);
+        else fallback();
+      } catch (e) { fallback(); }
+    });
+  });
+
+  var confirmBox = document.getElementById("confirm");
+  document.getElementById("reset").addEventListener("click", function () { confirmBox.hidden = false; });
+  document.getElementById("confirm-no").addEventListener("click", function () { confirmBox.hidden = true; });
+  document.getElementById("confirm-yes").addEventListener("click", function () {
+    state = {}; save(); render(); confirmBox.hidden = true;
+  });
+
+  render();
+})();
+</script>

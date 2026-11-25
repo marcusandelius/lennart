@@ -47,6 +47,14 @@ Kommentarer:
 - **Kamerakabeln:** om den passar Pi 5:s smalare kontakt är [osäkert] och ska kontrolleras.
 - **LED-ringen:** kamerafästet är inte ritat för den.
 
+**Kjell & Company, köpt 2026-11-25** (enligt Marcus):
+
+| Art.nr | Antal | Namn |
+|---|---|---|
+| 68969 | 4 | Luxorparts Keystone-jack Cat. 6 UTP verktygsfri |
+
+Övrigt från Kjell samma dag (nätadapter 12 V 36 W art.nr 44384, silikon, kablar) är [osäkert om köpt].
+
 ## 3.3 Planerat men inte köpt
 
 Pris markerat med "?" är inte kontrollerat.

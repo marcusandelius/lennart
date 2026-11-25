@@ -11,6 +11,23 @@ Skärmen (Electrokit art.nr 41036261, "2" LCD 320x240 for Raspberry Pi Pico 4x b
 > **Stäng av Pi:n och dra ur strömmen innan du kopplar.**
 > Pinnarna på skärmsidan är tagna från Waveshares beskrivning av Pico-LCD-2 och är **[verifiera]**: kontrollera mot Waveshares wiki eller tryck på kortet innan du kopplar. Pi-sidan är standard för Raspberry Pi.
 
+## Via RJ45 (från 2026-11-25)
+
+Skärmen kopplas via två keystone-uttag och en rak patchkabel, så att den lätt kan lossas. Alla uttag kopplas med färgkod **T568B**. Steg för steg med kontrollmätningar: [kopplingsguide.html](kopplingsguide.html) (publicerad som artefakt).
+
+| RJ45-stift | Färg (B) | Signal | Pi 5, fysiskt stift | Skärmkortet, Pico-stift |
+|---|---|---|---|---|
+| 1 | vit-orange | CLK | 23 | 14 (GP10) |
+| 2 | orange | GND | 6 | 13 |
+| 3 | vit-grön | DIN | 19 | 15 (GP11) |
+| 4 | blå | CS | 24 | 12 (GP9) |
+| 5 | vit-blå | DC | 22 | 11 (GP8) |
+| 6 | grön | 3,3 V | 1 | 39 (VSYS) |
+| 7 | vit-brun | RST | 13 | 16 (GP12) |
+| 8 | brun | BL | 12 | 17 (GP13) |
+
+Paren är valda så att CLK tvinnas med GND och DIN med 3,3 V. Uttaget märks **SKÄRM** och får aldrig förväxlas med Pi:ns nätverksuttag.
+
 ## Kopplingstabell
 
 | Signal | Skärmkortet (Pico-pinne) [verifiera] | Raspberry Pi 5 (GPIO) | Pi 5 fysisk pinne | Varför |
