@@ -99,6 +99,7 @@ I tidigare listor fanns också Fiberon ASA-CF08 Dark Red, Bambu ASA röd och vit
 | 2026-11-15 | Bottenplattan | PETG [osäkert vilken färg] | – |
 | 2026-11-15 | Toleranstestet | Grå PETG | Pågick när filen skrevs. Resultatet är [osäkert]. |
 | [osäkert] | Kamerafäste, skärmklämma och skärmram | – | Filerna levererades 2026-11-15. Om de är utskrivna är [osäkert]. |
+| 2026-11-25 | Skärmfickan med regel (`19_skarmficka.stl`, `19b_skarmficka_regel.stl`) | [osäkert vilket] | Ersätter skärmklämman. Enligt Marcus "blev riktigt bra". Inte provad i huset med skärmen när detta skrevs. |
 
 Om minihusen från 2026-10-28 skrevs ut är [osäkert].
 
