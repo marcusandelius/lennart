@@ -157,6 +157,19 @@ def rounded_slab(poly, h, rt, ch):
     return trimesh.convex.convex_hull(np.vstack(pts))
 pinne_p = sbox(-4.0, WB + 10.9, 4.0, A0 + 6.0)
 ag = U([trimesh.creation.extrude_polygon(fot_p, 8.0), rounded_slab(pinne_p, 8.0, 1.0, 0.4), rounded_slab(blad_p, 8.0, RT_E, CH_E)])   # (a, w) i planet, tjocklek längs z
+MOTIV = os.environ.get("NOTMOTIV", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "motiv", "notmotiv.webp"))
+MD, MS = 0.6, 22.0                                                                                  # nedsänkningens djup och motivets storlek (mm)
+inlay = None
+if os.path.exists(MOTIV):
+    from motiv import motiv
+    from shapely import affinity
+    mg, minfo = motiv(MOTIV, MS, 0.45, 0.40)
+    mg = affinity.translate(mg, 0.0, (A0 + A1) / 2)                                                    # mitt på bladets ovansida
+    top_flat = blad_p.buffer(-RT_E - 0.5)
+    assert top_flat.contains(mg), "motivet ryms inte på bladets plana del"
+    cut = ext(mg, 8.0 - MD, 9.0); inlay = ext(mg, 8.0 - MD, 8.0)
+    ag = D(ag, [cut])
+    print("motiv", minfo)
 ag_print = ag.copy()
 ag_asm = ag.copy(); ag_asm.apply_transform(np.array([[0, 0, 1, -4.0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], float))   # tjocklek -> u, a -> v (mot fickan), w -> w
 ag_asm.apply_transform(T)
@@ -196,6 +209,8 @@ if __name__ == "__main__":
         m.export(os.path.join(OUT, "asm", n_ + ".stl"))
     def bed(m): m = m.copy(); m.apply_translation([-m.bounds[:, 0].mean(), -m.bounds[:, 1].mean(), -m.bounds[0][2]]); return m
     flip = trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0])
+    if inlay is not None:
+        off = np.array([-ag_print.bounds[:, 0].mean(), -ag_print.bounds[:, 1].mean(), -ag_print.bounds[0][2]]); il = inlay.copy(); il.apply_translation(off); il.export(os.path.join(OUT, '11c_omrorare_motiv.stl'))
     sp = bed(stand); kp = kapa.copy(); kp.apply_transform(np.linalg.inv(T)); kp = bed(kp); hp = hopper.copy(); hp.apply_transform(flip); hp = bed(hp); ap = bed(ag_print)
     for f_, m in (("10_doserstativ", sp), ("10b_skivkapa", kp), ("11_plockskiva", dp), ("11b_omrorare", ap), ("14_notforrad", hp)):
         m.export(os.path.join(OUT, f_ + ".stl")); report(f_, m)

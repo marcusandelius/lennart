@@ -14,7 +14,15 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
 | 10b_skivkapa.stl | Kåpa över skivans främre kant, snett avskuren under skärmklämman | Står på sin underkant. Inget stöd, brim |
 | 11_plockskiva.stl | Skiva med en ficka Ø26,5 mm och ett avlångt hål (8,4 × 11,4 mm) för omröraren | Ovansidan mot plattan. Inget stöd |
 | 11b_omrorare.stl | Svagt kilformad fot (10,6–11,7 × 8 mm, 8 mm ned i skivan), pinne 8 × 8 mm och rakt blad 30 × 46 mm med rundade hörn (7 mm), rundad ovankant (3 mm) och 0,8 mm fas mot byggplattan, allt 8 mm tjockt | Ligger platt. Inget stöd |
+| 11c_omrorare_motiv.stl | Valfritt inlägg som fyller hasselnötsmotivet (0,6 mm) i en annan färg | Läggs till som del i samma objekt som 11b |
 | 14_notforrad.stl | Förrådet, lyfts rakt upp | Upp och ner på sin överkant. Inget stöd, brim |
+
+## Motivet på omröraren
+Hasselnötsmotivet (`motiv/notmotiv.webp`) är nedsänkt 0,6 mm i bladets ovansida, 21 × 22 mm. Linjerna är förtjockade
+till minst 0,45 mm och mellanrummen till minst 0,40 mm så att en 0,4 mm dysa klarar dem (`motiv/motiv_linjebredd.png`).
+Motivet sitter på den sida som vetter bakåt mot ellådan när omröraren sitter på plats. För två färger: ladda
+11b och 11c tillsammans som ett objekt med flera delar i Bambu Studio och ge 11c en annan färg; färgbytet sker
+bara i de tre översta lagren.
 
 ## Förutsättningar i huset
 * Skärmens kontakter får nå högst 27 mm in från framväggens insida. Med raka Dupont-kontakter når de ca 35 mm, så

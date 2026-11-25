@@ -23,6 +23,8 @@ if os.path.exists('snap_kap85.npy'):
 # utskriftsläge
 x=0
 for f,k in (('14_notforrad','u_forrad'),('10_doserstativ','u_stativ'),('11_plockskiva','u_skiva'),('10b_skivkapa','u_kapa'),('11b_omrorare','u_omr')):
-    m=trimesh.load('ut5/%s.stl'%f); m.apply_translation([x - m.bounds[0][0], -m.bounds[:,1].mean(), 0]); x = m.bounds[1][0] + 14; G[k]=soup(m)
+    m=trimesh.load('ut5/%s.stl'%f); tr=[x - m.bounds[0][0], -m.bounds[:,1].mean(), 0]; m.apply_translation(tr); x = m.bounds[1][0] + 14; G[k]=soup(m)
+    if f=='11b_omrorare' and os.path.exists('ut5/11c_omrorare_motiv.stl'):
+        il=trimesh.load('ut5/11c_omrorare_motiv.stl'); il.apply_translation(tr); G['u_omr_motiv']=soup(il)
 G['bed']=soup(bx(-10, x, -70, 70, -1.0, 0.0))
 json.dump(G, open('../render/geo_v5.json','w')); print('klar', {k: len(v)//9 for k,v in G.items()}, 'bredd', round(x))
