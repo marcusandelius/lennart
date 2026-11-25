@@ -26,6 +26,8 @@ Skärmen kopplas via ett keystone-uttag i elektroniklådan och en klippt patchka
 | 7 | vit-brun | RST | 13 | 16 (GP12) |
 | 8 | brun | BL | 12 | 17 (GP13) |
 
+**Kopplingskablar för bänktestet:** hane–hona-kablar klipps på mitten, så att varje signal har samma färg i båda ändar. Honan läggs direkt i uttaget och sätts på Pi:n, och hanen löds på patchkabeln vid skärmen. CLK gul, GND grå, DIN grön, CS orange, DC blå, 3,3 V röd, RST vit, BL lila. Inför monteringen ute är entrådig Cat6 i uttaget säkrare.
+
 Paren är valda så att CLK tvinnas med GND och DIN med 3,3 V. Uttaget märks **SKÄRM** och får aldrig förväxlas med Pi:ns nätverksuttag.
 
 ## Kopplingstabell
