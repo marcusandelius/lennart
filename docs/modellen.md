@@ -70,6 +70,7 @@ Filer som levererades till Marcus. Publicerade sidor är privata tills Marcus de
 | `lennarts-matstation-3d.html`, publicerad på https://claude.ai/artifact/9LQD4NfnbhvxCEfwnb7qiV | Förhandsgranskningen med 3D, demo, projektdokument, 3D-filer och utskrift. Innehåller hela aktuella modellen (`parts_v11.json`), plattorna och alla STL-filer inbäddade. |
 | `lennarts-matstation-3d.zip` | Alla 57 STL-filer i aktuell version |
 | `kroppen-rod-och-gra.zip` | Ny kropp: `05_kropp_rod.stl` och `05_kropp_sockel_gra.stl` |
+| `19_skarmficka.stl`, `19b_skarmficka_regel.stl` (2026-11-25) | Skärmfickan och regeln, som ersätter `19_skarmklamma.stl`. Skapas av `model/skarmficka.py`. |
 | `kamerafaste-och-skarmfaste.zip` | `15_kamerafaste.stl`, `19_skarmklamma.stl` och `18_skarmram_svart.stl` |
 | `elektroniklada-lock-monteringsplatta.zip` | `16_elektroniklada.stl`, `16b_elektroniklada_lock.stl` och `24_monteringsplatta.stl` |
 | `toleranstest.stl` (samma som `platta-4-toleranstest.stl`), `platta-4-basen.stl`, `platta-7-bottenplatta.stl` | Enskilda plattor |
