@@ -101,3 +101,22 @@ I tidigare listor fanns också Fiberon ASA-CF08 Dark Red, Bambu ASA röd och vit
 | [osäkert] | Kamerafäste, skärmklämma och skärmram | – | Filerna levererades 2026-11-15. Om de är utskrivna är [osäkert]. |
 
 Om minihusen från 2026-10-28 skrevs ut är [osäkert].
+
+## 3.6 Mått på skärmkortet (Waveshare Pico-LCD-2)
+
+Avlästa 2026-11-25 ur fyra foton av kortet med tumstock (snett tagna, utan skjutmått). Räkna med ±1–2 mm. Inget av måtten är uppmätt med skjutmått [verifiera].
+
+| Mått | Värde | Hur det togs fram |
+|---|---|---|
+| Kortets bredd (långsidan) | ca 46–50 mm, ritat som 48 | Två foton med tumstock, som gav olika värden |
+| Kortets höjd (kortsidan) | ca 31–33 mm, ritat som 32 | Två foton med tumstock |
+| Displayen | ca 3,6 mm tjock, nästan lika stor som kortet | Fotot från sidan, skalat mot kortets längd |
+| Kortet med glipa mot displayen | ca 2,9 mm | Samma foto |
+| Pico-hylsorna | ca 12 mm höga, 2 × 20 hål, 50,8 mm långa. Längre än kortet, så de sticker ut i båda ändar. | Höjden ur fotot från sidan. Längden är 20 × 2,54 mm. |
+| Avstånd mellan hylsraderna | 17,78 mm (Pico-standard) | Inte uppmätt. Antaget att raderna sitter mitt på kortet [verifiera]. |
+| Totalt djup, displayens framsida till hylsornas topp | ca 18,5 mm | Fotot från sidan och fotot med tumstocken stående |
+| Knapparna KEY0–KEY3 | Sidoknappar i hörnen på långsidorna, på baksidan. De sticker ut ca 1,3 mm över kanten, når ca 2,7 mm in och är ca 3,5 mm höga. | Foton uppifrån, ungefärligt |
+| Blå flik | Troligen dragfliken på skärmens skyddsfilm [verifiera] | Foto |
+
+Används av `model/skarmficka.py`. Fritt djup bakom hylsorna till nötmagasinet är ca 7,8 mm enligt modellen, så raka Dupont-kontakter (ca 14 mm) får inte plats där [verifiera mot kablarna].
+
