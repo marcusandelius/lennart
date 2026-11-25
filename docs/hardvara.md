@@ -46,6 +46,7 @@ Kommentarer:
 - **Servot på 5 kg, 360°** snurrar runt och vet inte sitt läge, så det passar inte doseringshjulet.
 - **Kamerakabeln:** om den passar Pi 5:s smalare kontakt är [osäkert] och ska kontrolleras.
 - **LED-ringen:** kamerafästet är inte ritat för den.
+- **DCDC 5 A (41023301, Electrokit EKM006):** 4–40 V in, skydd mot omvänd polaritet, byggd på TI LMR14050. Utgången är 3,3 V med VSEL-hålen öppna och 5 V med dem kortslutna. EN och SS lämnas okopplade. Källa: [Electrokits produktsida](https://www.electrokit.com/dcdc-omvandlare-step-down-3.3v/5v-5a), läst via sökresultat 2026-11-25.
 
 **Kjell & Company, köpt 2026-11-25** (enligt Marcus):
 
