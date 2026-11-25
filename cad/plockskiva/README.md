@@ -13,7 +13,7 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
 | 10_doserstativ.stl | Lutande platta med kant runt skivan, servofäste, utfall och ränna | Står på sin fot. Inget stöd |
 | 10b_skivkapa.stl | Kåpa över skivans främre kant, snett avskuren under skärmklämman | Står på sin underkant. Inget stöd, brim |
 | 11_plockskiva.stl | Skiva med en ficka Ø26,5 mm och ett avlångt hål (8,4 × 11,4 mm) för omröraren | Ovansidan mot plattan. Inget stöd |
-| 11b_omrorare.stl | Svagt kilformad fot (10,6–11,7 × 8 mm, 8 mm ned i skivan), pinne 8 × 8 mm och blad 30 × 46 mm med halvrund topp, allt 8 mm tjockt | Ligger platt. Inget stöd |
+| 11b_omrorare.stl | Svagt kilformad fot (10,6–11,7 × 8 mm, 8 mm ned i skivan), pinne 8 × 8 mm och rakt blad 30 × 46 mm med rundade hörn (7 mm), rundad ovankant (3 mm) och 0,8 mm fas mot byggplattan, allt 8 mm tjockt | Ligger platt. Inget stöd |
 | 14_notforrad.stl | Förrådet, lyfts rakt upp | Upp och ner på sin överkant. Inget stöd, brim |
 
 ## Förutsättningar i huset

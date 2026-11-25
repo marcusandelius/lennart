@@ -143,11 +143,20 @@ assert stand.is_watertight
 # ---------------------------------------------------------------- 11b omrörare: fyrkantsfot, pinne och blad (plan del, 8 mm tjock)
 A0, A1, AR = WT + 1.0, 92.0, 15.0                                                                  # bladets underkant 1 mm över förrådets lutande golv
 WB = GAP + TD - 8.0                                                                                # fotens underkant: 8 mm ned i skivan (hålet är 9,0 mm djupt)
-fot_p = Polygon([(-5.3, WB), (5.3, WB), (5.85, WB + 11.0), (-5.85, WB + 11.0)])                    # svagt kilformad fot: 10,6 mm nedtill, 11,4 mm i höjd med skivans ovansida, kläms fast i hålet (11,4 mm)
+fot_p = Polygon([(-4.3, WB), (4.3, WB), (5.3 + 0.05, WB + 1.0), (5.85, WB + 11.0), (-5.85, WB + 11.0), (-5.35, WB + 1.0)])   # 1 mm fas på spetsen gör den lättare att få i hålet                    # svagt kilformad fot: 10,6 mm nedtill, 11,4 mm i höjd med skivans ovansida, kläms fast i hålet (11,4 mm)
 from shapely.geometry import Point
-blad_p = unary_union([sbox(-AR, A0, AR, A1 - AR), Point(0, A1 - AR).buffer(AR, 64)]).buffer(-4.0).buffer(4.0, 32)   # halvrund topp, nedre hörnen rundade med 4 mm
-prof = unary_union([fot_p, sbox(-4.0, WB + 10.9, 4.0, A1 - 1.0), blad_p])
-ag = trimesh.creation.extrude_polygon(prof, 8.0)                                                    # (a, w) i planet, tjocklek längs z
+RC_B, RT_E, CH_E = 7.0, 3.0, 0.8                                                                    # hörnradie i planet, rundning av ovankanten, fas på underkanten (mot byggplattan)
+blad_p = sbox(-AR, A0, AR, A1).buffer(-RC_B).buffer(RC_B, 32)                                       # rakt blad 30 x 46 mm med rundade hörn
+def rounded_slab(poly, h, rt, ch):
+    """Konvex platta med rundad ovankant (radie rt) och 45-graders fas nedtill (ch), som konvext hölje av förskjutna konturer."""
+    pts = []
+    zs = [(0.0, ch), (ch, 0.0)] + [(h - rt + rt * np.sin(a), rt - rt * np.cos(a)) for a in np.linspace(0, np.pi / 2, 10)]
+    for z, ins in zs:
+        q = poly.buffer(-ins, 32) if ins > 0 else poly
+        xy = np.asarray(q.exterior.coords)[:-1]; pts.append(np.c_[xy, np.full(len(xy), z)])
+    return trimesh.convex.convex_hull(np.vstack(pts))
+pinne_p = sbox(-4.0, WB + 10.9, 4.0, A0 + 6.0)
+ag = U([trimesh.creation.extrude_polygon(fot_p, 8.0), rounded_slab(pinne_p, 8.0, 1.0, 0.4), rounded_slab(blad_p, 8.0, RT_E, CH_E)])   # (a, w) i planet, tjocklek längs z
 ag_print = ag.copy()
 ag_asm = ag.copy(); ag_asm.apply_transform(np.array([[0, 0, 1, -4.0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], float))   # tjocklek -> u, a -> v (mot fickan), w -> w
 ag_asm.apply_transform(T)
