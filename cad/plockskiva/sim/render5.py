@@ -8,7 +8,8 @@ def bx(x0,x1,y0,y1,z0,z1):
     m=trimesh.creation.box(extents=[x1-x0,y1-y0,z1-z0]); m.apply_translation([(x0+x1)/2,(y0+y1)/2,(z0+z1)/2]); return m
 G={n:soup(m) for n,m in P.items()}
 for n in ('skarmklamma','kamerafaste','elektroniklada','ellock','kropp','kropp_sockel'): G[n]=soup(A[n])
-G['kontakter']=soup(bx(-26,26,12,27,97.8,131.0))
+G['kontakter']=soup(trimesh.util.concatenate([bx(-25.4,25.4,21.7,35.7,108+s_*8.89-1.6,108+s_*8.89+1.6) for s_ in (1,-1)]))
+for n_,f_ in (('ficka','19_skarmficka'),('regel','19b_skarmficka_regel'),('kort','skarmkort_ungefar')): G[n_]=soup(trimesh.load('../ficka/ut/%s.stl'%f_))
 E=K.EW
 G['x_stativ']=soup(P['doserstativ']); G['x_servo']=soup(moved(P['servo_mg996r'], -E*45)); G['x_skiva']=soup(moved(P['plockskiva'], E*38))
 G['x_kapa']=soup(moved(P['skivkapa'], E*38+np.array([0,-38,0]))); G['x_forrad']=soup(moved(P['notforrad'], np.array([20,0,95]))); G['x_omr']=soup(moved(P['omrorare'], E*150))

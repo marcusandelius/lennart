@@ -19,9 +19,13 @@ KK = 61.76                           # det sneda takets ovansida: z = y + KK (3 
 YF, YB = 31.9, 106.2                 # förrådets innermått i y
 CH_W, CH_W0, CH_H = 14.0, 15.0, 30.0  # rännans halva innerbredd nedtill och upptill, kanthöjd
 
-def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=38.0, ymouth=6.5, qx=66.0, vs=-4.0, land=12.0):
+def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=38.0, ymouth=6.5, qx=66.0, vs=-4.0, land=12.0, rh=12.25, td=None, bulge=True):
     """dl = hur långt kragen fortsätter luta utåt ovanför skärmens plan innan väggen blir lodrät (ger bredare öppning)."""
     global C, T, DL, ZT, XL, UF, UB, PLANE, XARC0, EX, CH_A, CH_B, WTOP
+    global RH, TD, BULGE
+    BULGE = bulge
+    if rh is not None: RH = rh
+    if td is not None: TD = td
     global QX, VS
     QX = np.radians(qx); VS = vs
     C = np.array([Cx, Cy, Cz]); DL = dl; ZT = zt; XL = xl; WTOP = WT + DL
@@ -41,6 +45,13 @@ def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=38.
     CH_NECK = np.array([(CH_B[0] - CH_W, CH_B[1]), (CH_B[0] + CH_W, CH_B[1]), (CH_B[0] + CH_W, NECK), (CH_B[0] - CH_W, NECK)])
     CH_FUN = np.array([(CH_B[0] + CH_W, NECK), (EX[0] + CH_W0, yb), (EX[0] - CH_W0, yb), (EX[0] - CH_W0, EX[1] + 0.5), (CH_B[0] - CH_W, NECK)])   # moturs
     CH_POLY = np.array([CH_NECK[0], CH_NECK[1], CH_FUN[0], CH_FUN[1], CH_FUN[2], CH_FUN[3], CH_FUN[4]])
+CAB = dict(x=27.0, y1=37.5, z0=94.0, z1=122.0)       # plats för kontakterna i skärmkortets hylsor: |x| < 27, y < 37,5, z 94–122 (hylsornas topp y 21,7 + 14 mm + 1,8)
+def cable_bulge(wall=2.4, top=None):
+    """Kanal i förrådets framvägg för kontakterna, öppen uppåt så att förrådet kan lyftas förbi dem; 45 graders sluttning nedtill (konvex)."""
+    x, y1, z0 = CAB['x'] + wall, CAB['y1'] + wall, CAB['z0'] - wall
+    zt = ZT if top is None else top
+    yf = YF - WALL; d = y1 - yf
+    return np.array([(sx * x, yy, zz) for sx in (-1, 1) for yy, zz in ((yf, z0 - d), (yf, zt), (y1, z0), (y1, zt))])
 def chute_low(p): return CH_B[2] + CH_LAND * (float(np.asarray(p)[1]) - CH_B[1])              # flack del närmast mynningen
 def chute_up(p): return CH_J[2] + CH_K * float(np.dot(CH_J[:2] - np.asarray(p)[:2], CH_T))   # brant del under utfallet
 def chute_z(p): return max(chute_low(p), chute_up(p))                                        # golvets höjd
@@ -102,6 +113,7 @@ def static_pieces(chute=True):
     yq = YF - WALL                                                                                                 # snett tak över skivans främre kant, under skärmklämman och kontakterna
     P.append(np.array([(x, y, y + KK - dz) for x in (-75.0, 80.0) for y in (10.0, yq) for dz in (1.7, 0.0)]))
     P.append(np.array([(x, y, z) for x in (XL - WALL, 80.0) for y in (yq, YF) for z in (yq + KK - 1.7, ZT)]))         # framväggen går ned till det sneda taket
+    if BULGE: P.append(cable_bulge())
     if chute:
         import trimesh
         Q = [np.array([(x, y, z) for x, y in poly for z in (-19.0, f((x, y)))]) for poly in (CH_NECK, CH_FUN) for f in (chute_low, chute_up)]   # golvet: det högsta av två plan, som konvexa bitar

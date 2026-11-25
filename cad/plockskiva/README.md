@@ -1,9 +1,8 @@
 # Plockskivan: ny dosering (ersätter 10_doserhus, 11_doserhjul och 14_notmagasin)
 
-> **Skriv inte ut ännu.** Allt nedan är ritat och simulerat för nötter 15–18,5 mm breda och 18–22 mm långa.
-> Nötterna som ska användas är ungefär 20–21 mm breda och 23–25 mm långa (uppmätt från ett foto mot linjal,
-> `omritning/notter_linjal.png`). Med 20–22 × 23–25 mm stannade doseringen i alla sex simuleringarna
-> (16 av 180 nötter levererade, `sim/resultat_nottstorlek.jsonl`). Delarna måste ritas om för den storleken.
+> **Skriv inte ut ännu.** Ritad för nötter 16–22 mm långa (större sorteras bort). Två saker är inte bestämda:
+> hornets höjd över servots fästöron (avgör skivans och servots läge) och om skärmkortets kontakter sitter kvar
+> när förrådet lyfts (se nedan).
 
 En skiva (Ø85,2 mm) som lutar 45 grader åt sidan plockar en hasselnöt i taget ur förrådet och släpper den genom ett
 utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindrar nötterna från att valva sig ovanför skivan.
@@ -17,14 +16,26 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
 | 11c_omrorare_motiv.stl | Valfritt inlägg som fyller hasselnötsmotivet (0,6 mm) i en annan färg | Läggs till som del i samma objekt som 11b |
 | 14_notforrad.stl | Förrådet, lyfts rakt upp | Upp och ner på sin överkant. Inget stöd, brim |
 
-## Stjärnhornet och fickan (preliminärt)
+## Stjärnhornet och fickan
 * Fickan är Ø25 mm (simulerad som Ø24,5), för nötter 16–22 mm långa. Större nötter sorteras bort före påfyllning.
-* Skivans undersida har ett urtag för MG996R:s stjärnhorn, 2,8 mm djupt, med armarna 45 grader från fickan, och fyra
-  förborrade hål Ø1,8 mm, 10 mm djupa, 11 mm från mitten, för de fyra silverfärgade skruvarna från servopåsen.
-  Måtten är avlästa ur ett foto mot tumstock (`omritning/horn_matt.png`): armarna når ca 19 mm ut, ca 8 mm breda vid
-  navet och ca 5,5 mm längst ut, navringen ca 11 mm. Armarnas tjocklek (2,6 mm) och hålens avstånd från mitten är
-  antagna [verifiera].
-* Hålet i stativets platta runt servots axel är nu Ø31 mm och 2,5 mm djupt, så att skruvskallarna under hornet går fritt.
+* Skivans undersida har ett urtag för MG996R:s stjärnhorn, armarna 45 grader från fickan. Armarna är 2,0 mm tjocka
+  (uppmätta), når ca 19 mm ut, är ca 8 mm breda vid navet och ca 5,5 mm längst ut (ur foto, `omritning/horn_matt.png`).
+  Urtagets botten ligger 3,5 mm in i skivan, samma höjd mot servot som förut. Den höjden är inte uppmätt: hornarmarnas
+  ovansida antas ligga ca 12,5 mm över servots fästöron [verifiera].
+* Fyra förborrade hål Ø1,0 mm, 10,5 mm djupa, i det andra hålet på varje arm (11,2 mm från mitten: 8,0 mm till det
+  innersta hålet, uppmätt, och 3,2 mm mellan hålen, ur foto), för de fyra silverfärgade skruvarna (ca 1,1 mm, ca 12 mm).
+* Hålet i stativets platta runt servots axel är Ø31 mm och 2,5 mm djupt, så att skruvskallarna under hornet går fritt.
+
+## Kanalen för skärmkortets kontakter
+Förrådets framvägg har en kanal, 54 mm bred, 8 mm djup (y 29,5–37,5) från z 94 och ända upp. Raka kontakter
+(14 mm bakom hylsorna) får plats när förrådet sitter på plats (minst 1,6 mm). Förrådet går dock inte att lyfta förbi
+dem: kanalens botten tar i den nedre raden efter ca 5 mm. Med vinklade kontakter eller fastlödda kablar som slutar
+inom ca 7 mm bakom hylsorna går förrådet fritt.
+
+## Simulering med den här geometrin (`sim/resultat.jsonl`)
+40 nötter 16–20 mm långa (14–17,5 mm breda), vila 0,3 s, omröraren på. Friktion 0,35–0,5: 7 körningar, 274 av 280
+nötter levererade, inga nötter fast, 95 tomma slag och 32 dubbeldoser på 336 slag, servot stannade 16 gånger och tog om.
+Friktion 0,65: 30 av 40.
 
 ## Motivet på omröraren
 Hasselnötsmotivet (`motiv/notmotiv.webp`) är nedsänkt 0,6 mm i bladets ovansida, 21 × 22 mm. Linjerna är förtjockade
