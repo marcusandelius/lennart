@@ -71,9 +71,9 @@ def disc_local():
     hc = POCKET_R + 1.8                                                                   # fas 0,8 mm runt fickans överkant
     cone = trimesh.creation.cone(radius=hc, height=hc, sections=96); cone.apply_transform(trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0]))
     cone.apply_translation([0, -RP, GAP + TD + 1.0])
-    sq = trimesh.creation.box(extents=[SQ, SQ + 3.0, TD]); sq.apply_translation([0, 0, GAP + 9.4 + TD / 2])    # avlångt hål (8,4 x 11,4, långsidan mot fickan) från hornskruvens urtag upp till ovansidan
+    sq = trimesh.creation.box(extents=[SQ, SQ + 3.0, TD]); sq.apply_translation([0, 0, GAP + 7.0 + TD / 2])    # avlångt hål (8,4 x 11,4, långsidan mot fickan) från hornskruvens urtag upp till ovansidan
     cuts = [cyl(POCKET_R, GAP - 1, GAP + TD + 1, 0, -RP), cone,
-            cyl(12.7, GAP - 1, GAP + 3.5), cyl(4.6, GAP + 3.4, GAP + 9.5), cyl(3.5, GAP, GAP + TD + 1), sq]
+            cyl(12.7, GAP - 1, GAP + 3.5), cyl(4.6, GAP + 3.4, GAP + 7.1), cyl(3.5, GAP, GAP + TD + 1), sq]   # 3,5 mm fritt över hornet för hornskruvens skalle
     return D(m, cuts)
 disc = clean(disc_local())
 assert disc.is_watertight
@@ -137,10 +137,10 @@ assert stand.is_watertight
 
 # ---------------------------------------------------------------- 11b omrörare: fyrkantsfot, pinne och blad (plan del, 8 mm tjock)
 A0, A1, AR = WT + 1.0, 92.0, 15.0                                                                  # bladets underkant 1 mm över förrådets lutande golv
-WB = GAP + TD - 5.0                                                                                # fotens underkant: 5 mm ned i skivan (hålet är 6,6 mm djupt)
-fot_p = Polygon([(-5.45, WB), (5.45, WB), (5.85, WB + 8.0), (-5.85, WB + 8.0)])                     # svagt kilformad fot: 10,9 mm nedtill, 11,4 mm i höjd med skivans ovansida, kläms fast i hålet (11,4 mm)
+WB = GAP + TD - 8.0                                                                                # fotens underkant: 8 mm ned i skivan (hålet är 9,0 mm djupt)
+fot_p = Polygon([(-5.3, WB), (5.3, WB), (5.85, WB + 11.0), (-5.85, WB + 11.0)])                    # svagt kilformad fot: 10,6 mm nedtill, 11,4 mm i höjd med skivans ovansida, kläms fast i hålet (11,4 mm)
 blad_p = Polygon([(-AR, A0), (AR, A0), (AR, A1 - 8.0), (AR - 8.0, A1), (-AR + 8.0, A1), (-AR, A1 - 8.0)])   # avfasade hörn upptill
-prof = unary_union([fot_p, sbox(-4.0, WB + 7.9, 4.0, A1 - 1.0), blad_p])
+prof = unary_union([fot_p, sbox(-4.0, WB + 10.9, 4.0, A1 - 1.0), blad_p])
 ag = trimesh.creation.extrude_polygon(prof, 8.0)                                                    # (a, w) i planet, tjocklek längs z
 ag_print = ag.copy()
 ag_asm = ag.copy(); ag_asm.apply_transform(np.array([[0, 0, 1, -4.0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], float))   # tjocklek -> u, a -> v (mot fickan), w -> w

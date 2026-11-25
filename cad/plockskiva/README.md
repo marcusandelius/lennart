@@ -8,7 +8,7 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
 | 10_doserstativ.stl | Lutande platta med kant runt skivan, servofäste, utfall och ränna | Står på sin fot. Inget stöd |
 | 10b_skivkapa.stl | Kåpa över skivans främre kant, snett avskuren under skärmklämman | Står på sin underkant. Inget stöd, brim |
 | 11_plockskiva.stl | Skiva med en ficka Ø26,5 mm och ett avlångt hål (8,4 × 11,4 mm) för omröraren | Ovansidan mot plattan. Inget stöd |
-| 11b_omrorare.stl | Svagt kilformad fot (10,9–11,7 × 8 mm), pinne 8 × 8 mm och blad 30 × 46 mm med avfasade hörn, allt 8 mm tjockt | Ligger platt. Inget stöd |
+| 11b_omrorare.stl | Svagt kilformad fot (10,6–11,7 × 8 mm, 8 mm ned i skivan), pinne 8 × 8 mm och blad 30 × 46 mm med avfasade hörn, allt 8 mm tjockt | Ligger platt. Inget stöd |
 | 14_notforrad.stl | Förrådet, lyfts rakt upp | Upp och ner på sin överkant. Inget stöd, brim |
 
 ## Förutsättningar i huset
@@ -32,17 +32,17 @@ Om servot inte når fram: vrid tillbaka och försök igen.
 4. Kåpan skruvas på med två M3 × 8.
 5. Stativet sänks ned på de två bakre styrtapparna (skärmklämma och kamerasläde lossade) och skruvas framme till höger.
 6. Skärmklämma och kamerasläde tillbaka. Förrådet lyfts rakt ned, haken på vänster sida griper över stativets överkant.
-7. Omröraren sänks rakt ned med pinnen i spåret i förrådets golv och trycks de sista 7 mm snett ned i det avlånga
-   hålet i skivan tills foten kläms fast. Foten passar bara på två sätt, och båda är rätt. Den sitter 5 mm ned i skivan
-   (hålet är 6,6 mm djupt) och bladet hamnar 1 mm över förrådets golv. Inget lim.
+7. Omröraren sänks rakt ned med pinnen i spåret i förrådets golv och trycks de sista 10 mm snett ned i det avlånga
+   hålet i skivan tills foten kläms fast. Foten passar bara på två sätt, och båda är rätt. Den sitter 8 mm ned i skivan
+   (hålet är 9,0 mm djupt; under det ligger 3,5 mm fritt för hornskruvens skalle) och bladet hamnar 1 mm över förrådets golv. Inget lim.
 
-För att ta ur förrådet: dra omröraren 7 mm snett uppåt ur skivan, lyft den rakt upp, och lyft sedan förrådet.
+För att ta ur förrådet: dra omröraren 10 mm snett uppåt ur skivan, lyft den rakt upp, och lyft sedan förrådet.
 
 ## Kontroller (`sim/slutkontroll.txt`)
 * Överlapp mot husmodellen och mellan delarna: 0 mm3.
 * Stativ med servo, skiva och kåpa går fritt rakt ned när skärmklämma och kamerasläde är lossade. Förrådet går fritt
   rakt upp med allt annat på plats. Skivan och omröraren går fritt hela slaget.
-* Omröraren går fritt ur och i: 7 mm längs skivans axel och sedan rakt upp genom spåret (9,2 mm brett) i förrådets golv.
+* Omröraren går fritt ur och i: 10 mm längs skivans axel och sedan rakt upp genom spåret (9,2 mm brett) i förrådets golv.
   Rakt upp längs axeln eller rakt upp utan de första millimetrarna går inte.
 * Minsta avstånd: skärmklämma 3,0 mm (kåpan), kamerasläde 3,7 mm, kropp 4,0 mm, ellåda 4,4 mm, fönsterinsatser 10 mm,
   tak över 14 mm. Rännans hals har 0,8 mm mot sockelns kanal (styrpassning).

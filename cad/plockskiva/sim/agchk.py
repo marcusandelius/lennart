@@ -19,5 +19,5 @@ def path(label, steps):
     print("%s: %s (%d lägen)"%(label, "fritt hela vägen" if not bad else "KROCK %s … (%d)"%(bad[:5],len(bad)), n))
 path("rakt upp längs skivans axel 60 mm", [(K.EW,60,2.0)])
 path("lodrätt upp 120 mm", [((0,0,1),120,2.0)])
-path("7 mm längs axeln, sedan lodrätt upp 120 mm", [(K.EW,7,1.0),((0,0,1),120,2.0)])
+path("10 mm längs axeln, sedan lodrätt upp 120 mm", [(K.EW,10,1.0),((0,0,1),120,2.0)])
 path("nedtryckt 1 mm extra (bladet mot golvet)", [(-K.EW,1.0,0.5)])
