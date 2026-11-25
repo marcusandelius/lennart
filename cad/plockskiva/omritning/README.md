@@ -31,3 +31,11 @@ och matningen stannade med 1–31 nötter kvar (bild `valv_utan_omrorare.png`).
 8 av 8 körningar tömde förrådet. Kvar att trimma: 19 stopp på vägen upp och 26 dubbeldoser på 323 slag.
 
 Inget i den här mappen är ritat som utskriftsfiler ännu.
+
+## Utfall
+Omritningen är klar och ligger i mappen ovanför (fem delar). Varianten med raka skärmkontakter och ett urtag i
+förrådet bakom skärmen fungerade inte i simuleringen: förrådet blev för smalt och omröraren låste sig eller lämnade
+nötter kvar. Den ritade varianten kräver därför att skärmens kontakter ligger längs kortet (högst 27 mm in från väggen).
+Två fel i den första utskickade versionen hittades också under arbetet: stativets platta hade ett stort hål över
+hela rännan (flera nötter hade kunnat falla igenom per slag), och rännan under utfallet var för låg i den ritade
+delen jämfört med den simulerade.

@@ -2,7 +2,7 @@ import sys, json, time, numpy as np, mujoco
 from nutsim import nuts
 import plock as K
 
-def build(n, seed, mu=0.5, torque=1.0, dt=0.001, chute=True, geo=None):
+def build(n, seed, mu=0.5, torque=1.0, dt=0.001, chute=True, geo=None, agit=None):
     if geo: K.configure(**geo)
     rng = np.random.default_rng(seed); mm = 0.001; meshes = []; sg = []; dg = []
     def add(pts, name, lst, rgba="0.3 0.3 0.3 0.3"):
@@ -12,6 +12,11 @@ def build(n, seed, mu=0.5, torque=1.0, dt=0.001, chute=True, geo=None):
     for i, p in enumerate(st): add(p, "s%d" % i, sg)
     dc = K.disc_pieces()
     for i, p in enumerate(dc): add(p, "d%d" % i, dg, "0.8 0.66 0.4 1")      # lokala koordinater, kroppen bär lutningen
+    if agit:                                    # omrörare på skivans axel: pinne genom skärmen och en arm ovanför (lokala mått i mm)
+        a0_, a1_, w0_, w1_, th_, fi_ = agit       # armen går från a0 till a1 i riktningen fi (grader, skivans egen ram: 270 = uppför skivan i plockläget, 180 = bakåt)
+        dg.append('<geom type="cylinder" fromto="0 0 %.4f 0 0 %.4f" size="0.005" rgba="0.8 0.3 0.2 1" contype="0" conaffinity="1"/>' % ((K.GAP + K.TD) * mm, w0_ * mm))
+        cen, hl, f_ = (a0_ + a1_) / 2, (a1_ - a0_) / 2, np.radians(fi_)
+        dg.append('<geom type="box" pos="%.4f %.4f %.4f" euler="0 0 %.5f" size="%.4f %.4f %.4f" rgba="0.8 0.3 0.2 1" contype="0" conaffinity="1"/>' % (cen * np.cos(f_) * mm, cen * np.sin(f_) * mm, (w0_ + w1_) / 2 * mm, f_, hl * mm, th_ * mm, (w1_ - w0_) / 2 * mm))
     R = K.T[:3, :3]; q = mujoco.mju_mat2Quat if False else None
     quat = np.zeros(4); mujoco.mju_mat2Quat(quat, R.flatten())
     nl = nuts(n, rng); nb = []; k = 0; z = K.ZT + 15.0
@@ -48,7 +53,7 @@ def run(n=40, seed=1, cycles=40, stop_after_empty=12, snap=None, tmove=0.9, wigg
             if record and ph and kk[0] % record == 0: frames.append((ph, float(d.qpos[jq]), np.hstack([np.array([d.xpos[b_] for b_ in bid]) * 1000, np.array([d.xquat[b_] for b_ in bid])])))
     sim(4.0, PICK)
     p = P(); inside = (p[:, 2] > 20) & (p[:, 0] > K.XL - 5) & (p[:, 1] > 15) & ~((p[:, 1] < 20) & (p[:, 2] < 40)); over = int((p[:, 2] > K.ZT - 2).sum())
-    out = lambda p: (p[:, 1] < 3.0) & (p[:, 2] < 45)             # ute genom öppningen i framväggen
+    out = lambda p: ((p[:, 1] < 3.0) & (p[:, 2] < 45)) | ((p[:, 2] < 0.0) & (p[:, 1] < K.CH_B[1] + 12.0) & (np.abs(p[:, 0] - K.CH_B[0]) < 30.0))   # ute genom rännans mynning
     below = lambda p: (p[:, 2] < 30) & ~out(p) & (np.hypot(p[:, 0] - K.CH_B[0], 0) > 30)     # hamnat fel (på golvet utanför rännan)
     gone = out(p); pre = int(gone.sum()); res = []; wz = np.radians(wiggle)
     if record: sim(0.6, PICK, ph=1)

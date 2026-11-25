@@ -5,20 +5,25 @@ Skivan lutar 45 grader med överkanten mot -x. Lokala axlar: u = +y, v = uppför
 import numpy as np
 c = s = np.sqrt(0.5)
 EU = np.array([0.0, 1.0, 0.0]); EV = np.array([-c, 0.0, s]); EW = np.array([s, 0.0, c])
-RD, TD, GAP = 46.6, 16.0, 0.6        # skivans radie, tjocklek, spalt mot plattan
-RP, RH = 32.0, 13.0                  # fickans mittradie och radie
-RC, WALL = 47.4, 2.4                 # kragens innerradie, väggtjocklek
+RP, RH = 28.0, 13.0                  # fickans mittradie och radie
+RD, TD, GAP = RP + 14.6, 16.0, 0.6   # skivans radie, tjocklek, spalt mot plattan
+RC, WALL = RD + 0.8, 2.4             # kragens innerradie, väggtjocklek
+WR = GAP + TD + 1.0                  # stativets kant runt skivan slutar 1 mm över skivans ovansida; där börjar förrådet
 WS, WT = 42.6, 45.0                  # skärmens under- och ovansida (26 mm över skivan)
-VS = -8.0                            # skärmens nederkant
+VS = -4.0                            # skärmens nederkant
 QX = np.radians(55.0)                # utfallets läge (0 = högst upp), fickan plockar vid 180
-RX = 14.0                            # utfallshålets radie
-SLAB_R, SLAB_T = 50.0, 8.4           # stativets lutande platta
-YF, YB = 29.9, 107.1                 # förrådets innermått i y
-CH_W, CH_W0, CH_H = 13.0, 17.0, 30.0  # rännans halva innerbredd nedtill och upptill, kanthöjd
+SKIN = 3.0                           # plattans tjocklek över rännan (resten av plattan är SLAB_T)
+RX = 13.6                            # utfallshålets radie
+SLAB_R, SLAB_T = RC + WALL, 8.4           # stativets lutande platta
+KK = 61.76                           # det sneda takets ovansida: z = y + KK (3 mm från skärmklämmans nedre bakkant)
+YF, YB = 31.9, 106.2                 # förrådets innermått i y
+CH_W, CH_W0, CH_H = 14.0, 15.0, 30.0  # rännans halva innerbredd nedtill och upptill, kanthöjd
 
-def configure(Cx=-1.5, Cy=64.0, Cz=57.0, dl=16.0, zt=144.0, xl=-30.0):
+def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=34.0, ymouth=6.5, qx=66.0, vs=-4.0):
     """dl = hur långt kragen fortsätter luta utåt ovanför skärmens plan innan väggen blir lodrät (ger bredare öppning)."""
     global C, T, DL, ZT, XL, UF, UB, PLANE, XARC0, EX, CH_A, CH_B, WTOP
+    global QX, VS
+    QX = np.radians(qx); VS = vs
     C = np.array([Cx, Cy, Cz]); DL = dl; ZT = zt; XL = xl; WTOP = WT + DL
     T = np.eye(4); T[:3, 0] = EU; T[:3, 1] = EV; T[:3, 2] = EW; T[:3, 3] = C
     UF, UB = YF - C[1], YB - C[1]
@@ -26,9 +31,9 @@ def configure(Cx=-1.5, Cy=64.0, Cz=57.0, dl=16.0, zt=144.0, xl=-30.0):
     XARC0 = C[0] + c * np.sqrt(RC ** 2 - UF ** 2) + s * WTOP
     EX = W([-RP * np.sin(QX), RP * np.cos(QX), -SLAB_T])[0]
     global CH_B, CH_T, CH_K, CH_POLY
-    CH_B = np.array([0.0, 3.4, 3.5]); CH_K = np.tan(np.radians(38.0))
+    CH_B = np.array([0.0, ymouth, 3.5]); CH_K = np.tan(np.radians(slope))
     t_ = CH_B[:2] - EX[:2]; CH_T = t_ / np.linalg.norm(t_)                                 # rännans riktning i planet
-    yb = EX[1] + 13.5; NECK = 12.0                                                         # rännans bakkant; halsen är rak fram till y = 12 (sockeln)
+    yb = EX[1] + 13.5; NECK = 19.0                                                         # rännans bakkant; halsen är rak fram till y = 12 (sockeln)
     global CH_NECK, CH_FUN
     CH_NECK = np.array([(CH_B[0] - CH_W, CH_B[1]), (CH_B[0] + CH_W, CH_B[1]), (CH_B[0] + CH_W, NECK), (CH_B[0] - CH_W, NECK)])
     CH_FUN = np.array([(CH_B[0] + CH_W, NECK), (EX[0] + CH_W0, yb), (EX[0] - CH_W0, yb), (EX[0] - CH_W0, EX[1] + 0.5), (CH_B[0] - CH_W, NECK)])   # moturs
@@ -62,13 +67,14 @@ def disc_pieces():                       # skivan i sitt eget läge q = 0 (ficka
 def static_pieces(chute=True):
     """Allt fast som nötterna kan röra vid, som konvexa punktmoln i husets ram."""
     L = []                                                     # lokala bitar
-    L += holed(SLAB_R, RP, RX, -3.0, 0.0, octa=True, q=QX)     # plattans ovansida med utfallshål
+    L += holed(SLAB_R, RP, RX, -SKIN, 0.0, octa=True, q=QX)    # plattans ovansida med utfallshål; över rännan är plattan bara SKIN tjock
     a = 0.0
     while a < 360:                                             # krage upp till skärmen
         L.append(np.array([((RC + d) * np.cos(np.radians(x)), (RC + d) * np.sin(np.radians(x)), w) for x in (a, a + 10) for d in (0, WALL) for w in (0.0, WTOP if (np.sin(np.radians(a + 5)) * RC < VS) else WT)])); a += 10
     Cc = circle(RC + WALL, 144); yv = np.sqrt((RC + WALL) ** 2 - VS ** 2)
     L.append(prism(np.vstack([Cc[Cc[:, 1] >= VS], [(-yv, VS), (yv, VS)]]), WS, WT))                       # skärm över övre halvan
-    for sgn, ue in ((-1, UF), (1, UB)):                                                                  # lock över kanterna av nedre halvan
+    L.append(prism([(UB, -RC - WALL), (UB + WALL, -RC - WALL), (UB + WALL, RC + WALL), (UB, RC + WALL)], WR, WT))   # bakre väggen går ned till strax över skivan
+    for sgn, ue in ((-1, UF),):                                                                          # lock över främre kanten av nedre halvan
         sel = Cc[(sgn * Cc[:, 0] >= sgn * ue) & (Cc[:, 1] <= VS)]; ye = np.sqrt((RC + WALL) ** 2 - ue ** 2)
         L.append(prism(np.vstack([sel, [(ue, VS), (ue, -ye), (sgn * yv, VS)]]), WS, WT))
     vend = (C[0] + s * WS - (XL - WALL)) / c
@@ -88,6 +94,9 @@ def static_pieces(chute=True):
             for d in (0.0, WALL):
                 for z in (z0 - 3.0, ZT): pts.append((x + n[0] * d, y + n[1] * d, z))
         P.append(np.array(pts))
+    yq = YF - WALL                                                                                                 # snett tak över skivans främre kant, under skärmklämman och kontakterna
+    P.append(np.array([(x, y, y + KK - dz) for x in (-75.0, 80.0) for y in (10.0, yq) for dz in (1.7, 0.0)]))
+    P.append(np.array([(x, y, z) for x in (XL - WALL, 80.0) for y in (yq, YF) for z in (yq + KK - 1.7, ZT)]))         # framväggen går ned till det sneda taket
     if chute:
         import trimesh
         Q = [np.array([(x, y, chute_z((x, y)) + dz) for x, y in poly for dz in (-WALL, 0.0)]) for poly in (CH_NECK, CH_FUN)]             # golv i två konvexa delar
