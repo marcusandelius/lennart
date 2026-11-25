@@ -35,3 +35,4 @@ Topp 3 ska kunna visa underlag för tokens och AI-historik senast 15 december kl
 - daterad historik från claude.ai, alltså chatten och dess publicerade artefakter;
 - skärmdumpar av förbrukning där den visas;
 - HANDOFF-filerna i [docs/historik/](docs/historik/).
+| 2026-11-25 | Skärmfäste: fem alternativ med skisser, mått på skärmkortet ur Marcus foton, ny skärmficka med regel ritad i modellen (`model/skarmficka.py`) och kontrollerad mot husets delar ur förhandsgranskningen | ca 3–6 miljoner in, ca 0,06 miljoner ut [osäkert] | Uppskattat: ca 45 modellanrop × 60 000–130 000 tokens kontext. Ut uppskattat ur mängden skriven kod och text. Exakt siffra går inte att läsa av inifrån sessionen. | 0 | Ingen lokal modell användes |
