@@ -1,0 +1,8 @@
+{"n": 40, "seed": 1, "mu": 0.5, "cycles": 46, "stop_after_empty": 12, "tag": "D32", "dwell": 0.3}
+{"n": 40, "seed": 2, "mu": 0.5, "cycles": 46, "stop_after_empty": 12, "tag": "D32", "dwell": 0.3}
+{"n": 40, "seed": 3, "mu": 0.5, "cycles": 46, "stop_after_empty": 12, "tag": "D32", "dwell": 0.3}
+{"n": 40, "seed": 4, "mu": 0.5, "cycles": 46, "stop_after_empty": 12, "tag": "D32", "dwell": 0.3}
+{"n": 40, "seed": 1, "mu": 0.65, "cycles": 46, "stop_after_empty": 12, "tag": "D32", "dwell": 0.3}
+{"n": 40, "seed": 2, "mu": 0.65, "cycles": 46, "stop_after_empty": 12, "tag": "D32", "dwell": 0.3}
+{"n": 40, "seed": 1, "mu": 0.35, "cycles": 46, "stop_after_empty": 12, "tag": "D32", "dwell": 0.3}
+{"n": 40, "seed": 5, "mu": 0.5, "cycles": 46, "stop_after_empty": 12, "tag": "D32", "dwell": 0.3}
