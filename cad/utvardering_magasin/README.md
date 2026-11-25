@@ -36,3 +36,11 @@ håller högen nere. Servo 1,0 Nm, 180 graders slag, 40 nötter per körning.
 (5 av 40 nötter per körning hamnade utanför behållaren vid påfyllningen i simuleringen och räknas inte.)
 
 Rörmagasinet förlängt till z = 188 rymmer 7 nötter (`L`, `ztube=188`).
+
+## Passformstest av plockskivan i huset (passform.py)
+
+Enkla volymer för skål/krage, skiva, servo (MG996R), ränna och förråd lades in i husmodellen med skivans mitt i
+(x 0, y 78, z 58), 45 graders lutning och utfallet 50 grader åt sidan. Ingen volym skär någon annan del än de tre som
+ersätts (10_doserhus, 11_doserhjul, 14_notmagasin). Minsta avstånd: skärmfäste 6 mm, kamerafäste 1 mm, ellåda 2 mm, tak 7 mm.
+Rännan mynnar i samma öppning i framväggen (x ±14, z 3,5–30). Förrådets volym ovanför kragen är ca 0,76 liter.
+Inte kontrollerat: kablar, det utskrivna husets verkliga mått, och rännans sväng runt servot.
