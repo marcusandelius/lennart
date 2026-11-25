@@ -59,6 +59,22 @@
   .live button { font:inherit; font-weight:700; padding:.55rem 1.1rem; border:0; border-radius:10px; background:var(--ink); color:var(--paper); cursor:pointer; }
   .live button:disabled { opacity:.45; cursor:default; }
   .live .note { color:var(--ink-2); font-size:.92rem; margin:0; }
+  /* Testknappar för servona och skärmen. Syns bara för den som är inloggad som admin. */
+  .test { margin-top:1.25rem; }
+  .test h2 { font-size:1.3rem; font-weight:800; margin:0 0 .25rem; }
+  .test > p { color:var(--ink-2); font-size:.95rem; margin:0 0 1rem; }
+  .test-grid { display:grid; gap:.7rem; grid-template-columns:1fr; }
+  @media (min-width:34rem) { .test-grid { grid-template-columns:1fr 1fr; } }
+  .test button {
+    font:inherit; text-align:left; cursor:pointer; color:inherit;
+    background:var(--paper); border:2px solid var(--line); border-radius:12px; padding:.75rem .9rem;
+  }
+  .test button:hover:not(:disabled) { border-color:var(--ink); }
+  .test button:disabled { opacity:.5; cursor:default; }
+  .test button b { display:block; font-size:1.05rem; }
+  .test button span { display:block; color:var(--ink-2); font-size:.9rem; }
+  .test button.granted b { color:var(--granted); } .test button.denied b { color:var(--denied); }
+  .test .result { min-height:1.4em; margin:.85rem 0 0; font-size:.95rem; }
 </style>
 </head>
 <body>
@@ -103,6 +119,18 @@
         <dt>Version på stationen</dt><dd id="version">–</dd>
         <dt id="msg-label" hidden>Meddelande</dt><dd id="msg" hidden></dd>
       </dl>
+    </section>
+
+    <section class="card test" id="test" aria-labelledby="testRubrik" hidden>
+      <h2 id="testRubrik">Testa stationen</h2>
+      <p>Syns bara för dig som är inloggad. Kommandot skickas till Pi:n och utförs inom några sekunder.</p>
+      <div class="test-grid">
+        <button type="button" data-cmd='{"action":"spin","servo":"doser"}'><b>Stora servot</b><span>360°-servot snurrar i 3 sekunder</span></button>
+        <button type="button" data-cmd='{"action":"sweep","servo":"lucka"}'><b>Lilla servot</b><span>MG90S sveper fram och tillbaka i 3 sekunder</span></button>
+        <button type="button" class="granted" data-cmd='{"action":"display_flash","screen":"granted"}'><b>ACCESS GRANTED</b><span>Visas på skärmen i 4 sekunder</span></button>
+        <button type="button" class="denied" data-cmd='{"action":"display_flash","screen":"denied"}'><b>ACCESS DENIED</b><span>Visas på skärmen i 4 sekunder</span></button>
+      </div>
+      <p class="result" id="testresult" aria-live="polite"></p>
     </section>
   </main>
 
@@ -234,6 +262,36 @@
   });
   refreshLive();
   setInterval(refreshLive, 10000);
+
+  // Testknapparna visas bara om webbläsaren är inloggad som admin. Servern kontrollerar
+  // inloggningen igen för varje kommando, så det räcker inte att visa panelen för att få styra.
+  async function setupTest() {
+    try {
+      const me = await (await fetch("/api/admin/session", { cache: "no-store" })).json();
+      if (!me.admin) return;
+    } catch (e) { return; }
+    $("test").hidden = false;
+    const buttons = document.querySelectorAll("#test button");
+    buttons.forEach(b => b.addEventListener("click", async () => {
+      const name = b.querySelector("b").textContent;
+      buttons.forEach(x => x.disabled = true);
+      $("testresult").textContent = `Skickar: ${name} …`;
+      try {
+        const r = await fetch("/api/admin/servo", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: b.dataset.cmd,
+        });
+        const reply = await r.json();
+        $("testresult").textContent = !r.ok ? `Gick inte: ${reply.fel || r.status}`
+          : reply.varning ? `Skickat, men: ${reply.varning}` : `Skickat: ${name}.`;
+        if (r.status === 401) $("test").hidden = true;  // utloggad sedan sidan laddades
+      } catch (e) {
+        $("testresult").textContent = "Kunde inte nå servern.";
+      }
+      // Vänta tills rörelsen är klar, så att kommandon inte hamnar i kö.
+      setTimeout(() => buttons.forEach(x => x.disabled = false), 3500);
+    }));
+  }
+  setupTest();
 </script>
 </body>
 </html>
