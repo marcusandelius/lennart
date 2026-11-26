@@ -17,5 +17,6 @@ for i in range(len(ks)):
     for j in range(i+1,len(ks)):
         v=vol(G[ks[i]],G[ks[j]])
         if v>0.5: print('  ',ks[i],ks[j],round(v,1))
-print('== avstånd till kåpans insida framtill (y 113,0)')
-for g,gm in G.items(): print('   %-20s främst y %.1f  (%.1f mm kvar)'%(g, gm.bounds[0][1], gm.bounds[0][1]-113.0))
+print('== komponenternas främsta punkt (kåpans insida y 113,0, utsida 111,0)')
+for g,gm in G.items():
+    if gm.bounds[0][1] < 113.0: print('   %-24s främst y %.1f'%(g, gm.bounds[0][1]))

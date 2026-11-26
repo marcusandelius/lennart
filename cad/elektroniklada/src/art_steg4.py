@@ -18,9 +18,9 @@ L = s.split('\n')
 pi = [n for n, l in enumerate(L) if 'const PARTS' in l[:40]][0]; line = L[pi]; i = line.index('['); P, end = json.JSONDecoder().raw_decode(line[i:])
 dec = lambda q: trimesh.Trimesh(np.frombuffer(base64.b64decode(q['pos']), '<f4').reshape(-1, 3), np.frombuffer(base64.b64decode(q['idx']), '<u4').reshape(-1, 3))
 oldvol = {q['name']: abs(dec(q).volume) for q in P if q['name'] in ('elektroniklada', 'ellock', 'monteringsplatta')}
-NEW = {'elektroniklada': ('elbakstycke', '16_elbakstycke.stl', 'Svart PETG. Skruvas fast utifrån genom bakväggen med fyra M3 × 10 och muttrar i fickorna. Golv med tre stora kabelöppningar, skenor för komponentplattan och ett torn med en M3-gänga för kåpans skruv'),
-       'ellock': ('elkapa', '16b_elkapa.stl', 'Svart PETG. Framsida, sidor och tak i ett stycke. Lyfts rakt upp när taket är av, hålls av en M3 uppifrån i tornet'),
-       'monteringsplatta': ('komponentplatta', '24_komponentplatta.stl', 'Svart PETG. Glider i skenorna och lyfts rakt upp. Gängor för Pi 5 (4 × M2,5), PCA9685 och EKM006 (8 × M2), vaggor och buntbandshål för servoomvandlaren och DC-jacket (båda omvandlarna kopplas direkt i DC-jackets plint), hylla för två keystone-uttag'),
+NEW = {'elektroniklada': ('elbakstycke', '16_elbakstycke.stl', 'Svart PETG. Skruvas fast utifrån genom bakväggen med fyra M3 × 10 och muttrar i fickorna. Golv med fyra stora kabelöppningar, skenor för komponentplattan och ett torn uppe till höger med en M2,5-gänga för kåpans skruv'),
+       'ellock': ('elkapa', '16b_elkapa.stl', 'Svart PETG. Framsida, sidor och tak i ett stycke. Lyfts rakt upp när taket är av, hålls av en M2,5 uppifrån i tornet. Tre fönster, öppna nedåt, för GPIO-kontakterna, servokontakterna och PCA9685:s kontrollkontakt, så att kåpan går att lyfta med allt inkopplat'),
+       'monteringsplatta': ('komponentplatta', '24_komponentplatta.stl', 'Svart PETG. Glider i skenorna och lyfts rakt upp. Gängor för Pi 5 (4 × M2,5), PCA9685 och EKM006 (8 × M2) på 3 mm distanser, vagga och buntbandshål för servoomvandlaren. Keystone-uttaget och DC-jacket ligger löst under lådan'),
        'elpackning': ('elpackning', '17_elpackning_tpu.stl', 'TPU 95A, 1,2 mm. Ligger mellan bakstycket och bakväggen')}
 out = []
 for q in P:
@@ -54,14 +54,14 @@ rep('elektroniklådan med lock och monteringsplatta.</li>', 'elektroniklådan (b
 rep('<li>Skruva fast elektroniklådan utifrån genom bakväggen, med gummibricka under skruvskallarna. Lådan sitter sedan kvar. Spraytesta den med vatten först.</li>',
     '<li>Lägg M3-muttrar i de fyra fickorna på bakstyckets insida och skruva fast bakstycket utifrån genom bakväggen med fyra M3 × 10, med TPU-packningen emellan och gummibricka under skruvskallarna. Bakstycket sitter sedan kvar.</li>')
 rep('<li>Bygg elektroniken på monteringsplattan vid skrivbordet och skjut ner plattan i lådan uppifrån. Stäng av PIN-koden på SIM-kortet och tejpa modemet på lådans lock.</li>',
-    '<li>Smält in gängorna: 4 × M2,5 (Pi 5) och 8 × M2 (PCA9685, EKM006) i komponentplattan, 1 × M3 i tornet uppe till vänster på bakstycket. Bygg elektroniken på plattan vid skrivbordet och skjut ner den i skenorna uppifrån. Koppla in servona, nätverkskabeln, kamerans flatkabel och 12 V underifrån genom golvet. Lägg på kåpan och skruva en M3 uppifrån i tornet. Routern ligger i huset bredvid doseringen.</li>')
+    '<li>Smält in gängorna: 4 × M2,5 (Pi 5) och 8 × M2 (PCA9685, EKM006) i komponentplattan, 1 × M2,5 i tornet uppe till höger på bakstycket. Bygg elektroniken på plattan vid skrivbordet och skjut ner den i skenorna uppifrån. Nätverkskabeln, kamerans flatkabel, 12 V och GPIO-kabeln till keystone-uttaget går genom golvet; keystone-uttaget och DC-jacket ligger löst under lådan. Servona kopplas i PCA9685 genom fönstret nere till vänster. Lägg på kåpan och skruva en M2,5 uppifrån i tornet. Routern står på kant till vänster om doseringen.</li>')
 rep('<li><strong>Elektroniken:</strong> lyft av taket och lådans lock, och dra monteringsplattan rakt upp. Inga skruvar.</li>',
     '<li><strong>Elektroniken:</strong> lyft av taket, skruva ur kåpans skruv och lyft kåpan rakt upp. Då når du alla kontakter med plattan kvar. Ska plattan ut: dra ur kontakterna och lyft den rakt upp ur skenorna.</li>')
 rep('{title:"Elektroniken", text:"Skruva fast elektroniklådan utifrån genom bakväggen. Skjut ner monteringsplattan med all elektronik uppifrån och lägg på locket.", parts:["elpackning","elektroniklada","monteringsplatta","ellock","genomforingar"]}',
-    '{title:"Elektroniken", text:"Skruva fast bakstycket utifrån genom bakväggen med packningen emellan. Skjut ner komponentplattan med elektroniken i skenorna, koppla in kablarna genom golvet och lägg på kåpan med en skruv uppifrån.", parts:["elpackning","elektroniklada","monteringsplatta","ellock"]}')
+    '{title:"Elektroniken", text:"Skruva fast bakstycket utifrån genom bakväggen med packningen emellan. Skjut ner komponentplattan med elektroniken i skenorna, koppla in kablarna genom golvet och fönstren och lägg på kåpan med en skruv uppifrån.", parts:["elpackning","elektroniklada","monteringsplatta","ellock"]}')
 
 rep('<td>Från Pi:ns USB-port upp till modemet på elektroniklådans lock.</td>', '<td>Behövs bara om ett USB-modem används i stället för routern.</td>')
-rep('<td>Fäster omvandlare och kablar i monteringsplattans hålraster.</td>', '<td>Fäster servoomvandlaren, DC-jacket och kablarna i komponentplattans buntbandshål.</td>')
+rep('<td>Fäster omvandlare och kablar i monteringsplattans hålraster.</td>', '<td>Fäster servoomvandlaren och kablarna i komponentplattans buntbandshål.</td>')
 # ---- utskriftsplattorna
 L = s.split('\n'); pli = [n for n, l in enumerate(L) if 'id="platedata"' in l][0]
 pd = re.sub(r'^<script[^>]*>', '', L[pli]); pd = re.sub(r'</script>.*$', '', pd); PL = json.loads(pd)

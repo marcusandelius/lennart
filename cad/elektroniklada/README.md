@@ -1,60 +1,58 @@
 # Nya elektroniklådan (ersätter 16, 16b, 17, 24 och 25)
 
-Lådan består av tre delar i svart PETG och en packning i TPU. Allt skruvas i gängor (insatser), inte direkt i plasten.
+Tre delar i svart PETG och en packning i TPU. Allt skruvas i gängor (insatser), inte direkt i plasten.
 
 | Fil | Del | Utskrift |
 |---|---|---|
-| `16_elbakstycke.stl` | Bakstycke med golv, två skenor och ett torn för kåpans skruv. Skruvas fast i bakväggen och sitter kvar | Står på golvet som i huset. Inga stöd |
-| `16b_elkapa.stl` | Kåpa: framsida, sidor och tak i ett stycke, öppen bak och nedåt | Ligger på framsidan, öppningen uppåt. Inga stöd |
+| `16_elbakstycke.stl` | Bakstycke med golv, fyra kabelöppningar, två skenor och ett torn uppe till höger för kåpans skruv. Skruvas fast i bakväggen och sitter kvar | Står på golvet som i huset. Inga stöd |
+| `16b_elkapa.stl` | Kåpa: framsida, sidor och tak, öppen bak och nedåt, med tre fönster | Ligger på framsidan, öppningen uppåt. Inga stöd |
 | `24_komponentplatta.stl` | Komponentplatta som glider i skenorna | Ligger på baksidan, distanserna uppåt. Inga stöd |
 | `17_elpackning_tpu.stl` | Packning 1,2 mm mellan bakstycket och bakväggen | TPU, ligger platt |
-| `asm/` | Delarna i husets koordinater (för kontroll och förhandsgranskning) | – |
-| `komponenter/` | Komponenterna som enkla lådor (bara för kontroll av plats) | – |
-| `src/` | Skripten. `el_lada.py ut` skapar allt; kontrollerna läser husmodellen (`A_parts.pkl`) och doseringen ur arbetsmappen | – |
+| `asm/`, `komponenter/` | Delarna och komponenterna (med kontakter och böjda kablar) i husets koordinater | – |
+| `src/` | Skripten. `el_lada.py ut` skapar allt; kontrollerna läser husmodellen och doseringen ur arbetsmappen | – |
 
-Utskriftskontroll lager för lager (`src/printchk.py`): inga svävande öar. Ostödda ytor finns bara som korta broar
-över ventilationsspringorna, keystone-hålen och tornets undersida (45°).
+## Djupet och fönstren
+Från plattan till kåpans insida är det 24,6 mm, och mer går inte att få: förrådet och stativet står 2,4 mm framför
+kåpan och bakväggen bakom. Kontakt plus böjd kabel behöver 24,6 mm från kortets ovansida (uppmätt), alltså cirka
+5 mm mer än det finns. Därför har kåpan tre fönster där kontakterna sticker ut i fri yta. Alla är öppna nedåt, så att
+kåpan går att lyfta med allt inkopplat:
+* Höger kant, framför Pi:ns GPIO-kontakter. Förrådet rundar av där, så det finns 7–20 mm fritt framför kåpan.
+* Nere till vänster, framför PCA9685:s kanal 0–3 (30 mm fritt framför stativet). Servokablarna går ut här.
+* Vänster sida, för PCA9685:s vinklade kontrollkontakt (cirka 6 mm till husets vägg).
 
-## Mått och läge
-* Lådan är 140 mm bred och går från 28 mm över golvet upp till 170 mm. Under lådan finns cirka 25 mm för kablarnas böjar.
-* Bakstycket: 4 mm bakvägg som täcker samma fyra skruvhål (±60, 80 och 164) och de gamla Ø16-hålen.
-* Golvet har tre öppningar: vänster 54 mm (servona, PCA9685 sitter rakt ovanför), mitten 20 mm (nätverk, kamerans
-  flatkabel och 12 V) och höger 36 mm (keystone-uttagen). Varje öppning är ungefär 20 mm djup.
-* Komponentplattan, sett framifrån:
-  * Längst ned till vänster: PCA9685, servokontakterna nedåt mot golvöppningen.
-  * Ovanför: EKM006 (5 V till Pi:n) och servoomvandlaren i en vagga med buntband.
-  * Ovanför den: DC-jacket i en egen vagga med buntband. Båda omvandlarna kopplas direkt i jackets skruvplint, två ledare per skruv (beslutsloggen 2026-11-25). Inga Wago-klämmor.
-  * Högst upp till vänster: fri yta med buntbandshål för fler kablar.
-  * Höger: Raspberry Pi 5, stående, med USB och nätverk nedåt mot mittöppningen.
-  * Nere till höger: hylla för två keystone-uttag. Kablarna kommer in underifrån.
-* Avstånd till kåpans insida framtill: Pi 2,0 mm, servoomvandlaren 1,6 mm, PCA9685 2,6 mm, keystone 3,2 mm.
+En utbuktning i stället för fönster går inte att skriva ut med kåpan liggande på framsidan.
 
-## Kontroller (`src/elchk.py`, `src/ghostchk.py`, `src/sweep.py`)
-* Inga överlapp med huset, doseringen eller skärmfickan. Minsta avstånd:
-  * bakväggen 1,2 mm (packningen)
-  * förrådet och stativet 2,4 mm
-  * taket 5,4 mm
+## Layout (sett framifrån)
+* Raspberry Pi 5 till höger, stående: USB och nätverk nedåt, GPIO till höger, USB-C till vänster, minneskortet uppåt
+  (sticker ut fritt). Nätverkskabeln går rakt ned genom den tredje golvöppningen, och kamerans flatkabel bredvid.
+* PCA9685 liggande längst ned till vänster: kontrollkontakten till vänster, servokontakterna nedåt, plinten uppåt.
+* EKM006 stående i mitten: 12 V in nedtill, 5 V ut upptill (den klippta USB-C-kabeln till Pi:n).
+* Servoomvandlaren stående till vänster i en vagga med buntband.
+* Keystone-uttaget och DC-jacket ligger löst under lådan (27 mm höjd). Kablarna går upp genom golvet.
+  Båda omvandlarna kopplas direkt i DC-jackets plint (beslutsloggen 2026-11-25).
+* Routern står på kant till vänster om doseringen. Lådan och fönstren går inte in i dess plats.
+* Golvöppningar från vänster: kontrollkablar och servoomvandlaren, 12 V till EKM006, nätverk och flatkabel, GPIO-kabeln
+  till keystone-uttaget och fler kablar.
+
+## Kontroller (`src/elchk.py`, `src/ghostchk.py`, `src/sweep2.py`)
+* Inga överlapp med huset, doseringen eller skärmfickan. Kontakterna når som närmast 3 mm från förrådet (GPIO).
 * Komponenterna krockar inte med varandra eller med lådan.
-* Kåpan går fritt rakt upp när taket är av.
-* Plattan går fritt rakt upp ur skenorna när kåpan är av. Tornet sitter på vänstra skenan, utanför plattans väg.
+* Kåpan går fritt rakt upp med allt inkopplat.
+* Plattan går fritt rakt upp med komponenterna och kontrollkablarna kvar, när servokontakterna, nätverket,
+  flatkabeln och 12 V är urdragna.
 
-## Gängor, skruvar och muttrar
+## Gängor och skruvar
 | Var | Antal | Vad |
 |---|---|---|
-| Komponentplattan, Pi 5 | 4 | M2,5-insats (hål Ø3,6 × 5) + M2,5 × 6 |
-| Komponentplattan, PCA9685 och EKM006 | 8 | M2-insats (hål Ø3,2 × 4,5) + M2 × 5 |
-| Tornet uppe till vänster | 1 | M3-insats (hål Ø4,0 × 6) + M3 × 8 genom kåpans tak |
-| Bakväggen | 4 | M3 × 10 utifrån, med gummibricka, och M3-mutter i fickan på bakstyckets insida |
+| Pi 5 | 4 | M2,5-insats (hål Ø3,6 × 5) + M2,5 × 6 |
+| PCA9685 och EKM006 | 8 | M2-insats (hål Ø3,2 × 4,5) + M2 × 5 |
+| Tornet uppe till höger | 1 | M2,5-insats + M2,5 × 8 genom kåpans tak |
+| Bakväggen | 4 | M3 × 10 utifrån med gummibricka, M3-mutter i fickan på bakstyckets insida |
 
-Hålmåtten för insatserna är tagna från Ruthex tabell [verifiera mot förpackningen]. Använd inte längre skruv än
-M3 × 10 i bakväggen: spetsen ska inte nå komponentplattan, som sitter 1 mm framför bakstycket.
-
-## Mät innan utskrift
-* Servoomvandlaren: vaggan är 49 × 32 mm. Hålen i öronen är inte kända, så den hålls med buntband.
-* DC-jacket (Electrokit 41004709, 2,1 × 5,5 mm med skruvplint): vaggan är 25 × 14 mm inuti och jacket fästs med buntband [mät jacket].
-* Pi 5 med Active Cooler: räknat med 4 mm distans + 1,6 mm kort + 13,7 mm kylare.
+PCA9685 är en kopia. Uppmätt cirka 56,5 × 19,5 mm mellan hålens mitt och cirka Ø3 hål. Plattan följer Adafruits mått
+(55,9 × 19,05), och en M2 i ett Ø3-hål tar upp skillnaden. Hålen för insatserna följer Ruthex tabell [verifiera].
 
 ## Isärtagning
 1. Lyft av taket.
-2. Skruva ur kåpans skruv och lyft kåpan rakt upp. Nu når du alla kontakter med plattan på plats.
-3. Dra ur kontakterna och lyft plattan rakt upp ur skenorna.
+2. Skruva ur kåpans skruv och lyft kåpan rakt upp. Allt kan sitta inkopplat.
+3. Dra ur servona, nätverkskabeln, flatkabeln, 12 V och GPIO-kabeln till keystone-uttaget, och lyft plattan ur skenorna.
