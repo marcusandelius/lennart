@@ -175,9 +175,9 @@ EKM = dict(name='ekm006', pos=(-59.0, 61.0), size=(60.0, 20.0), standoff=4.0, in
            holes=[(3.0, 3.0), (57.0, 3.0), (3.0, 17.0), (57.0, 17.0)])            # 5 V till Pi:n, utgången till höger
 COMPONENTS = [PI, PCA, EKM]
 SERVO_PSU = dict(x0=-59.0, x1=-10.0, z0=84.0, z1=116.0)    # vagga för servoomvandlaren (ca 38 × 27 × 23, med öron 52) och buntband
-WAGO = dict(x0=-59.0, x1=-19.0, z0=119.0, z1=146.0)        # plats för DC-jacket och två Wago 221, med buntband
+DCJ = dict(x0=-52.0, x1=-23.0, z0=123.0, z1=141.0)         # vagga för DC-jacket med skruvplint (båda omvandlarna kopplas direkt i plinten), buntband ovanför och nedanför
 KEY = dict(xs=(33.0, 51.5), z=36.0, w=14.8, d=19.3, t=1.6) # keystone-uttag, uttaget nedåt (kabeln in underifrån genom golvet)
-TIE_SLOTS = [(11.0, 64.0), (11.0, 95.0), (11.0, 125.0), (-36.5, 88.0), (-36.5, 112.0), (-49.0, 132.0), (-30.0, 132.0), (-34.0, 156.0)]
+TIE_SLOTS = [(11.0, 64.0), (11.0, 95.0), (11.0, 125.0), (-36.5, 88.0), (-36.5, 112.0), (-37.5, 120.0), (-37.5, 143.5), (-34.0, 156.0), (-50.0, 156.0)]
 WINDOWS = [sbox(14.0, 92.0, 52.0, 158.0).buffer(-3).buffer(3, 12)]   # bakom Pi:n: luft och mindre plast
 
 def keystone_shelf():
@@ -211,7 +211,7 @@ def platta():
         for dx, dz in c['holes']:
             s, h = standoff(x0 + dx, z0 + dz, c['standoff'], c['ins']); adds.append(s); cuts.append(h)
     a, cu = keystone_shelf(); adds += a; cuts += cu
-    adds.append(cradle(SERVO_PSU)); adds.append(cradle(WAGO, 3.0))
+    adds.append(cradle(SERVO_PSU)); adds.append(cradle(DCJ, 3.0))
     for x, z in TIE_SLOTS:
         for dx in (-3.5, 3.5):
             cuts.append(box(x + dx - 1.0, x + dx + 1.0, YP0 - 6, YP1 + 1, z - 2.5, z + 2.5))
@@ -238,8 +238,7 @@ def ghosts():
     g['ekm006'] = box(x0, x0 + w, YP0 - 4 - 1.6 - 10.0, YP0 - 4.0, z0, z0 + h)
     r = SERVO_PSU; zc = (r['z0'] + r['z1']) / 2; g['servoomvandlare'] = U([box(r['x0'] + 7.5, r['x1'] - 7.5, YP0 - 23.0, YP0, zc - 13.5, zc + 13.5),
                                            box(r['x0'] + 2.5, r['x1'] - 2.5, YP0 - 2.5, YP0, zc - 6.0, zc + 6.0)])
-    r = WAGO; g['wago'] = U([box(r['x0'] + 3, r['x0'] + 21.5, YP0 - 13.5, YP0, r['z0'] + 3, r['z0'] + 23.5), box(r['x0'] + 23, r['x0'] + 41.5 - 4, YP0 - 13.5, YP0, r['z0'] + 3, r['z0'] + 23.5)])
-    g['dcjack'] = box(-45.0, -22.0, YP0 - 13.0, YP0, 149.0, 162.0)                   # DC-jack med skruvplint (ungefär)
+    g['dcjack'] = box(-49.0, -26.0, YP0 - 13.0, YP0, 125.5, 138.5)                   # DC-jack med skruvplint (ungefär 23 × 13 × 13)
     for i, xc in enumerate(KEY['xs']):
         yc = YP0 - 11.75
         g['keystone%d' % (i + 1)] = U([box(xc - 8.4, xc + 8.4, yc - 9.6, yc + 9.6, KEY['z'] + 2.4, KEY['z'] + 30.0), box(xc - 7.2, xc + 7.2, yc - 8.0, yc + 8.0, KEY['z'] - 2.0, KEY['z'] + 2.4)])

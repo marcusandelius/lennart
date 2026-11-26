@@ -9,7 +9,7 @@ L=lambda n: trimesh.load('ut/asm/%s.stl'%n)
 for n in ('elbakstycke','elkapa','komponentplatta','elpackning'): put(n,L(n))
 sp={f[:-4]:trimesh.load('ut/spoken/'+f) for f in os.listdir('ut/spoken')}
 groups={'k_pi':['pi5'],'k_pi_kontakt':['pi5_natverkskontakt','pi5_usbc'],'k_pca':['pca9685'],'k_kond':['kondensator'],'k_ekm':['ekm006'],
-        'k_psu':['servoomvandlare'],'k_wago':['wago','dcjack'],'k_key':['keystone1','keystone2'],'k_rj':['rj45_1','rj45_2']}
+        'k_psu':['servoomvandlare'],'k_wago':['dcjack'],'k_key':['keystone1','keystone2'],'k_rj':['rj45_1','rj45_2']}
 for g,ns in groups.items():
     m=trimesh.util.concatenate([sp[n] for n in ns])
     put(g,m); put(g+'_upp',m,(0,0,120))

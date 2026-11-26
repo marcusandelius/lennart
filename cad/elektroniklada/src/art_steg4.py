@@ -20,7 +20,7 @@ dec = lambda q: trimesh.Trimesh(np.frombuffer(base64.b64decode(q['pos']), '<f4')
 oldvol = {q['name']: abs(dec(q).volume) for q in P if q['name'] in ('elektroniklada', 'ellock', 'monteringsplatta')}
 NEW = {'elektroniklada': ('elbakstycke', '16_elbakstycke.stl', 'Svart PETG. Skruvas fast utifrån genom bakväggen med fyra M3 × 10 och muttrar i fickorna. Golv med tre stora kabelöppningar, skenor för komponentplattan och ett torn med en M3-gänga för kåpans skruv'),
        'ellock': ('elkapa', '16b_elkapa.stl', 'Svart PETG. Framsida, sidor och tak i ett stycke. Lyfts rakt upp när taket är av, hålls av en M3 uppifrån i tornet'),
-       'monteringsplatta': ('komponentplatta', '24_komponentplatta.stl', 'Svart PETG. Glider i skenorna och lyfts rakt upp. Gängor för Pi 5 (4 × M2,5), PCA9685 och EKM006 (8 × M2), vaggor och buntbandshål för servoomvandlaren, DC-jacket och Wago, hylla för två keystone-uttag'),
+       'monteringsplatta': ('komponentplatta', '24_komponentplatta.stl', 'Svart PETG. Glider i skenorna och lyfts rakt upp. Gängor för Pi 5 (4 × M2,5), PCA9685 och EKM006 (8 × M2), vaggor och buntbandshål för servoomvandlaren och DC-jacket (båda omvandlarna kopplas direkt i DC-jackets plint), hylla för två keystone-uttag'),
        'elpackning': ('elpackning', '17_elpackning_tpu.stl', 'TPU 95A, 1,2 mm. Ligger mellan bakstycket och bakväggen')}
 out = []
 for q in P:
@@ -61,7 +61,7 @@ rep('{title:"Elektroniken", text:"Skruva fast elektroniklådan utifrån genom ba
     '{title:"Elektroniken", text:"Skruva fast bakstycket utifrån genom bakväggen med packningen emellan. Skjut ner komponentplattan med elektroniken i skenorna, koppla in kablarna genom golvet och lägg på kåpan med en skruv uppifrån.", parts:["elpackning","elektroniklada","monteringsplatta","ellock"]}')
 
 rep('<td>Från Pi:ns USB-port upp till modemet på elektroniklådans lock.</td>', '<td>Behövs bara om ett USB-modem används i stället för routern.</td>')
-rep('<td>Fäster omvandlare och kablar i monteringsplattans hålraster.</td>', '<td>Fäster servoomvandlaren, Wago-klämmorna och kablarna i komponentplattans buntbandshål.</td>')
+rep('<td>Fäster omvandlare och kablar i monteringsplattans hålraster.</td>', '<td>Fäster servoomvandlaren, DC-jacket och kablarna i komponentplattans buntbandshål.</td>')
 # ---- utskriftsplattorna
 L = s.split('\n'); pli = [n for n, l in enumerate(L) if 'id="platedata"' in l][0]
 pd = re.sub(r'^<script[^>]*>', '', L[pli]); pd = re.sub(r'</script>.*$', '', pd); PL = json.loads(pd)

@@ -22,8 +22,9 @@ Utskriftskontroll lager för lager (`src/printchk.py`): inga svävande öar. Ost
   flatkabel och 12 V) och höger 36 mm (keystone-uttagen). Varje öppning är ungefär 20 mm djup.
 * Komponentplattan, sett framifrån:
   * Längst ned till vänster: PCA9685, servokontakterna nedåt mot golvöppningen.
-  * Ovanför: EKM006 (5 V till Pi:n), servoomvandlaren i en vagga med buntband, och två Wago 221.
-  * Högst upp till vänster: DC-jacket.
+  * Ovanför: EKM006 (5 V till Pi:n) och servoomvandlaren i en vagga med buntband.
+  * Ovanför den: DC-jacket i en egen vagga med buntband. Båda omvandlarna kopplas direkt i jackets skruvplint, två ledare per skruv (beslutsloggen 2026-11-25). Inga Wago-klämmor.
+  * Högst upp till vänster: fri yta med buntbandshål för fler kablar.
   * Höger: Raspberry Pi 5, stående, med USB och nätverk nedåt mot mittöppningen.
   * Nere till höger: hylla för två keystone-uttag. Kablarna kommer in underifrån.
 * Avstånd till kåpans insida framtill: Pi 2,0 mm, servoomvandlaren 1,6 mm, PCA9685 2,6 mm, keystone 3,2 mm.
@@ -50,7 +51,7 @@ M3 × 10 i bakväggen: spetsen ska inte nå komponentplattan, som sitter 1 mm fr
 
 ## Mät innan utskrift
 * Servoomvandlaren: vaggan är 49 × 32 mm. Hålen i öronen är inte kända, så den hålls med buntband.
-* DC-jacket: platsen är ungefär 23 × 13 mm, och det fästs med buntband.
+* DC-jacket (Electrokit 41004709, 2,1 × 5,5 mm med skruvplint): vaggan är 25 × 14 mm inuti och jacket fästs med buntband [mät jacket].
 * Pi 5 med Active Cooler: räknat med 4 mm distans + 1,6 mm kort + 13,7 mm kylare.
 
 ## Isärtagning
