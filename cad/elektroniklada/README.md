@@ -75,8 +75,8 @@ flyttat från vänster till nere till höger). Bakstycket och packningen är of�
 ## Så hålls kåpan
 * Nedtill: två hakar i de främre hörnen går över bakstyckets golvkant och ned bakom den
   (`../forhandsgranskning/115_ellada_hake.png`). Kåpans nederkant kan då inte tryckas ut av sladdarna: den rör sig
-  högst 1,1 mm framåt (2,4 mm finns till doseringen), 0,4 mm åt sidorna och 0,3 mm bakåt. Hakarna går rakt ned bakom
-  kanten, så kåpan lyfts fortfarande rakt upp.
+  högst 0,6 mm framåt (2,4 mm finns till doseringen), 0,4 mm åt sidorna och 0,3 mm bakåt. Hakens yta mot kanten är
+  lodrät, så den kan inte glida över kanten. Hakarna går rakt ned bakom kanten, så kåpan lyfts fortfarande rakt upp.
 * Baktill ligger kåpans kanter an mot bakstyckets bakvägg.
 * Upptill: en M2,5 × 6 genom taket i tornets gänginsats (uppe till höger baktill).
 * Husets tak ligger 5–10 mm ovanför, så kåpan kan inte lyftas av när huset är ihopsatt.

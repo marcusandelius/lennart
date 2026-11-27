@@ -162,7 +162,7 @@ def kapa():
     for sd in (-1, 1):
         xo, xi = sd * (XO - TC + 0.01), sd * (xl_in - 0.3 - 2.3)            # från sidoväggen in till benets insida
         body = box(min(xo, xi), max(xo, xi), Y_FRONT + TC - 0.01, yl_in + 4.0, zl + 0.6, zl + 3.6)          # över kanten
-        leg = ext_yz(Polygon([(yl_in + 0.3, zl + 0.6), (yl_in + 4.0, zl + 0.6), (yl_in + 4.0, ZF + 0.2), (yl_in + 2.7, ZF + 0.2)]), min(sd * (xl_in - 0.3), xi), max(sd * (xl_in - 0.3), xi))   # ned bakom kanten, 45 grader fram (skrivs ut utan stöd)
+        leg = ext_yz(Polygon([(yl_in + 0.5, zl + 0.6), (yl_in + 4.0, zl + 0.6), (yl_in + 4.0, ZF + 0.2), (yl_in + 0.5, ZF + 0.2)]), min(sd * (xl_in - 0.3), xi), max(sd * (xl_in - 0.3), xi))   # ned bakom kanten, lodrät yta mot kanten (kan inte glida över); liten överhäng ca 2 x 2 mm i utskriften
         hooks += [body, leg]
     m = U([m, fin, dam, gus, rib] + hooks)
     return clean(D(m, cuts))
