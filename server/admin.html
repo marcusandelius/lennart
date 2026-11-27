@@ -34,6 +34,7 @@
   .angle { font-variant-numeric:tabular-nums; font-weight:700; min-width:3.5rem; display:inline-block; }
   .buttons { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.5rem; align-items:center; }
   details { margin-top:1rem; } summary { cursor:pointer; font-weight:600; }
+  form h4 { font-size:.98rem; margin:1.1rem 0 .5rem; }
   .modes { display:flex; flex-wrap:wrap; gap:.5rem; margin:.25rem 0 .5rem; }
   .mode { display:flex; align-items:center; gap:.45rem; padding:.55rem .9rem; border:1px solid var(--line); border-radius:10px; cursor:pointer; font-weight:700; }
   .mode input { accent-color:var(--ink); margin:0; }
@@ -165,14 +166,28 @@
 
       <div class="servo">
         <h3>Plockskivan (doseringen)</h3>
-        <label for="doser_angle">Vinkel: <span class="angle" id="doser_val">0°</span></label>
-        <input type="range" id="doser_angle" min="0" max="180" step="1" value="0">
-        <div class="buttons">
-          <button type="button" data-move="doser">Flytta</button>
-          <button type="button" class="secondary" data-release="doser">Släpp</button>
-          <button type="button" id="testdispense">Testa utmatning</button>
+        <div id="doser360" hidden>
+          <p class="hint">360°-servo: det har ingen vinkel, och skivan vet inte var den står. Knuffa hålet till plockläget (längst ner) innan du testar, och gör om det om skivan har glidit.</p>
+          <div class="buttons">
+            <button type="button" class="secondary" data-spin="down">◀ Knuffa ner</button>
+            <button type="button" class="secondary" data-spin="up">Knuffa upp ▶</button>
+            <label>Knuff <select id="knuff"><option value="50">50 ms</option><option value="100" selected>100 ms</option><option value="250">250 ms</option></select></label>
+          </div>
+          <div class="buttons">
+            <button type="button" class="secondary" data-spin="up" data-setting="doser_up_ms">Upp till utfallet</button>
+            <button type="button" class="secondary" data-spin="down" data-setting="doser_down_ms">Ner till plockläget</button>
+          </div>
         </div>
-        <p class="hint" id="dispensehint">Till plockläget, ett litet vick, lugnt upp till utmatningsvinkeln och lugnt tillbaka.</p>
+        <div id="doserVinkel" hidden>
+          <label for="doser_angle">Vinkel: <span class="angle" id="doser_val">0°</span></label>
+          <input type="range" id="doser_angle" min="0" max="180" step="1" value="0">
+          <div class="buttons">
+            <button type="button" data-move="doser">Flytta</button>
+            <button type="button" class="secondary" data-release="doser">Släpp</button>
+          </div>
+        </div>
+        <div class="buttons"><button type="button" id="testdispense">Testa utmatning</button></div>
+        <p class="hint" id="dispensehint"></p>
       </div>
 
       <div class="servo">
@@ -193,15 +208,25 @@
       <details>
         <summary>Inställningar för servona</summary>
         <form id="servosettings">
+          <div class="row"><label for="doser_servo">Servo för plockskivan</label><select id="doser_servo"><option value="360">360°-servo (styrs med tid)</option><option value="vinkel">Vinkelservo (styrs med vinkel)</option></select></div>
+          <h4>Plockskivan med 360°-servo</h4>
+          <div class="row"><label for="doser_up_ms">Snurrtid upp till utfallet (ms)</label><input type="number" id="doser_up_ms" step="10"></div>
+          <div class="row"><label for="doser_down_ms">Snurrtid ner till plockläget (ms)</label><input type="number" id="doser_down_ms" step="10"></div>
+          <div class="row"><label for="doser_speed_us">Fart (µs från stilla)</label><input type="number" id="doser_speed_us" step="10"></div>
+          <div class="row"><label for="doser_neutral_us">Stilla-läge (µs)</label><input type="number" id="doser_neutral_us" step="5"></div>
+          <div class="row"><label for="doser_reverse">Omvänd riktning</label><input type="checkbox" id="doser_reverse"></div>
+          <p class="hint">Fart: hur mycket pulsen skiljer sig från stilla-läget. Större = fortare, 120 är lugnt. Stilla-läget är normalt 1500. Kryper servot när det borde stå still, justera det några steg i taget. Snurrar skivan åt fel håll vid "Knuffa upp", kryssa i Omvänd riktning.</p>
+          <h4>Plockskivan med vinkelservo</h4>
+          <div class="row"><label for="dispense_angle">Utmatningsvinkel (°)</label><input type="number" id="dispense_angle" step="1"></div>
+          <div class="row"><label for="pick_angle">Plocklägets vinkel (°)</label><input type="number" id="pick_angle" step="1"></div>
+          <div class="row"><label for="dispense_move_ms">Tid för vridet (ms)</label><input type="number" id="dispense_move_ms" step="100"></div>
+          <p class="hint">Plockläget är där skivans hål står längst ner i nöthögen. Tiden gäller vridet upp till utfallet, och lika lång tid tillbaka. Längre tid = lugnare.</p>
+          <h4>Kanaler och pulsbredd</h4>
           <div class="row"><label for="servo_doser_channel">Kanal för doseraren</label><input type="number" id="servo_doser_channel" step="1"></div>
           <div class="row"><label for="servo_lucka_channel">Kanal för luckan</label><input type="number" id="servo_lucka_channel" step="1"></div>
           <div class="row"><label for="servo_min_us">Pulsbredd vid 0° (µs)</label><input type="number" id="servo_min_us" step="10"></div>
           <div class="row"><label for="servo_max_us">Pulsbredd vid 180° (µs)</label><input type="number" id="servo_max_us" step="10"></div>
-          <div class="row"><label for="dispense_angle">Utmatningsvinkel (°)</label><input type="number" id="dispense_angle" step="1"></div>
-          <div class="row"><label for="pick_angle">Plocklägets vinkel (°)</label><input type="number" id="pick_angle" step="1"></div>
-          <div class="row"><label for="dispense_move_ms">Tid för vridet (ms)</label><input type="number" id="dispense_move_ms" step="100"></div>
-          <p class="hint">Kanal = numret på PCA9685-kortet där servot sitter. Står servot och brummar i ändläget, minska intervallet för pulsbredden.</p>
-          <p class="hint">Plockläget är där skivans hål står längst ner i nöthögen. Tiden gäller vridet upp till utfallet, och lika lång tid tillbaka. Längre tid = lugnare.</p>
+          <p class="hint">Kanal = numret på PCA9685-kortet där servot sitter. Pulsbredden vid 0° och 180° gäller vinkelservon, alltså luckan och plockskivan om den har vinkelservo. Står servot och brummar i ändläget, minska intervallet.</p>
           <button type="submit">Spara</button>
           <p class="msg" id="servosettingsmsg" role="status"></p>
         </form>
@@ -233,8 +258,17 @@
   const fields = ["fps", "quality", "max_view_min"];
   const recFields = ["rec_fps", "motion_sensitivity", "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness", "clips_max_gb"];
   const servoFields = ["servo_doser_channel", "servo_lucka_channel", "servo_min_us", "servo_max_us", "dispense_angle",
-                       "pick_angle", "dispense_move_ms"];
-  const dispenseHint = v => `Till ${v.pick_angle}°, ett litet vick, på ${(v.dispense_move_ms / 1000).toLocaleString("sv-SE")} s upp till ${v.dispense_angle}° och lika lugnt tillbaka.`;
+                       "pick_angle", "dispense_move_ms", "doser_up_ms", "doser_down_ms", "doser_speed_us", "doser_neutral_us"];
+  let servoSettings = {};
+  const dispenseHint = v => v.doser_servo === "360"
+    ? `Ett litet vick, ${v.doser_up_ms} ms upp till utfallet, ett kort stopp och ${v.doser_down_ms} ms tillbaka ner. Utgår från att hålet står i plockläget.`
+    : `Till ${v.pick_angle}°, ett litet vick, på ${(v.dispense_move_ms / 1000).toLocaleString("sv-SE")} s upp till ${v.dispense_angle}° och lika lugnt tillbaka.`;
+  function showServoSettings(v) {
+    servoSettings = v;
+    $("dispensehint").textContent = dispenseHint(v);
+    $("doser360").hidden = v.doser_servo !== "360";
+    $("doserVinkel").hidden = v.doser_servo === "360";
+  }
 
   async function saveSettings(body, msgId) {
     const r = await fetch("/api/admin/settings", {
@@ -277,7 +311,9 @@
       $("lcd_spi_mhz").innerHTML = s.lcd_spi_mhz.map(v => `<option value="${v}">${v} MHz</option>`).join("");
       $("lcd_spi_mhz").value = s.settings.lcd_spi_mhz;
       for (const f of servoFields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
-      $("dispensehint").textContent = dispenseHint(s.settings);
+      $("doser_servo").value = s.settings.doser_servo;
+      $("doser_reverse").checked = s.settings.doser_reverse;
+      showServoSettings(s.settings);
       $("rec_resolution").innerHTML = s.rec_resolutions.map(v => `<option value="${v}">${v.replace("x", " × ")}</option>`).join("");
       $("rec_resolution").value = s.settings.rec_resolution;
       $("recording_enabled").checked = s.settings.recording_enabled;
@@ -339,10 +375,10 @@
   });
   $("servosettings").addEventListener("submit", async e => {
     e.preventDefault();
-    const body = {};
+    const body = { doser_servo: $("doser_servo").value, doser_reverse: $("doser_reverse").checked };
     for (const f of servoFields) body[f] = parseInt($(f).value, 10);
     const s = await saveSettings(body, "servosettingsmsg");
-    if (s) $("dispensehint").textContent = dispenseHint(s.settings);
+    if (s) showServoSettings(s.settings);
   });
   for (const name of ["doser", "lucka"]) {
     $(`${name}_angle`).addEventListener("input", e => { $(`${name}_val`).textContent = `${e.target.value}°`; });
@@ -353,6 +389,11 @@
   }));
   document.querySelectorAll("[data-release]").forEach(b => b.addEventListener("click", () => servo({ action: "release", servo: b.dataset.release })));
   $("testdispense").addEventListener("click", () => servo({ action: "test_dispense" }));
+  // 360°-servot: knuffa en kort stund, eller snurra hela den sparade tiden upp eller ner.
+  document.querySelectorAll("[data-spin]").forEach(b => b.addEventListener("click", () => {
+    const ms = b.dataset.setting ? servoSettings[b.dataset.setting] : parseInt($("knuff").value, 10);
+    servo({ action: "spin", servo: "doser", direction: b.dataset.spin, ms });
+  }));
 
   $("previewbtn").addEventListener("click", () => {
     const img = $("previewimg");
