@@ -21,6 +21,7 @@ import sys
 import textwrap
 import threading
 import time
+from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -57,12 +58,29 @@ def load_font(size: int):
 FONT_SMALL = load_font(14)
 FONT_BIG = load_font(26)
 
-# Skärmlägen som adminvyn kan välja, utöver "camera" (kamerabilden).
-# Bakgrund, två rader stor text och en rad på svenska under.
+# Skärmlägen som adminvyn kan välja, utöver "camera" (kamerabilden). De ser ut exakt som i
+# filmtrailern: bilderna där ritades av screen() i web/lennarts-matstation-3d.html, på en yta
+# på 336 × 248 med fet "Courier New" i 46 px. I Linux blir det Liberation Mono Bold, som har
+# samma teckenbredd. Här ritas samma sak skalat till skärmens 320 × 240.
+# Bakgrund, textfärg och två rader text.
 ACCESS_SCREENS = {
-    "granted": ((20, 125, 55), "ACCESS", "GRANTED", "Välkommen, Lennart!"),
-    "denied": ((165, 28, 28), "ACCESS", "DENIED", "Bara för Lennart."),
+    "granted": ("#0d3a1f", "#5CFF8F", "ACCESS", "GRANTED"),
+    "denied": ("#3a0d0d", "#FF6B5C", "ACCESS", "DENIED"),
 }
+TRAILER_W, TRAILER_H = 336, 248          # trailerns yta
+TRAILER_FONT_PX = 46
+TRAILER_LINES_Y = (100, 152)             # mitten av raderna i trailern
+TRAILER_FONT = Path(__file__).parent / "fonts" / "LiberationMono-Bold.ttf"
+
+
+def trailer_font(size: int):
+    try:
+        return ImageFont.truetype(str(TRAILER_FONT), size)
+    except OSError:
+        try:
+            return ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", size)
+        except OSError:
+            return ImageFont.load_default()
 
 
 def start_camera():
@@ -93,29 +111,21 @@ def message_screen(title: str, detail: str = "") -> np.ndarray:
     return np.asarray(img)
 
 
-def fit_font(draw: ImageDraw.ImageDraw, text: str, size: int, max_width: int):
-    """Största typsnittet, från size och nedåt, där texten ryms på bredden."""
-    while size > 10:
-        font = load_font(size)
-        if draw.textlength(text, font=font) <= max_width:
-            return font
-        size -= 2
-    return load_font(size)
-
-
 def access_screen(mode: str) -> np.ndarray:
-    """Helskärm med ACCESS GRANTED (grön) eller ACCESS DENIED (röd).
+    """Helskärm med ACCESS GRANTED (grön) eller ACCESS DENIED (röd), som i filmtrailern.
 
     Hela skärmen fylls med en färg, så den fungerar också som test av skärmen
     och kopplingen: syns färgen fungerar både strömmen och datakablarna.
     """
-    background, line1, line2, note = ACCESS_SCREENS[mode]
+    background, color, line1, line2 = ACCESS_SCREENS[mode]
     img = Image.new("RGB", (WIDTH, HEIGHT), background)
     draw = ImageDraw.Draw(img)
-    draw.rectangle((6, 6, WIDTH - 7, HEIGHT - 7), outline=WHITE, width=3)
-    for text, size, y in ((line1, 40, 42), (line2, 56, 92), (note, 20, 178)):
-        font = fit_font(draw, text, size, WIDTH - 40)
-        draw.text((WIDTH // 2, y), text, font=font, fill=WHITE, anchor="mt")  # centrerat kring x
+    # Samma skala på bredd och höjd (248 → 240), så att texten får trailerns proportioner.
+    scale = HEIGHT / TRAILER_H
+    font = trailer_font(round(TRAILER_FONT_PX * scale))
+    for text, y in zip((line1, line2), TRAILER_LINES_Y):
+        # anchor "mm" i Pillow ligger 1 px lägre än webbläsarens textBaseline "middle", därav -1.
+        draw.text((WIDTH / 2, (y - 1) * scale), text, font=font, fill=color, anchor="mm")
     return np.asarray(img)
 
 
