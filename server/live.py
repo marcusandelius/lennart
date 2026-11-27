@@ -56,6 +56,8 @@ DEFAULTS = {
     "servo_min_us": 500,
     "servo_max_us": 2500,
     "dispense_angle": 119,  # så långt plockskivan vrids för att släppa en nöt (hål Ø 28, se docs/beslut/beslutslogg.md)
+    "pick_angle": 0,        # plockläget: hålet längst ner i nöthögen
+    "dispense_move_ms": 1500,  # så lång tid vridet tar, från plockläget till utfallet och lika lång tid tillbaka
     # Inspelning av klipp vid rörelse, för att samla material till igenkänningen.
     "recording_enabled": False,  # av tills admin slår på det
     "rec_resolution": "1280x720",
@@ -72,7 +74,7 @@ LIMITS = {
     "fps": (1, 10), "quality": (30, 90), "max_view_min": (1, 30),
     "servo_doser_channel": (0, 15), "servo_lucka_channel": (0, 15),
     "servo_min_us": (400, 1500), "servo_max_us": (1500, 2600),
-    "dispense_angle": (30, 180),
+    "dispense_angle": (30, 180), "pick_angle": (0, 90), "dispense_move_ms": (300, 5000),
     "rec_fps": (5, 15), "motion_sensitivity": (2, 200), "pre_roll_s": (0, 5),
     "post_roll_s": (2, 30), "max_clip_s": (10, 90), "min_brightness": (0, 100),
     "clips_max_gb": (1, 500),
@@ -84,7 +86,7 @@ CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS
 
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
 DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "servo_doser_channel", "servo_lucka_channel",
-               "servo_min_us", "servo_max_us", "dispense_angle",
+               "servo_min_us", "servo_max_us", "dispense_angle", "pick_angle", "dispense_move_ms",
                "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",
                "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")
 
@@ -118,6 +120,8 @@ def validate(changes: dict, current: dict) -> dict:
         raise ValueError("Doseraren och luckan kan inte sitta på samma kanal")
     if result["servo_min_us"] >= result["servo_max_us"]:
         raise ValueError("servo_min_us måste vara mindre än servo_max_us")
+    if result["dispense_angle"] - result["pick_angle"] < 20:
+        raise ValueError("Utmatningsvinkeln måste vara minst 20° större än plocklägets vinkel")
     return result
 
 
@@ -139,13 +143,14 @@ def validate_command(cmd: dict, values: dict) -> dict:
             raise ValueError("Okänt servo")
         return {"action": "release", "servo": cmd["servo"]}
     if action == "test_dispense":
-        return {"action": "test_dispense", "angle": values["dispense_angle"]}
+        return {"action": "test_dispense", "angle": values["dispense_angle"],
+                "pick": values["pick_angle"], "move_ms": values["dispense_move_ms"]}
     if action == "display_restart":
         return {"action": "display_restart"}
-    if action in ("spin", "sweep"):
-        # spin: ett 360°-servo snurrar i TEST_S sekunder. sweep: ett vinkelservo sveper fram och tillbaka.
-        if cmd.get("servo") not in SERVOS:
-            raise ValueError("Okänt servo")
+    if action == "sweep":
+        # Ett vinkelservo sveper fram och tillbaka i TEST_S sekunder (luckans test på statussidan).
+        if cmd.get("servo") != "lucka":
+            raise ValueError("Bara luckan kan svepas. Plockskivan testas med Testa utmatning.")
         return {"action": action, "servo": cmd["servo"], "seconds": TEST_S}
     if action == "display_flash":
         # Visa ACCESS GRANTED eller ACCESS DENIED en kort stund, sedan tillbaka till det vanliga läget.
