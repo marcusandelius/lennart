@@ -11,7 +11,7 @@ och dess packning (09b). Mått i husets koordinater (samma som 3D-vyn).
     servot är längre längs axeln än vad 9.9 antog. Hörnlisten sticker bara ut 1,6 mm från väggen och
     lådan slutar 2 mm från väggen, så lådan går fritt framför den. 9.15: 22,5 mm från väggen i stället
     för 30; tvärväggen är kortare och insatserna sitter strax framför servot (y -17,8).
-  * Brevfack (9.15): under läppen en springa och ett fack med stängd botten för ett löstagbart kuvert
+  * Brevfack (9.15): bakom läppen en slits med kuvertets form (9.17) och ett fack med stängd botten för ett löstagbart kuvert
     (27, 22 x 15 x 0,8 mm) som lutar ut 26 grader och är vridet 11 grader. Facket ligger i en
     förtjockning på framväggens insida, utan öppning in i lådan.
   * Väggen mot luckan har en slits, 9 mm bred och öppen uppåt, så att servots axel kan sänkas på
@@ -155,9 +155,10 @@ _lo = _hp[np.argmax(_hp[:, 1])]                                   # innersta ned
 _z45 = _lo[2] - (_lo[1] - (Y0 + T)) - 0.3                            # undersidan 45 grader ner till framväggen (skrivs ut utan stöd)
 hylsa = trimesh.convex.convex_hull(np.vstack([_hp] + [[[x, Y0 + T - 0.01, _z45]] for x in (TU0 - 2.0, TU1 + 2.0)]))
 hylsa = trimesh.boolean.intersection([hylsa, box(X0 + T, X1 - T, Y0 + T - 0.01, -15.0, T, ZT)], engine="manifold")
-fack = k_plate(sbox(TU0 - 0.3, -TL - 0.6, TU1 + 0.3, 1.5).union(sbox(X0 + 4.0, K_SL - 0.3, X1 - 4.0, 3.0)), KT + 2 * K_CL)
-springa = box(X0 + 4.0, X1 - 4.0, Y0 - 2.0, Y0 + 0.6, 39.6, 40.9)
-body = D(U([body, hylsa]), [fack, springa])
+# 9.17: ingen springa över hela bredden (såg ut som ett extra inkast); slitsen har kuvertets form (+0,3 mm)
+k_slits = k_vis.intersection(sbox(-100, K_SL - 1, 200, 3.5)).buffer(0.3, join_style=2)
+fack = k_plate(sbox(TU0 - 0.3, -TL - 0.6, TU1 + 0.3, 1.5).union(k_slits), KT + 2 * K_CL)
+body = D(U([body, hylsa]), [fack])
 assert body.is_watertight
 assert body.is_watertight
 
