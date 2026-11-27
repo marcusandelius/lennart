@@ -29,7 +29,9 @@ och dess packning (09b). Mått i husets koordinater (samma som 3D-vyn).
   * Locket (09, 9.10): rundad båge med samma bredd och djup som lådan, sitter direkt på väggarna
     så att det ser ut som en del av brevlådan (som en Habo). Två läppar på sidornas insida styr
     det. Ingen packning. Öppet bak mot husväggen. Skrivs ut med framsidan mot plattan, utan stöd.
-  * Framsidan: inramning (spår) längs sidor och båge, dörr, brevinkast under bågen.
+  * Framsidan: inramning (spår) längs sidor och båge, dörr, brevinkast under bågen (9.16: bara läppen med
+    springan, ingen upphöjd klaff under).
+  * 9.16: den vita kanten runt LENNART-skålens överkant (z 24-28) är borttagen; luckans vita list räcker.
 Kör:  python3 brevlada.py <07_farstukvist_vit.stl med en tidigare brevlåda> <utkatalog>
 (den gamla brevlådan är en egen kropp i filen och byts ut)
 """
@@ -106,7 +108,7 @@ lip_ch = trimesh.convex.convex_hull(np.vstack([box(X0 + 3.6, X1 - 3.6, fr - 1.7,
                                                box(X0 + 3.6, X1 - 3.6, fr - 0.01, fr, 39.1, 39.11).vertices]))
 # handtaget (svart): rund knopp med en tvärslå, sticker ut 1,6 mm, sitter 0,4 mm in i väggen
 lock = U([ycyl(1.4, fr - 1.6, fr + 0.4, XC, 29.5, 32), box(XC - 2.8, XC + 2.8, fr - 1.4, fr + 0.4, 28.85, 30.15)])
-body = D(U([body, slot, lip, lip_ch]), [lock])
+body = D(U([body, lip, lip_ch]), [lock])          # 9.16: den upphöjda klaffen (slot) under springan bort, den såg ut som ett andra inkast
 # hörnlisten (x 73-, sticker ut till y -1,6): högra väggens bakkant dras in till y -2,6 där
 PIL = box(72.5, X1 + 1, -2.6, 1.0, -1, ZT + 30)
 body = D(body, [PIL])
@@ -215,6 +217,9 @@ parts = vit.split(only_watertight=False)
 old = [p for p in parts if p.bounds[0][0] > 27.0 and p.bounds[1][0] > 50.0]
 assert len(old) == 1, len(old)
 keep = [p for p in parts if p is not old[0]]
+kant = [p for p in keep if p.bounds[0][2] > 23.9 and p.bounds[1][2] < 28.01 and p.extents[0] > 80]
+assert len(kant) == 1, len(kant)
+keep = [p for p in keep if p is not kant[0]]                                 # 9.16: vita kanten runt skålens överkant bort (luckan har en vit list)
 b_stl = body.copy(); b_stl.apply_translation(TO_STL)
 new_vit = U(keep + [b_stl])
 assert new_vit.is_watertight
