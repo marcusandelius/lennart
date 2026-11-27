@@ -204,6 +204,15 @@ class ServoController:
         time.sleep(ms / 1000)
         self._release(name)
 
+    def _pulse(self, name: str, us: int, ms: int) -> None:
+        """En exakt puls en kort stund. Guiden för stilla-punkten använder den för att se åt
+        vilket håll ett 360°-servo snurrar vid en viss puls."""
+        self.board.pulse(self._channel(name), us)
+        self.holding[name] = True
+        self.position[name] = None
+        time.sleep(ms / 1000)
+        self._release(name)
+
     def _test_dispense_turn(self, cmd: dict) -> None:
         """Plockskivans rörelse med 360°-servo: ett helt varv framåt. Fram till utfallet, ett kort
         stopp där nöten faller ut, och resten av varvet tillbaka till plockläget."""
@@ -230,6 +239,9 @@ class ServoController:
                 elif action == "test_dispense" and cmd.get("kind") == "varv":
                     self._test_dispense_turn(cmd)
                     self.last = f"testade utmatning (helt varv: {cmd['up_ms']} ms till utfallet, {cmd['rev_ms']} ms totalt)"
+                elif action == "pulse":
+                    self._pulse(cmd["servo"], cmd["us"], cmd["ms"])
+                    self.last = f"{cmd['servo']} fick {cmd['us']} µs i {cmd['ms']} ms"
                 elif action == "spin":
                     self._spin(cmd["servo"], cmd["direction"], cmd["ms"], cmd)
                     self.last = f"{cmd['servo']} snurrade {'framåt' if cmd['direction'] == 'up' else 'bakåt'} {cmd['ms']} ms"

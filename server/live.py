@@ -167,6 +167,17 @@ def validate_command(cmd: dict, values: dict) -> dict:
                     "rev_ms": values["doser_rev_ms"], **spin}
         return {"action": "test_dispense", "angle": values["dispense_angle"],
                 "pick": values["pick_angle"], "move_ms": values["dispense_move_ms"]}
+    if action == "pulse":
+        # En exakt puls till 360°-servot en kort stund. Används av guiden som hittar servots stilla-punkt:
+        # admin ser åt vilket håll skivan snurrar vid olika pulser och svarar.
+        if values["doser_servo"] != "360":
+            raise ValueError("Plockskivans servo är inställt som vinkelservo.")
+        us, ms = cmd.get("us"), cmd.get("ms")
+        if isinstance(us, bool) or not isinstance(us, int) or not 900 <= us <= 2100:
+            raise ValueError("Pulsen ska vara ett heltal mellan 900 och 2100 µs")
+        if isinstance(ms, bool) or not isinstance(ms, int) or not 200 <= ms <= 3000:
+            raise ValueError("Tiden ska vara ett heltal mellan 200 och 3000 ms")
+        return {"action": "pulse", "servo": "doser", "us": us, "ms": ms}
     if action == "spin":
         # Knuffa eller snurra plockskivans 360°-servo en viss tid, för att ställa skivan och prova fram tiderna.
         if values["doser_servo"] != "360":
