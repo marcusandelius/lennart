@@ -66,6 +66,6 @@ Kolla i förhandsgranskningen att den tunna väggen (1,1 mm) mot ytterkanten är
 
 ## Provkörning
 
-1. Sätt **Utmatningsvinkel** i adminvyn. En vinkel som redan sparats där gäller före standardvärdet i koden.
-2. Kör **Testa utmatning**. När skivan står still ska hålet ligga mitt över utfallet.
+1. Sätt **Utmatningsvinkel**, **Plocklägets vinkel** och **Tid för vridet** i adminvyn. Värden som redan sparats där gäller före standardvärdena i koden.
+2. Kör **Testa utmatning**. Skivan går till plockläget, vickar, vrids lugnt upp till utfallet och tillbaka (se [koppling-servon.md](koppling-servon.md)). När skivan står still uppe ska hålet ligga mitt över utfallet.
 3. Prova med små och stora nötter. Justera vinkeln ett par grader i taget om någon blir kvar.

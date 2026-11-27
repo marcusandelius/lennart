@@ -27,10 +27,8 @@ Servona styrs via ett **PCA9685-kort** (16 kanaler, I2C). Kortet skapar servosig
 
 | Servo | Kanal | Kabelfärger (vanligast) |
 |---|---|---|
-| Doseringshjulet (servot på 11 kg) | 0 | Brun = GND, röd = V+, orange/gul = signal |
+| Plockskivan, doseringen (servot på 11 kg) | 0 | Brun = GND, röd = V+, orange/gul = signal |
 | Luckan (MG90S) | 1 | Samma |
-
-**Just nu (2026-11-25)** sitter 360°-servot på 5 kg på kanal 0 i stället för servot på 11 kg. Ett 360°-servo har inget läge: det snurrar så länge det får en puls som skiljer sig från 1500 µs, och stannar när signalen släpps. Adminvyns **Flytta** och **Testa utmatning** för doseringshjulet får det därför att snurra en stund i stället för att vrida till en vinkel.
 
 Kanalerna går att ändra i adminvyn under "Inställningar för servona".
 
@@ -42,8 +40,14 @@ Görs en gång, se steg 9 i [SETUP-PI.md](SETUP-PI.md).
 
 1. Logga in på https://lennart.cam/admin.
 2. Under **Servon** ska det stå `✓ PCA9685 på I2C-buss 1 …` när kortet hittats.
-3. Dra reglaget för doseringshjulet till exempelvis 90° och tryck **Flytta**. Servot vrider sig och släpps efter en sekund.
-4. **Testa utmatning** gör ett litet vick, vrider till utmatningsvinkeln (119° för plockskivan med hål Ø 28) och tillbaka. Titta när skivan står still: hålet ska ligga mitt över utfallet. Justera vinkeln i adminvyn vid behov.
+3. Dra reglaget för plockskivan till exempelvis 90° och tryck **Flytta**. Servot vrider sig och släpps efter en sekund.
+4. **Testa utmatning** gör plockskivans rörelse:
+   1. till plocklägets vinkel (standard 0°), där hålet står längst ner i nöthögen;
+   2. ett litet vick på 12° två gånger, som rör om nötterna så att en lägger sig i hålet;
+   3. lugnt upp till utmatningsvinkeln (standard 119°) på den tid som står i **Tid för vridet** (standard 1 500 ms), med mjuk start och inbromsning;
+   4. ett kort stopp på 0,3 s, och sedan lika lugnt tillbaka till plockläget.
+
+   Titta när skivan står still uppe: hålet ska ligga mitt över utfallet. Vinklarna och tiden ändras under **Inställningar för servona**, utan ny deploy.
 
 ## Testa från statussidan
 
@@ -51,7 +55,7 @@ När du är inloggad (via https://lennart.cam/admin) visas rutan **Testa station
 
 | Knapp | Vad som händer |
 |---|---|
-| Stora servot | 360°-servot på kanal 0 snurrar i 3 sekunder (puls 1900 µs) och stannar när signalen släpps. |
+| Plockskivan | Samma rörelse som **Testa utmatning** i adminvyn. |
 | Lilla servot | MG90S på kanal 1 sveper mellan 10° och 170° i 3 sekunder och släpps sedan. |
 | ACCESS GRANTED / ACCESS DENIED | Skärmen visar bilden i 4 sekunder och går sedan tillbaka till sitt vanliga läge. |
 
