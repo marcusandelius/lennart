@@ -51,7 +51,7 @@ En utmatning är **ett helt varv framåt**: fram till utfallet, ett stopp på 0,
 Fliken **Nötdosering** guidar i fem steg. Gör det utan nötter först:
 
 1. **Kolla riktningen:** tryck **Knuffa framåt**. Rör sig hålet från nöthögen mot utfallet är riktningen rätt. Annars kryssar du i **Omvänd riktning**.
-2. **Spara plockläget:** knuffa tills hålet står längst ner i nöthögen och tryck **Spara som plockläge**. En räknare börjar då om från 0 ms.
+2. **Spara plockläget:** knuffa tills hålet står längst ner i nöthögen och tryck **Spara som plockläge**. En räknare börjar då om från 0 ms. Knuffens längd ställs med reglaget bredvid knappen, från 20 till 2 000 ms. Ta långa knuffar första biten och korta sista biten.
 3. **Spara utfallet:** knuffa framåt tills hålet står mitt över utfallet och tryck **Spara som utfall**. Räknarens tid sparas.
 4. **Spara ett helt varv:** knuffa vidare tills hålet är tillbaka i plockläget och tryck **Spara som helt varv**.
 5. **Finjustera och testa:** knuffar summeras inte exakt, eftersom servot behöver en stund för att komma upp i fart. Prova därför med hålet i plockläget: **Prova: till utfallet** ska stanna mitt över utfallet, och **Prova: resten av varvet** ska sedan stanna i plockläget. Justera med − och +. Kör sedan **Testa utmatning**.
