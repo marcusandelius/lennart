@@ -44,19 +44,24 @@ Görs en gång, se steg 9 i [SETUP-PI.md](SETUP-PI.md).
 
 ### Plockskivan med 360°-servo (just nu)
 
-Ett 360°-servo har ingen vinkel. Pulsen styr fart och riktning: 1500 µs är stilla, längre puls snurrar åt ena hållet och kortare åt det andra. Servot stannar när signalen släpps. Därför styrs rörelsen med **tid**, och skivan vet aldrig exakt var den står. Små fel kan växa för varje utmatning, så kolla läget då och då.
+Ett 360°-servo har ingen vinkel. Pulsen styr fart och riktning: vid servots stilla-punkt (ofta runt 1500 µs) står det still, längre puls snurrar åt ena hållet och kortare åt det andra. Servot stannar när signalen släpps. Därför kan servot inte veta var skivan står, och **lägena sparas som tid från plockläget**.
+
+En utmatning är **ett helt varv framåt**: fram till utfallet, ett stopp på 0,3 s där nöten faller ut, och resten av varvet tillbaka till plockläget. Skivan går bara åt ett håll, så det spelar ingen roll om servot går lika fort åt båda hållen. Marcus har provat för hand att skivan kan snurra ett helt varv (2026-11-27).
 
 Fliken **Nötdosering** guidar i fem steg. Gör det utan nötter först:
 
-1. **Kolla riktningen:** tryck **Knuffa upp ▶**. Rör sig hålet från nöthögen mot utfallet är riktningen rätt. Annars kryssar du i **Omvänd riktning**.
-2. **Ställ hålet i plockläget:** knuffa tills hålet står längst ner i nöthögen. Välj 50, 100 eller 250 ms per knuff.
-3. **Hitta tiden upp:** tryck **Snurra upp**. Stannar hålet före utfallet, öka tiden med **+**. Åker det förbi, minska med **−**. Knuffa tillbaka mellan försöken.
-4. **Hitta tiden ner:** med hålet vid utfallet, tryck **Snurra ner** och justera tills hålet hamnar i plockläget. Tiden blir sällan exakt lika lång som tiden upp, eftersom 360°-servon ofta går olika fort åt olika håll och skivan lutar.
-5. **Testa en hel utmatning.**
+1. **Kolla riktningen:** tryck **Knuffa framåt**. Rör sig hålet från nöthögen mot utfallet är riktningen rätt. Annars kryssar du i **Omvänd riktning**.
+2. **Spara plockläget:** knuffa tills hålet står längst ner i nöthögen och tryck **Spara som plockläge**. En räknare börjar då om från 0 ms.
+3. **Spara utfallet:** knuffa framåt tills hålet står mitt över utfallet och tryck **Spara som utfall**. Räknarens tid sparas.
+4. **Spara ett helt varv:** knuffa vidare tills hålet är tillbaka i plockläget och tryck **Spara som helt varv**.
+5. **Finjustera och testa:** knuffar summeras inte exakt, eftersom servot behöver en stund för att komma upp i fart. Prova därför med hålet i plockläget: **Prova: till utfallet** ska stanna mitt över utfallet, och **Prova: resten av varvet** ska sedan stanna i plockläget. Justera med − och +. Kör sedan **Testa utmatning**.
 
-Under **Fart och stilla-läge** längst ner finns två inställningar till. **Farten** är 120 µs från stilla som standard, vilket är lugnt. Ändrar du farten måste tiderna provas fram igen. Kryper servot när det borde stå still, justera **Stilla-läge** 5 µs i taget (normalt 1500).
+Under **Fart, stilla-läge och knuff bakåt** längst ner:
 
-**Testa utmatning** gör sedan: ett litet vick (80 ms upp och ner, två gånger) som rör om nötterna, snurr upp till utfallet, ett stopp på 0,3 s där nöten faller ut, och snurr tillbaka ner. Testet utgår från att hålet står i plockläget när det börjar.
+- **Fart** är 120 µs från stilla-läget som standard, vilket är lugnt. Ändrar du farten behöver tiderna sparas om.
+- **Stilla-läge** (1000–2000 µs) är pulsen där just det här servot står still. 2026-11-27 gick **Knuffa bakåt** åt samma håll som framåt. Det tyder på att servots stilla-punkt ligger en bit från 1500 µs [verifiera]. Ändra värdet tills de två knuffarna går åt var sitt håll. Det behövs bara för att kunna knuffa bakåt.
+
+**Felet växer för varje varv.** Är tiden för ett helt varv 2 % fel har hålet glidit en femtedel av ett varv efter 10 nötter. Kolla då och då att hålet står i plockläget, och knuffa tillrätta vid behov. En givare som känner av när skivan passerar plockläget, till exempel en magnet i skivan och en hallgivare, skulle låta servot hitta hem varje varv. Det är inte beslutat.
 
 ### Plockskivan med vinkelservo
 

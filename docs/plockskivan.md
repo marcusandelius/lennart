@@ -66,11 +66,11 @@ Kolla i förhandsgranskningen att den tunna väggen (1,1 mm) mot ytterkanten är
 
 ## Provkörning
 
-Skivan drivs just nu av ett **360°-servo** (Marcus, 2026-11-27), inte av MG996R. Ett 360°-servo har ingen vinkel, så utmatningsvinkeln 119° gäller inte. Rörelsen styrs i stället med tid.
+Skivan drivs just nu av ett **360°-servo** (Marcus, 2026-11-27), inte av MG996R. Ett 360°-servo har ingen vinkel, så utmatningsvinkeln 119° gäller inte. Lägena sparas i stället som tid från plockläget, och en utmatning är ett helt varv framåt.
 
-1. Prova fram riktning, stilla-läge och snurrtider upp och ner i adminvyn, enligt [koppling-servon.md](koppling-servon.md#plockskivan-med-360-servo-just-nu).
-2. Knuffa hålet till plockläget och kör **Testa utmatning**. När skivan står still uppe ska hålet ligga mitt över utfallet.
-3. Prova med små och stora nötter. Justera snurrtiden upp med 10–20 ms i taget om någon blir kvar.
-4. Kör flera utmatningar i rad och kolla att hålet fortfarande hamnar i plockläget. Om felet växer måste tiden ner justeras, eller skivan knuffas tillrätta då och då.
+1. Spara plockläget, utfallet och ett helt varv i adminvyn, fliken **Nötdosering**, enligt [koppling-servon.md](koppling-servon.md#plockskivan-med-360-servo-just-nu).
+2. Finjustera med **Prova: till utfallet** och **Prova: resten av varvet**. När skivan står still vid utfallet ska hålet ligga mitt över det.
+3. Prova med små och stora nötter. Justera tiden till utfallet med 10–20 ms i taget om någon blir kvar.
+4. Kör flera utmatningar i rad och kolla att hålet fortfarande hamnar i plockläget. Om det glider: justera tiden för ett helt varv.
 
 Med ett vinkelservo gäller i stället **Utmatningsvinkel**, **Plocklägets vinkel** och **Tid för vridet**.
