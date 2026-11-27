@@ -29,6 +29,8 @@ och dess packning (09b). Mått i husets koordinater (samma som 3D-vyn).
   * Locket (09, 9.10): rundad båge med samma bredd och djup som lådan, sitter direkt på väggarna
     så att det ser ut som en del av brevlådan (som en Habo). Två läppar på sidornas insida styr
     det. Ingen packning. Öppet bak mot husväggen. Skrivs ut med framsidan mot plattan, utan stöd.
+  * Hålet för luckans hylsa (9.17): runt Ø7,6 med en lika bred slits uppåt; en plugg på locket fyller slitsen
+    när locket ligger på.
   * Framsidan: inramning (spår) längs sidor och båge, dörr, brevinkast under bågen (9.16: bara läppen med
     springan, ingen upphöjd klaff under).
   * 9.16: den vita kanten runt LENNART-skålens överkant (z 24-28) är borttagen; luckans vita list räcker.
@@ -86,7 +88,8 @@ XC = (X0 + X1) / 2
 
 # ---------------- brevlådans kropp
 body = D(box(X0, X1, Y0, Y1, 0, ZT), [box(X0 + T, X1 - T, Y0 + T, Y1 + 1, T, ZT + 1)])
-body = D(body, [box(X0 - 1, X0 + T + 1, AX_Y - 4.5, AX_Y + 4.5, 27.5, ZT + 1)])          # slits för luckans hylsa
+HUB_R = 3.8                                   # 9.17: luckans hylsa är Ø5,6 i väggen; hål Ø7,6 (1 mm luft), slits lika bred uppåt
+body = D(body, [U([box(X0 - 1, X0 + T + 1, AX_Y - HUB_R, AX_Y + HUB_R, AX_Z, ZT + 1), xcyl(HUB_R, X0 - 1, X0 + T + 1, AX_Y, AX_Z, 48)])])   # slits för luckans hylsa
 # tvärvägg (L-form): främre del med insatserna + låg list i botten, öppen uppåt och bakåt för servot
 bh = U([box(BH0, BH1, Y0 + T - 0.01, -14.7, T - 0.01, ZT), box(BH0, BH1, Y0 + T + 0.2, -14.7, ZT - 0.5, 48.5),   # 9.15: upp i locket för den övre insatsen
           box(BH0, BH1, Y0 + T - 0.01, Y1, T - 0.01, 6.0)])
@@ -181,6 +184,13 @@ for xa, xb, xc, xd in ((X0 + T + CL, X0 + T + CL + LT, X0 + T - 0.6, X0 + T + CL
     lips.append(box(xc, xd, Y0 + T - 0.6, Y1 - 0.5, ZT, ZT + 2.5))              # förbindning in i lockets väggar
 lips = U(lips)
 hat = U([hat, lips])
+# 9.17: plugg som fyller slitsen ovanför hylsan när locket läggs på (halvcirkel i nederkant), fäst i vänstra läppen
+# via en förlängning på insidan (framför och ovanför servots axel). Kvar blir ett runt hål Ø7,6 runt hylsan.
+plugg = D(box(X0 + 0.1, X0 + T + CL + 0.05, AX_Y - HUB_R + 0.15, AX_Y + HUB_R - 0.15, AX_Z, ZT + 0.5), [xcyl(HUB_R, X0 - 1, X0 + T + 1, AX_Y, AX_Z, 48)])
+lx0, lx1 = X0 + T + CL, X0 + T + CL + 1.1
+lipext = U([box(lx0, lx1, Y0 + T + CL, AX_Y - HUB_R + 0.2, AX_Z, ZT + 0.01),
+            box(lx0, lx1, AX_Y - HUB_R + 0.1, AX_Y + HUB_R - 0.15, AX_Z + 3.2, ZT + 0.01)])
+hat = U([hat, plugg, lipext])
 hat = D(hat, [PIL])
 assert hat.is_watertight and len(hat.split(only_watertight=False)) == 1, 'locket ska vara en enda kropp'
 
