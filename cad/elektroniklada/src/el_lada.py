@@ -89,7 +89,8 @@ def outline_xz(inset=0.0, z0=None, z1=None):
 GLAND = (-42.0, 92.0)      # befintligt Ø16-hål i bakväggen: kabelförskruvning M16 för 12 V
 GLAND_R = 13.0             # hål för förskruvningens mutter i bakstycket och packningen (Ø26)
 CHAN_X = (-47.5, -36.5)    # kanal för strömkabeln: plattan har en slits öppen nedåt och inget sitter på plattan här under förskruvningen
-CAB_SLOTS = [(-60.0, 12.0), (-42.0, 12.0), (-3.0, 12.0), (14.5, 16.0), (45.0, 30.0)]  # kabelöppningar i golvet: (mitt x, bredd): kontrollkablarna och servoomvandlaren, 12 V till EKM006, nätverk och kamerans flatkabel, GPIO-kabeln och fler kablar
+PLATE_SLOT = (-54.0, -30.0, GLAND[1] + 13.0)   # slitsen i plattan runt förskruvningen (x0, x1, överkant), öppen nedåt: plats för gängan och muttern
+CAB_SLOTS = [(-60.0, 12.0), (-42.0, 12.0), (-3.0, 12.0), (14.5, 16.0), (45.0, 30.0)]   # samma som det utskrivna bakstycket  # kabelöppningar i golvet: (mitt x, bredd): kontrollkablarna och servoomvandlaren, 12 V till EKM006, nätverk och kamerans flatkabel, GPIO-kabeln och fler kablar
 SLOT_Y = (Y_FRONT + TC + 3.0, YP0 - 2.0)                 # öppningarnas djup i y
 
 def rail_profile(side):
@@ -184,18 +185,19 @@ SO = 3.0                                                   # distanshöjd (korte
 PCB = YP0 - SO - 1.6                                       # kortens ovansida (y)
 PLUG = 24.6                                                # kontakt + böjd kabel från kortets ovansida (uppmätt)
 YPL = PCB - PLUG                                           # så långt fram kontakterna når (genom fönstren i kåpan)
-PI = dict(name='pi5', pos=(3.5, 75.0), size=(56.0, 85.0), standoff=SO, ins='m25',
+PI = dict(name='pi5', pos=(3.5, 77.0), size=(56.0, 85.0), standoff=SO, ins='m25',
           holes=[(3.5, 23.5), (52.5, 23.5), (3.5, 81.5), (52.5, 81.5)])          # Pi 5 stående: USB/nätverk nedåt, GPIO till höger, USB-C till vänster, minneskortet uppåt
-PCA = dict(name='pca9685', pos=(-36.5, 33.0), size=(25.4, 62.23), standoff=SO, ins='m2',
-           holes=[(3.3, 3.3), (22.35, 3.3), (3.3, 59.18), (22.35, 59.18)])        # stående: kontrollkontakten uppåt, servokontakterna på vänster kant mot kanalen, plinten på höger kant
+PCA = dict(name='pca9685', pos=(-18.7, 31.5), size=(62.23, 25.4), standoff=SO, ins='m2',
+           holes=[(3.3, 3.3), (59.18, 3.3), (3.3, 22.35), (59.18, 22.35)])        # liggande under Pi:n: kontrollkontakten åt höger (mot GPIO), servokontakterna längs överkanten, kanal 0 och 1 till höger, plinten nedtill
 EKM = dict(name='ekm006', pos=(-60.0, 118.0), size=(60.0, 20.0), standoff=SO, ins='m2',
-           holes=[(3.0, 3.0), (57.0, 3.0), (3.0, 17.0), (57.0, 17.0)])            # liggande ovanför PCA9685: 5 V ut till vänster (USB-C-kabeln till Pi:n), 12 V in till höger
+           holes=[(3.0, 3.0), (57.0, 3.0), (3.0, 17.0), (57.0, 17.0)])            # liggande ovanför servoomvandlaren: 12 V in till vänster, 5 V ut till höger (USB-C-kabeln till Pi:n)
 COMPONENTS = [PI, PCA, EKM]
-TIE_SLOTS = [(-55.0, 60.0), (-55.0, 100.0), (-50.0, 150.0), (-30.0, 158.0), (-5.0, 100.0), (-5.0, 60.0), (35.0, 42.0), (35.0, 62.0), (52.0, 42.0), (52.0, 62.0)]
-WINDOWS = [sbox(14.0, 88.0, 52.0, 152.0).buffer(-3).buffer(3, 12)]   # bakom Pi:n: luft och mindre plast
+SERVO_PSU = dict(x0=-29.5, x1=2.0, z0=60.0, z1=116.0)    # stående vagga för servoomvandlaren (23 mm hög, 47–48 mm mellan öronens hål), buntband ovanför
+TIE_SLOTS = [(-50.0, 150.0), (-30.0, 158.0), (-13.75, 118.5), (35.0, 64.0), (52.0, 64.0)]
+WINDOWS = [sbox(14.0, 90.0, 52.0, 154.0).buffer(-3).buffer(3, 12)]   # bakom Pi:n: luft och mindre plast
 # fönster i kåpan, öppna nedåt så att kåpan går att lyfta med allt inkopplat: (x0, x1, z1)
 KAPA_FRONT_WIN = [(52.5, 64.5, 158.0),                    # framför Pi:ns GPIO-kontakter (förrådet rundar av här: 7–20 mm fritt framför)
-                  (-37.0, -24.0, 90.0)]                   # framför PCA9685:s kanal 0 och 1 (6–19 mm fritt framför, även med förrådets lyftväg)
+                  (24.0, 40.0, 62.0)]                     # framför PCA9685:s kanal 0 och 1, nere till höger (6–30 mm fritt framför, även med förrådets lyftväg)
 KAPA_SIDE_WIN = None
 
 def cradle(r, h_wall=4.0):
@@ -220,7 +222,8 @@ def platta():
             cuts.append(box(x + dx - 1.0, x + dx + 1.0, YP0 - 6, YP1 + 1, z - 2.5, z + 2.5))
     for poly in WINDOWS:
         cuts.append(ext_xz(poly, YP0 - 1, YP1 + 1))
-    cuts.append(box(CHAN_X[0], CHAN_X[1], YP0 - 1, YP1 + 1, PZ0 - 1, GLAND[1] + 7.0))   # slits för strömkabeln, öppen nedåt
+    cuts.append(box(PLATE_SLOT[0], PLATE_SLOT[1], YP0 - 1, YP1 + 1, PZ0 - 1, PLATE_SLOT[2]))   # slits för förskruvningen och strömkabeln, öppen nedåt
+    adds.append(cradle(SERVO_PSU))
     m = U([m] + adds)
     m = I(m, ext_xz(outline_xz(TC + 0.6, z0=PZ0 - 1, z1=Z_TOP - TC - 0.6), YP0 - 40, YB0))     # avfasade övre hörn som kåpan
     return clean(D(m, cuts))
@@ -233,16 +236,17 @@ def ghosts():
                   box(x0 + 2, x0 + w - 2, PCB - 17.0, PCB, z0 - 3.0, z0 + 21.0),           # USB- och nätverksuttagen
                   box(x0 + 20, x0 + 36, PCB + 1.6, PCB + 2.8, z1 - 1, z1 + 2.5)])          # minneskortet sticker ut uppåt
     g['pi5_gpio'] = box(x0 + w - 5.2, x0 + w + 0.2, YPL, PCB, z1 - 58.0, z1 - 6.0)          # Dupont-kontakterna på GPIO med böjda kablar
-    g['pi5_natverkskontakt'] = box(x0 + 4.9, x0 + 16.6, PCB - 14.0, PCB, z0 - 43.0, z0 - 3.0)   # RJ45 med böjskydd, 40 mm nedåt
+    # nätverksuttaget används inte (wifi); under det finns ca 17 mm fritt till PCA9685 för en vinklad kontakt med låg profil
     g['pi5_usbc'] = box(x0 - 40.0, x0, PCB - 7.0, PCB, z1 - 11.2 - 4.5, z1 - 11.2 + 4.5)    # USB-C med böjskydd, 40 mm åt vänster
     g['pi5_flatkabel'] = box(x0 + 3, x0 + 19, PCB - 15.0, PCB, z1 - 60.0, z1 - 42.0)       # kamerans flatkabel går upp 15 mm och böjer nedåt
-    x0, z0 = PCA['pos']; w, h = PCA['size']; zt = z0 + h
-    g['pca9685'] = U([box(x0, x0 + w, PCB, PCB + 1.6, z0, zt),
-                      box(x0 + 1.5, x0 + 9.5, PCB - 8.5, PCB, z0 + 4, zt - 9),             # stiftlisterna längs vänster kant
-                      box(x0 + w - 13, x0 + w - 3, PCB - 16.0, PCB, zt - 15, zt - 3),      # stående kondensator på kortet
-                      box(x0 + w - 10, x0 + w, PCB - 10.0, PCB, z0 + 26, z0 + 36)])        # plinten
-    g['pca9685_servokontakter'] = box(x0 + 1.0, x0 + 10.0, YPL, PCB, zt - 17.0, zt - 9.5)   # kanal 0 och 1 med böjda kablar (genom fönstret)
-    g['pca9685_kontroll'] = box(x0 + 5.0, x0 + 20.5, PCB - 6.0, PCB + 1.6, zt, zt + 17.0)   # vinklade kontrollstift med Dupont-kontakter, uppåt
+    x0, z0 = PCA['pos']; w, h = PCA['size']; zt = z0 + h; x1 = x0 + w
+    g['pca9685'] = U([box(x0, x1, PCB, PCB + 1.6, z0, zt),
+                      box(x1 - 52.0, x1 - 9.0, PCB - 8.5, PCB, zt - 8.0, zt - 1.5),        # stiftlisterna längs överkanten
+                      box(x1 - 16.0, x1 - 6.0, PCB - 16.0, PCB, z0 + 2.0, z0 + 12.0),      # stående kondensator på kortet
+                      box(x1 - 36.2, x1 - 26.2, PCB - 10.0, PCB, z0, z0 + 8.0)])           # plinten
+    g['pca9685_servokontakter'] = box(x1 - 15.0, x1 - 9.5, YPL, PCB, zt - 8.5, zt - 1.0)   # kanal 0 och 1 med böjda kablar (genom fönstret)
+    g['pca9685_kontroll'] = U([box(x1, x1 + 14.0, PCB - 6.0, PCB + 1.6, z0 + 5.0, z0 + 20.5),
+                               box(x1 + 14.0, x1 + 17.0, PCB - 6.0, PCB, z0 + 5.0, z0 + 40.0)])   # vinklade kontrollstift med Dupont-kontakter åt höger, kablarna upp mot GPIO
     x0, z0 = EKM['pos']; w, h = EKM['size']
     g['ekm006'] = U([box(x0, x0 + w, PCB, PCB + 1.6, z0, z0 + h), box(x0 + 1, x0 + w - 1, PCB - 10.0, PCB, z0, z0 + h),
                      box(-XO + TC + 0.5, x0, PCB - 8.0, PCB, z0 + 4, z0 + h - 4), box(x0 + w, x0 + w + 2.0, PCB - 8.0, PCB, z0 + 4, z0 + h - 4)])   # plintar med ledare i båda ändar
@@ -250,7 +254,10 @@ def ghosts():
     g['stromkabel'] = U([cyl_y(gx, gz, 141.0, 146.8, 11.0, 6),                                         # förskruvningens mutter (nyckelvidd 19)
                          box(c - 4.5, c + 4.5, 117.0, 146.8, gz - 4.5, gz + 4.5),                    # kabeln rakt in
                          box(c - 4.5, c + 4.5, 117.0, 126.0, ZF - 2.0, gz + 4.5)])                   # och nedåt i kanalen, genom golvet
-    g['under_servoomvandlare'] = box(-34.0, 18.0, 111.0, 138.0, 1.5, 24.5)                            # servoomvandlaren under lådan (låda med öron)
+    r = SERVO_PSU; xc, zc = (r['x0'] + r['x1']) / 2, (r['z0'] + r['z1']) / 2
+    g['servoomvandlare'] = U([box(xc - 13.5, xc + 13.5, YP0 - 23.0, YP0, zc - 19.0, zc + 19.0),
+                              box(xc - 5.0, xc + 5.0, YP0 - 3.0, YP0, zc - 26.0, zc + 26.0),
+                              box(xc - 4.0, xc + 4.0, YP0 - 16.0, YP0 - 4.0, zc - 29.5, zc + 29.5)])   # öron och ledare i båda ändar
     return g
 
 def packning():

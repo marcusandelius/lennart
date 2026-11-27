@@ -23,30 +23,36 @@ tidigare. Det högra Ø16-hålet sitter bakom Pi:n och täcks av packningen och 
    inte böjas på de cirka 20 mm som finns. Kontrollera att förskruvningens klämområde passar kabeln [verifiera].
 4. Sätt en DC-hankontakt med skruvplint på kabeländen, eller koppla ledarna direkt till omvandlarna.
 
-Ingenting på plattan får sitta i kanalen under förskruvningen. Därför står PCA9685 på högkant, EKM006 ligger ovanför
-och servoomvandlaren ligger under lådan.
+Ingenting på plattan får sitta i slitsen under förskruvningen.
 
 ## Djupet och fönstren
 Från plattan till kåpans insida är det 24,6 mm, och mer går inte att få: förrådet och stativet står 2,4 mm framför
 kåpan och bakväggen bakom. Kontakt plus böjd kabel behöver 24,6 mm från kortets ovansida (uppmätt). Därför har kåpan
 två fönster, öppna nedåt, där kontakterna sticker ut i fri yta:
 * Höger kant, framför Pi:ns GPIO-kontakter (7–20 mm fritt framför, där förrådet rundar av).
-* Till vänster, framför PCA9685:s kanal 0 och 1 (6–19 mm fritt framför, även med förrådets lyftväg).
+* Nere till höger, framför PCA9685:s kanal 0 och 1 (6–30 mm fritt framför, under förrådets sluttning).
 
-## Layout (sett framifrån)
-* Raspberry Pi 5 till höger, stående: USB och nätverk nedåt, GPIO till höger, USB-C till vänster, minneskortet uppåt.
-* PCA9685 stående till höger om kanalen: servokontakterna på vänster kant, kontrollkontakten uppåt, plinten åt höger.
-* EKM006 liggande ovanför: 5 V ut till vänster (USB-C-kabeln till Pi:n), 12 V in till höger.
-* Under lådan (27 mm höjd): servoomvandlaren, DC-jacket och keystone-uttaget. Buntbandshål i golvet.
-* Golvöppningar från vänster: fler kablar, strömkabeln, 12 V och 5 V till EKM006 och PCA9685, nätverk och flatkabel,
-  GPIO-kabeln och fler kablar.
-* Routern står på kant till vänster om doseringen. Lådan går inte in i dess plats.
+## Layout (sett framifrån, version 2026-11-27)
+* Raspberry Pi 5 till höger, stående och 2 mm högre än förut: USB nedåt, GPIO till höger, USB-C till vänster,
+  minneskortet uppåt. Pi:n använder wifi. Under nätverksuttaget finns ca 17 mm fritt till PCA9685, så en vinklad
+  nätverkskontakt med låg profil kan få plats om kabel behövs [verifiera mot kontakten].
+* PCA9685 liggande under Pi:n och ut åt vänster: kontrollkontakten åt höger (korta kablar upp till GPIO), kanal 0 och 1
+  till höger vid fönstret, plinten nedtill.
+* Servoomvandlaren stående i en vagga till vänster om Pi:n, öronen uppåt och nedåt, buntband ovanför. Den är 23 mm hög
+  (uppmätt) och har 47–48 mm mellan öronens hål.
+* EKM006 liggande ovanför: 12 V in till vänster, 5 V ut till höger (den klippta USB-C-kabeln till Pi:n).
+* Slitsen i plattan runt förskruvningen är 24 mm bred och öppen nedåt, så att både gängan och muttern får plats.
+* Under lådan ligger bara keystone-uttaget och DC-jacket.
+* Golvöppningarna i bakstycket är oförändrade.
+
+Ändrat sedan förra versionen: bara `24_komponentplatta.stl` och `16b_elkapa.stl` (fönstret för servokontakterna har
+flyttat från vänster till nere till höger). Bakstycket och packningen är oförändrade.
 
 ## Kontroller (`src/elchk.py`, `src/ghostchk.py`, `src/sweep2.py`)
-* Inga överlapp med huset, doseringen eller skärmfickan. Servokontakterna når som närmast 2,8 mm från förrådet.
+* Inga överlapp med huset, doseringen eller skärmfickan. Alla kontakter har minst 3 mm till förrådet.
 * Komponenterna krockar inte med varandra eller med lådan.
 * Kåpan går fritt rakt upp med allt inkopplat.
-* Plattan går fritt rakt upp med komponenterna kvar och strömkabeln på plats, när servokontakterna är urdragna.
+* Plattan går fritt rakt upp med komponenterna och kontrollkablarna kvar och strömkabeln på plats, när servokontakterna är urdragna.
 
 ## Gängor och skruvar
 | Var | Antal | Vad |

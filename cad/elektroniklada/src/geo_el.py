@@ -8,8 +8,8 @@ for n in ('notforrad','doserstativ','plockskiva'): put(n,trimesh.load('../p2/ut5
 L=lambda n: trimesh.load('ut/asm/%s.stl'%n)
 for n in ('elbakstycke','elkapa','komponentplatta','elpackning'): put(n,L(n))
 sp={f[:-4]:trimesh.load('ut/spoken/'+f) for f in os.listdir('ut/spoken')}
-groups={'k_pi':['pi5'],'k_kontakt':['pi5_gpio','pi5_natverkskontakt','pi5_usbc','pca9685_servokontakter','pca9685_kontroll'],'k_ffc':['pi5_flatkabel'],
-        'k_pca':['pca9685'],'k_ekm':['ekm006'],'k_psu':['under_servoomvandlare'],'k_kabel':['stromkabel']}
+groups={'k_pi':['pi5'],'k_kontakt':['pi5_gpio','pi5_usbc','pca9685_servokontakter','pca9685_kontroll'],'k_ffc':['pi5_flatkabel'],
+        'k_pca':['pca9685'],'k_ekm':['ekm006'],'k_psu':['servoomvandlare'],'k_kabel':['stromkabel']}
 for g,ns in groups.items():
     m=trimesh.util.concatenate([sp[n] for n in ns])
     put(g,m); put(g+'_upp',m,(0,0,120))
