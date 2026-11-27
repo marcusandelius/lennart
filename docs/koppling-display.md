@@ -53,7 +53,7 @@ Står GP-namnen tryckta på kortet gäller de framför den här listan.
 
 ## Testa från adminvyn
 
-I fliken **Skärmen** i adminvyn på lennart.cam väljer du vad skärmen visar: **kamerabilden**, **ACCESS GRANTED** (helgrön) eller **ACCESS DENIED** (helröd). Valet gäller direkt.
+I fliken **Skärmen** i adminvyn på lennart.cam väljer du vad skärmen visar: **kamerabilden**, **ACCESS GRANTED** (mörkgrön bakgrund) eller **ACCESS DENIED** (mörkröd bakgrund). De ser ut som i filmtrailern: två rader i fet Liberation Mono, ritade av `access_screen()` i `pi/main.py`. Valet gäller direkt.
 
 Läget **Demo** visar kamerabilden, och när något rör sig framför kameran lottas ACCESS GRANTED eller ACCESS DENIED fram och visas i 4 sekunder. Efter det vilar demoläget i 3 sekunder, och ett djur som blir sittande lottas inte om. Rörelse- och ljusgränsen är samma som för inspelningen. Koden finns i `pi/demo.py`.
 
