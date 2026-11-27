@@ -447,22 +447,22 @@
               <div class="buttons"><button type="button" id="calibAgo">Prova: till utfallet</button><span class="hint" id="calibAtime" style="margin:0"></span></div>
               <div class="calib-ask" id="calibAask" hidden>
                 <p><b>Hur långt kom hålet?</b> <span id="calibAtext"></span></p>
-                <input type="range" id="calibAval" min="30" max="170" step="5" value="100" aria-label="Hur långt hålet kom, jämfört med utfallet">
+                <input type="range" id="calibAval" min="40" max="160" step="1" value="100" aria-label="Hur långt hålet kom, jämfört med utfallet">
                 <div class="calib-scale"><span>Halvvägs</span><span>Mitt över utfallet</span><span>Långt förbi</span></div>
-                <div class="buttons"><button type="button" id="calibAsave">Rätta tiden</button></div>
+                <div class="buttons"><span class="stepper"><button type="button" class="secondary" data-nudge="-1" data-for="calibAval" aria-label="1 % mindre">−</button><button type="button" class="secondary" data-nudge="1" data-for="calibAval" aria-label="1 % mer">+</button></span><button type="button" id="calibAsave">Rätta tiden</button></div>
               </div>
             </div>
 
             <div class="calib" id="calibB">
-              <p class="calib-title"><span class="calib-n">B</span> Vidare runt till plockläget</p>
+              <p class="calib-title"><span class="calib-n">B</span> Från utfallet runt till plockläget</p>
               <p class="hint">Kör direkt efter A, där hålet än står. Tiden räknas så att A och B tillsammans blir ett helt varv.</p>
               <div class="buttons"><button type="button" id="calibBgo">Kör vidare till plockläget</button><span class="hint" id="calibBtime" style="margin:0"></span></div>
               <div class="calib-ask" id="calibBask" hidden>
                 <p><b>Var stannade hålet, jämfört med plockläget?</b> <span id="calibBtext"></span></p>
-                <input type="range" id="calibBval" min="-40" max="40" step="1" value="0" aria-label="Var hålet stannade jämfört med plockläget, i andel av ett varv">
+                <input type="range" id="calibBval" min="-30" max="30" step="0.5" value="0" aria-label="Var hålet stannade jämfört med plockläget, i andel av ett varv">
                 <div class="calib-scale"><span>Långt före</span><span>I plockläget</span><span>Långt förbi</span></div>
                 <p class="hint">Ett kvarts varv är 25 %. Sidan räknar sedan ut var hålet står, och <b>Gå till plockläget</b> kör det rätt sträcka framåt.</p>
-                <div class="buttons"><button type="button" id="calibBsave">Rätta tiden för ett varv</button></div>
+                <div class="buttons"><span class="stepper"><button type="button" class="secondary" data-nudge="-0.5" data-for="calibBval" aria-label="En halv procent mer före">−</button><button type="button" class="secondary" data-nudge="0.5" data-for="calibBval" aria-label="En halv procent mer förbi">+</button></span><button type="button" id="calibBsave">Rätta tiden</button></div>
               </div>
             </div>
 
@@ -471,13 +471,15 @@
 
             <details class="more">
               <summary>Tiderna i siffror</summary>
+              <p class="hint">Två delar: från plockläget till utfallet, och från utfallet vidare runt till plockläget. Skriv in en tid och klicka utanför rutan, eller använd − och + (10 ms per tryck). Ändrar du den ena delen behåller den andra sin tid.</p>
               <div class="field">
-                <label for="doser_up_ms">Till utfallet</label>
-                <div><span class="stepper"><button type="button" class="secondary" data-step="-20" data-for="doser_up_ms" aria-label="20 ms kortare">−</button><input type="number" id="doser_up_ms" data-key="doser_up_ms" data-label="Tiden till utfallet" step="10" aria-label="Tid till utfallet i millisekunder"><button type="button" class="secondary" data-step="20" data-for="doser_up_ms" aria-label="20 ms längre">+</button></span> <span class="unit">ms</span></div>
+                <label for="seg_up">Till utfallet</label>
+                <div><span class="stepper"><button type="button" class="secondary" data-segstep="-10" data-for="seg_up" aria-label="10 ms kortare">−</button><input type="number" id="seg_up" step="10" min="50" aria-label="Från plockläget till utfallet, i millisekunder"><button type="button" class="secondary" data-segstep="10" data-for="seg_up" aria-label="10 ms längre">+</button></span> <span class="unit">ms</span></div>
               </div>
               <div class="field">
-                <label for="doser_rev_ms">Helt varv</label>
-                <div><span class="stepper"><button type="button" class="secondary" data-step="-20" data-for="doser_rev_ms" aria-label="20 ms kortare">−</button><input type="number" id="doser_rev_ms" data-key="doser_rev_ms" data-label="Tiden för ett helt varv" step="10" aria-label="Tid för ett helt varv i millisekunder"><button type="button" class="secondary" data-step="20" data-for="doser_rev_ms" aria-label="20 ms längre">+</button></span> <span class="unit">ms</span></div>
+                <label for="seg_rest">Från utfallet till plockläget</label>
+                <div><span class="stepper"><button type="button" class="secondary" data-segstep="-10" data-for="seg_rest" aria-label="10 ms kortare">−</button><input type="number" id="seg_rest" step="10" min="50" aria-label="Från utfallet till plockläget, i millisekunder"><button type="button" class="secondary" data-segstep="10" data-for="seg_rest" aria-label="10 ms längre">+</button></span> <span class="unit">ms</span>
+                <p class="hint" id="seg_total"></p></div>
               </div>
             </details>
 
@@ -643,7 +645,7 @@
     $("doserservohint").textContent = is360
       ? "Snurrar så länge det får signal. Styrs med tid, och skivans läge kan glida lite för varje varv."
       : "Ställer sig på en exakt vinkel. Skivan hamnar på samma ställe varje gång.";
-    if ($("calibAtime")) calibTexts();
+    if ($("calibAtime")) { calibTexts(); showSegments(); }
     $("dispensehint360").textContent = `Testa utmatning: ${S.doser_up_ms} ms fram till utfallet, ett stopp på 0,3 s där nöten faller ut, och ${S.doser_rev_ms - S.doser_up_ms} ms vidare runt till plockläget. Utgår från att hålet står i plockläget.`;
     $("dispensehintVinkel").textContent = `Till ${S.pick_angle}°, ett litet vick, lugnt upp till ${S.dispense_angle}° på ${(S.dispense_move_ms / 1000).toLocaleString("sv-SE")} s och lika lugnt tillbaka.`;
   }
@@ -825,11 +827,12 @@
   function calibMsg(text) { $("calibmsg").hidden = false; $("calibmsg").textContent = text; }
   function calibTexts() {
     const a = parseInt($("calibAval").value, 10);
-    $("calibAtext").textContent = a < 95 ? `Stannade före, ungefär ${a} % av vägen.`
-      : a > 105 ? `Åkte förbi, ungefär ${a} % av vägen.` : "Mitt över utfallet.";
-    const b = parseInt($("calibBval").value, 10);
-    $("calibBtext").textContent = b < -2 ? `Före plockläget, ungefär ${-b} % av ett varv.`
-      : b > 2 ? `Förbi plockläget, ungefär ${b} % av ett varv.` : "I plockläget.";
+    $("calibAtext").textContent = a < 100 ? `Stannade före, ungefär ${a} % av vägen.`
+      : a > 100 ? `Åkte förbi, ungefär ${a} % av vägen.` : "Mitt över utfallet.";
+    const b = parseFloat($("calibBval").value);
+    const pctText = v => v.toLocaleString("sv-SE");
+    $("calibBtext").textContent = b < 0 ? `Före plockläget, ungefär ${pctText(-b)} % av ett varv.`
+      : b > 0 ? `Förbi plockläget, ungefär ${pctText(b)} % av ett varv.` : "I plockläget.";
     if (S) {
       $("calibAtime").textContent = `Kör ${fmtMs(S.doser_up_ms)}`;
       const rest = (calibRevUsed ?? S.doser_rev_ms) - (calibUpUsed ?? S.doser_up_ms);
@@ -838,6 +841,34 @@
   }
   $("calibAval").addEventListener("input", calibTexts);
   $("calibBval").addEventListener("input", calibTexts);
+  // − och + vid svarsreglagen: 1 % i taget, för små justeringar
+  $$("[data-nudge]").forEach(b => b.addEventListener("click", () => {
+    const el = $(b.dataset.for);
+    el.value = Math.min(+el.max, Math.max(+el.min, parseFloat(el.value) + parseFloat(b.dataset.nudge)));
+    calibTexts();
+  }));
+
+  // Tiderna i siffror: två delar. Inställningarna sparar tiden till utfallet och ett helt varv,
+  // så "från utfallet till plockläget" är varvet minus tiden till utfallet.
+  function showSegments() {
+    if (!S) return;
+    const rest = S.doser_rev_ms - S.doser_up_ms;
+    if (document.activeElement !== $("seg_up")) $("seg_up").value = S.doser_up_ms;
+    if (document.activeElement !== $("seg_rest")) $("seg_rest").value = rest;
+    $("seg_total").textContent = `Ett helt varv: ${fmtMs(S.doser_rev_ms)}.`;
+  }
+  async function saveSegments(up, rest) {
+    if (!(up >= 50) || !(rest >= 50)) { toast("Tiderna ska vara minst 50 ms.", "no"); showSegments(); return; }
+    await save({ doser_up_ms: up, doser_rev_ms: up + rest });
+    showSegments();
+  }
+  $("seg_up").addEventListener("change", () => saveSegments(parseInt($("seg_up").value, 10), S.doser_rev_ms - S.doser_up_ms));
+  $("seg_rest").addEventListener("change", () => saveSegments(S.doser_up_ms, parseInt($("seg_rest").value, 10)));
+  $$("[data-segstep]").forEach(b => b.addEventListener("click", () => {
+    const step = parseInt(b.dataset.segstep, 10), rest = S.doser_rev_ms - S.doser_up_ms;
+    if (b.dataset.for === "seg_up") saveSegments(S.doser_up_ms + step, rest);
+    else saveSegments(S.doser_up_ms, rest + step);
+  }));
   $("calibAgo").addEventListener("click", () => {
     calibUpUsed = S.doser_up_ms; calibRevUsed = S.doser_rev_ms;
     $("calibAval").value = 100; $("calibAask").hidden = false; $("calibBask").hidden = true; $("calibmsg").hidden = true;
@@ -848,11 +879,14 @@
   $("calibAsave").addEventListener("click", async () => {
     const pct = parseInt($("calibAval").value, 10);
     $("calibAask").hidden = true;
-    if (pct >= 95 && pct <= 105) { calibMsg("Bra! Tiden till utfallet stämmer. Kör B för att komma tillbaka till plockläget."); return; }
-    const up = round10(calibUpUsed * 100 / pct);
-    const changes = { doser_up_ms: up };
-    if (up >= S.doser_rev_ms) changes.doser_rev_ms = round10(up + (S.doser_rev_ms - calibUpUsed));
-    if (await save(changes)) { calibTexts(); calibMsg(`Ny tid till utfallet: ${fmtMs(up)} (förut ${fmtMs(calibUpUsed)}). Kör B, så kommer hålet tillbaka till plockläget.`); }
+    if (pct === 100) { calibMsg("Bra! Tiden till utfallet stämmer. Kör B för att komma tillbaka till plockläget."); return; }
+    const up = Math.max(50, round10(calibUpUsed * 100 / pct));
+    const rest = calibRevUsed - calibUpUsed;            // delen från utfallet behåller sin tid
+    if (up === calibUpUsed) { calibMsg("Skillnaden är mindre än 10 ms, så tiden ändras inte. Kör B för att komma tillbaka till plockläget."); return; }
+    if (await save({ doser_up_ms: up, doser_rev_ms: up + rest })) {
+      calibTexts(); showSegments();
+      calibMsg(`Ny tid till utfallet: ${fmtMs(up)} (förut ${fmtMs(calibUpUsed)}). Kör B, så kommer hålet tillbaka till plockläget.`);
+    }
   });
   $("calibBgo").addEventListener("click", () => {
     const up = calibUpUsed ?? S.doser_up_ms, rev = calibRevUsed ?? S.doser_rev_ms;
@@ -863,19 +897,21 @@
     if (counter !== null) { counter = 0; showCounter(); }
   });
   $("calibBsave").addEventListener("click", async () => {
-    const err = parseInt($("calibBval").value, 10);   // % av ett varv, minus = före plockläget
-    const rev = calibRevUsed ?? S.doser_rev_ms;
+    const err = parseFloat($("calibBval").value);   // % av ett varv, minus = före plockläget
+    const rev = calibRevUsed ?? S.doser_rev_ms, upUsedForB = calibUpUsed ?? S.doser_up_ms;
     $("calibBask").hidden = true;
     calibUpUsed = calibRevUsed = null;
-    if (Math.abs(err) <= 2) { calibTexts(); calibMsg("Bra! Ett helt varv stämmer. Kör A och B igen för att se att det håller, eller tryck Testa utmatning."); return; }
-    const newRev = round10(rev * 100 / (100 + err));
-    const changes = { doser_rev_ms: Math.max(newRev, S.doser_up_ms + 100) };
+    if (err === 0) { calibTexts(); calibMsg("Bra! Hålet kom tillbaka till plockläget. Kör A och B igen för att se att det håller, eller tryck Testa utmatning."); return; }
+    const restUsed = rev - upUsedForB;
+    const restNew = Math.max(50, round10(restUsed - err / 100 * rev));   // stannade före (minus) = behöver längre tid
+    const changes = { doser_rev_ms: S.doser_up_ms + restNew };
     if (await save(changes)) {
       // Hålet står err % av ett varv före (minus) eller förbi (plus) plockläget.
       const frac = ((err / 100) % 1 + 1) % 1;
       counter = round10(changes.doser_rev_ms * frac); showCounter();
       calibTexts();
-      calibMsg(`Ny tid för ett helt varv: ${fmtMs(changes.doser_rev_ms)} (förut ${fmtMs(rev)}). Tryck Gå till plockläget och kör sedan A igen.`);
+      showSegments();
+      calibMsg(`Ny tid från utfallet till plockläget: ${fmtMs(restNew)} (förut ${fmtMs(restUsed)}). Tryck Gå till plockläget och kör sedan A igen.`);
     }
   });
 
