@@ -113,6 +113,11 @@
   .steps .field { border-top:1px dashed var(--line); padding:.65rem 0; }
   .steps .field > label { padding-top:.55rem; }
   .counter { font-variant-numeric:tabular-nums; font-weight:700; margin:.6rem 0 0; }
+  .knuff { display:inline-flex; align-items:center; gap:.6rem; padding:.35rem .75rem; border:1px solid var(--line);
+           border-radius:12px; background:var(--surface); font-weight:600; flex:1 1 15rem; max-width:22rem; }
+  .knuff span { color:var(--ink-2); font-size:.92rem; }
+  .knuff input { flex:1; min-width:6rem; accent-color:var(--ink); }
+  .knuff output { font-variant-numeric:tabular-nums; font-weight:800; min-width:4.6rem; text-align:right; }
   .counter:empty { display:none; }
   @media (max-width:34rem) {
     .card { padding:1rem; }
@@ -362,7 +367,7 @@
             <h3>Spara plockläget</h3>
             <p class="hint">Knuffa framåt tills hålet står längst ner i nöthögen, och tryck <b>Spara som plockläge</b>. Då börjar räknaren om från noll.</p>
             <div class="buttons">
-              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><div class="seg" role="radiogroup" aria-label="Hur lång knuff"><label><input type="radio" name="knuff2" value="50" data-knuff><span>50 ms</span></label><label><input type="radio" name="knuff2" value="100" data-knuff checked><span>100 ms</span></label><label><input type="radio" name="knuff2" value="250" data-knuff><span>250 ms</span></label></div>
+              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><label class="knuff"><span>Knuff</span><input type="range" min="0" max="100" step="1" value="35" data-knuff aria-label="Knuffens längd"><output>100 ms</output></label>
               <button type="button" id="markpick">Spara som plockläge</button>
             </div>
             <p class="counter" id="counter" aria-live="polite"></p>
@@ -371,7 +376,7 @@
             <h3>Spara utfallet</h3>
             <p class="hint">Knuffa framåt tills hålet står mitt över utfallet, och tryck <b>Spara som utfall</b>.</p>
             <div class="buttons">
-              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><div class="seg" role="radiogroup" aria-label="Hur lång knuff"><label><input type="radio" name="knuff3" value="50" data-knuff><span>50 ms</span></label><label><input type="radio" name="knuff3" value="100" data-knuff checked><span>100 ms</span></label><label><input type="radio" name="knuff3" value="250" data-knuff><span>250 ms</span></label></div>
+              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><label class="knuff"><span>Knuff</span><input type="range" min="0" max="100" step="1" value="35" data-knuff aria-label="Knuffens längd"><output>100 ms</output></label>
               <button type="button" data-save-pos="doser_up_ms">Spara som utfall</button>
             </div>
           </li>
@@ -379,7 +384,7 @@
             <h3>Spara ett helt varv</h3>
             <p class="hint">Knuffa vidare framåt tills hålet är tillbaka i plockläget, och tryck <b>Spara som helt varv</b>.</p>
             <div class="buttons">
-              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><div class="seg" role="radiogroup" aria-label="Hur lång knuff"><label><input type="radio" name="knuff4" value="50" data-knuff><span>50 ms</span></label><label><input type="radio" name="knuff4" value="100" data-knuff checked><span>100 ms</span></label><label><input type="radio" name="knuff4" value="250" data-knuff><span>250 ms</span></label></div>
+              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><label class="knuff"><span>Knuff</span><input type="range" min="0" max="100" step="1" value="35" data-knuff aria-label="Knuffens längd"><output>100 ms</output></label>
               <button type="button" data-save-pos="doser_rev_ms">Spara som helt varv</button>
             </div>
           </li>
@@ -419,7 +424,7 @@
           </div>
           <div class="field">
             <span class="label">Knuffa bakåt</span>
-            <div><div class="buttons" style="margin-top:0"><button type="button" class="secondary" data-spin="down">◀ Knuffa bakåt</button><div class="seg" role="radiogroup" aria-label="Hur lång knuff"><label><input type="radio" name="knuff5" value="50" data-knuff><span>50 ms</span></label><label><input type="radio" name="knuff5" value="100" data-knuff checked><span>100 ms</span></label><label><input type="radio" name="knuff5" value="250" data-knuff><span>250 ms</span></label></div></div>
+            <div><div class="buttons" style="margin-top:0"><button type="button" class="secondary" data-spin="down">◀ Knuffa bakåt</button><label class="knuff"><span>Knuff</span><input type="range" min="0" max="100" step="1" value="35" data-knuff aria-label="Knuffens längd"><output>100 ms</output></label></div>
             <p class="hint">Bra för att rätta till om hålet åkt förbi. Räknas av från räknaren, men bara ungefär.</p></div>
           </div>
         </details>
@@ -595,11 +600,16 @@
   $$("[data-cmd]").forEach(b => b.addEventListener("click", () => command(JSON.parse(b.dataset.cmd), b.dataset.label)));
   // Räknaren: hur länge skivan snurrat framåt sedan plockläget sparades. Ett 360°-servo kan inte
   // säga var det står, så "lägena" sparas som tid. Sparas i fliken, så att den överlever en omladdning.
-  // Knuffens längd väljs vid varje knuffknapp, men valet är gemensamt: ändras det på ett ställe följer de andra med.
+  // Knuffens längd väljs med ett reglage vid varje knuffknapp. Reglagen följer varandra.
+  // Skalan är logaritmisk, 20–2000 ms: fina steg för korta knuffar och större steg för långa.
+  const knuffFrom = v => Math.max(20, Math.round(20 * Math.pow(100, v / 100) / 10) * 10);
   let knuffMs = 100;
-  $$("[data-knuff]").forEach(el => el.addEventListener("change", () => {
-    knuffMs = parseInt(el.value, 10);
-    $$("[data-knuff]").forEach(o => { o.checked = o.value === el.value; });
+  $$("[data-knuff]").forEach(el => el.addEventListener("input", () => {
+    knuffMs = knuffFrom(parseInt(el.value, 10));
+    $$("[data-knuff]").forEach(o => {
+      o.value = el.value;
+      o.nextElementSibling.textContent = `${knuffMs.toLocaleString("sv-SE")} ms`;
+    });
   }));
   let counter = null;
   try { const c = sessionStorage.getItem("lennart-raknare"); if (c !== null) counter = parseInt(c, 10); } catch (e) {}
