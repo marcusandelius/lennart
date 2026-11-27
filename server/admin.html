@@ -113,6 +113,22 @@
   .steps .field { border-top:1px dashed var(--line); padding:.65rem 0; }
   .steps .field > label { padding-top:.55rem; }
   .counter { font-variant-numeric:tabular-nums; font-weight:700; margin:.6rem 0 0; }
+  .wiz { margin-top:.8rem; padding:.9rem; border-radius:12px; background:var(--surface); border:1px solid var(--line); }
+  .wiz-q { margin:0 0 .6rem; font-size:1.05rem; }
+  .wiz-bar { position:relative; height:.7rem; border-radius:999px; background:var(--line); overflow:hidden; }
+  #wiz-range { position:absolute; top:0; bottom:0; background:color-mix(in srgb, var(--granted) 55%, transparent); transition:left .3s, width .3s; }
+  #wiz-mark { position:absolute; top:-2px; bottom:-2px; width:3px; margin-left:-1px; background:var(--ink); transition:left .3s; }
+  .wiz-answers { display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem; margin-top:.9rem; }
+  @media (max-width:34rem) { .wiz-answers { grid-template-columns:1fr; } }
+  .wiz-answers button { padding:.75rem .6rem; font-size:1.02rem; }
+  .wiz-answers small { display:block; font-weight:500; font-size:.8rem; color:var(--ink-2); margin-top:.15rem; }
+  .wiz-answers button:disabled { opacity:.45; cursor:default; }
+  .wiz-result { margin:.8rem 0 0; padding:.7rem .85rem; border-radius:10px; font-weight:600;
+                background:color-mix(in srgb, var(--granted) 12%, transparent); border:1px solid color-mix(in srgb, var(--granted) 45%, transparent); }
+  .wiz-result.bad { background:color-mix(in srgb, var(--denied) 10%, transparent); border-color:color-mix(in srgb, var(--denied) 45%, transparent); }
+  .speed { display:flex; align-items:center; gap:.7rem; max-width:24rem; }
+  .speed span { color:var(--ink-2); font-size:.92rem; font-weight:600; }
+  .speed input { flex:1; accent-color:var(--ink); }
   .knuff { display:inline-flex; align-items:center; gap:.6rem; padding:.35rem .75rem; border:1px solid var(--line);
            border-radius:12px; background:var(--surface); font-weight:600; flex:1 1 15rem; max-width:22rem; }
   .knuff span { color:var(--ink-2); font-size:.92rem; }
@@ -356,11 +372,34 @@
         <p class="lead">Ett 360°-servo vet aldrig var skivan står. Därför sparas lägena som <b>tid från plockläget</b>, och en utmatning är ett helt varv framåt: fram till utfallet, ett kort stopp, och resten av varvet tillbaka till plockläget. Gör det utan nötter först.</p>
         <ol class="steps">
           <li>
-            <h3>Kolla riktningen</h3>
-            <p class="hint">Tryck <b>Knuffa framåt</b>. Hålet ska röra sig från nöthögen mot utfallet. Går det åt andra hållet: kryssa i Omvänd riktning.</p>
-            <div class="buttons">
-              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button>
-              <label class="check"><input type="checkbox" data-key="doser_reverse"> Omvänd riktning</label>
+            <h3>Lär känna servot</h3>
+            <p class="hint">Varje 360°-servo står still vid sin egen signal. Den behöver hittas, annars kan framåt och bakåt gå åt samma håll och farten bli olika. Stationen snurrar skivan en kort stund i taget. Titta på skivan och svara åt vilket håll den gick. Det tar ungefär 9 prov, och resultatet sparas av sig självt.</p>
+            <div id="wiz-idle" class="buttons">
+              <button type="button" id="wizstart">Starta</button>
+              <span class="hint" id="wiz-saved" style="margin:0"></span>
+            </div>
+            <div id="wiz-run" class="wiz" hidden>
+              <p class="wiz-q"><b id="wiz-step">Prov 1</b> Åt vilket håll snurrade skivan?</p>
+              <div class="wiz-bar" aria-hidden="true"><div id="wiz-range"></div><div id="wiz-mark"></div></div>
+              <p class="hint" style="margin:.2rem 0 0">Stapeln visar var stilla-punkten kan ligga. Den krymper för varje svar.</p>
+              <div class="wiz-answers">
+                <button type="button" class="secondary" data-ans="bak">◀ Bakåt<small>från utfallet, mot nöthögen</small></button>
+                <button type="button" class="secondary" data-ans="still">Stod still<small>eller nästan stilla</small></button>
+                <button type="button" class="secondary" data-ans="fram">Framåt ▶<small>från nöthögen, mot utfallet</small></button>
+              </div>
+              <div class="buttons">
+                <button type="button" class="secondary" id="wizagain">Kör samma prov igen</button>
+                <button type="button" class="secondary" id="wizundo">Ångra senaste svaret</button>
+                <button type="button" class="secondary" id="wizcancel">Avbryt</button>
+              </div>
+            </div>
+            <p class="wiz-result" id="wiz-result" hidden></p>
+            <div class="field" style="border-top:1px dashed var(--line); margin-top:.9rem">
+              <label for="doser_speed_us">Fart</label>
+              <div>
+                <div class="speed"><span>Lugn</span><input type="range" id="doser_speed_us" data-key="doser_speed_us" data-type="int" min="30" max="400" step="10" aria-label="Fart"><span>Snabb</span></div>
+                <p class="hint">Gäller knuffar, prov och utmatning. Ändrar du farten behöver tiderna i steg 3–5 sparas om.</p>
+              </div>
             </div>
           </li>
           <li>
@@ -411,16 +450,16 @@
           </li>
         </ol>
         <details class="more">
-          <summary>Fart, stilla-läge och knuff bakåt</summary>
+          <summary>Justera för hand och knuffa bakåt</summary>
+          <p class="hint">Behövs sällan: guiden i steg 1 ställer in det här av sig själv.</p>
           <div class="field">
-            <label for="doser_speed_us">Fart</label>
-            <div><span class="inline"><input type="number" id="doser_speed_us" data-key="doser_speed_us" data-label="Farten" step="10"><span class="unit">µs från stilla</span></span>
-            <p class="hint">Hur mycket pulsen skiljer sig från stilla-läget. Större = fortare. 120 är lugnt. Ändrar du farten behöver tiderna sparas om.</p></div>
+            <label for="doser_neutral_us">Stilla-punkt</label>
+            <div><span class="stepper"><button type="button" class="secondary" data-step="-5" data-for="doser_neutral_us" aria-label="Lite lägre">−</button><input type="number" id="doser_neutral_us" data-key="doser_neutral_us" data-label="Stilla-punkten" step="5" aria-label="Stilla-punkt"><button type="button" class="secondary" data-step="5" data-for="doser_neutral_us" aria-label="Lite högre">+</button></span>
+            <p class="hint">Signalen där servot står still. Kryper skivan när den borde stå still: prova några steg åt ena eller andra hållet.</p></div>
           </div>
           <div class="field">
-            <label for="doser_neutral_us">Stilla-läge</label>
-            <div><span class="inline"><input type="number" id="doser_neutral_us" data-key="doser_neutral_us" data-label="Stilla-läget" step="5"><span class="unit">µs</span></span>
-            <p class="hint">Pulsen där just det här servot står still, ofta runt 1500. Går Knuffa bakåt åt samma håll som framåt ligger servots stilla-punkt någon annanstans: ändra värdet tills de två knuffarna går åt var sitt håll.</p></div>
+            <span class="label">Riktning</span>
+            <div><label class="check"><input type="checkbox" data-key="doser_reverse"> Byt håll på framåt och bakåt</label></div>
           </div>
           <div class="field">
             <span class="label">Knuffa bakåt</span>
@@ -499,13 +538,13 @@
           <div><input type="number" id="servo_lucka_channel" data-key="servo_lucka_channel" data-label="Kanalen för luckan"></div>
         </div>
         <div class="field">
-          <label for="servo_min_us">Puls vid 0°</label>
-          <div><span class="inline"><input type="number" id="servo_min_us" data-key="servo_min_us" data-label="Pulsen vid 0°" step="10"><span class="unit">µs</span></span></div>
+          <label for="servo_min_us">Signal vid 0°</label>
+          <div><input type="number" id="servo_min_us" data-key="servo_min_us" data-label="Signalen vid 0°" step="10"></div>
         </div>
         <div class="field">
-          <label for="servo_max_us">Puls vid 180°</label>
-          <div><span class="inline"><input type="number" id="servo_max_us" data-key="servo_max_us" data-label="Pulsen vid 180°" step="10"><span class="unit">µs</span></span>
-          <p class="hint">Gäller vinkelservon. Står ett servo och brummar i ändläget: minska intervallet, till exempel till 600–2400.</p></div>
+          <label for="servo_max_us">Signal vid 180°</label>
+          <div><input type="number" id="servo_max_us" data-key="servo_max_us" data-label="Signalen vid 180°" step="10">
+          <p class="hint">Gäller vinkelservon, som luckan. Standard är 500 och 2500. Står ett servo och brummar i något ändläge: flytta talen lite närmare varandra, till exempel 600 och 2400.</p></div>
         </div>
         <div class="buttons"><button type="button" class="secondary" data-release="alla">Släpp alla servon</button></div>
       </div>
@@ -657,6 +696,76 @@
   const releaseLabels = { alla: "Släpp alla servon", doser: "Släpp skivan", lucka: "Släpp luckan" };
   $$("[data-release]").forEach(b => b.addEventListener("click", () =>
     command({ action: "release", servo: b.dataset.release }, releaseLabels[b.dataset.release])));
+
+  // ---------- guiden som hittar 360°-servots stilla-punkt och riktning ----------
+  // Servot står still vid en viss signal och snurrar åt var sitt håll på var sin sida om den.
+  // Guiden provar först ytterlägena och halverar sedan intervallet efter varje svar.
+  const WIZ_LOW = 1000, WIZ_HIGH = 2000, WIZ_MS = 1500, WIZ_DONE = 8;
+  let wiz = null, wizHistory = [];
+  const wizTotal = 2 + Math.ceil(Math.log2((WIZ_HIGH - WIZ_LOW) / WIZ_DONE));
+  function wizShow() {
+    $("wiz-run").hidden = !wiz;
+    $("wiz-idle").hidden = !!wiz;
+    if (!wiz) return;
+    $("wiz-step").textContent = `Prov ${wiz.n} av cirka ${wizTotal}.`;
+    const pos = v => `${(v - WIZ_LOW) / (WIZ_HIGH - WIZ_LOW) * 100}%`;
+    $("wiz-range").style.left = pos(wiz.lo);
+    $("wiz-range").style.width = `${(wiz.hi - wiz.lo) / (WIZ_HIGH - WIZ_LOW) * 100}%`;
+    $("wiz-mark").style.left = pos(wiz.us);
+    $("wizundo").disabled = !wizHistory.length;
+  }
+  function wizRun() {
+    wizShow();
+    $$("[data-ans]").forEach(b => { b.disabled = true; });
+    setTimeout(() => $$("[data-ans]").forEach(b => { b.disabled = false; }), WIZ_MS + 800);
+    command({ action: "pulse", servo: "doser", us: wiz.us, ms: WIZ_MS }, `Prov ${wiz.n}`);
+  }
+  function wizEnd(text, ok) {
+    wiz = null; wizHistory = [];
+    wizShow();
+    $("wiz-result").hidden = false;
+    $("wiz-result").className = `wiz-result${ok ? "" : " bad"}`;
+    $("wiz-result").textContent = text;
+  }
+  async function wizFinish(neutral, highIsForward) {
+    const saved = await save({ doser_neutral_us: Math.round(neutral), doser_reverse: !highIsForward });
+    if (saved) wizEnd("Klart! Servots stilla-punkt och riktning är sparade. Prova Knuffa framåt i steg 2, och Knuffa bakåt under Justera för hand längst ner: nu ska de gå åt var sitt håll.", true);
+    else wizEnd("Stilla-punkten hittades, men kunde inte sparas. Försök igen.", false);
+  }
+  $("wizstart").addEventListener("click", () => {
+    $("wiz-result").hidden = true;
+    wiz = { n: 1, phase: "high", us: WIZ_HIGH, lo: WIZ_LOW, hi: WIZ_HIGH, dirLo: null, dirHi: null };
+    wizHistory = [];
+    wizRun();
+  });
+  $("wizagain").addEventListener("click", () => wiz && wizRun());
+  $("wizcancel").addEventListener("click", () => { wiz = null; wizHistory = []; wizShow(); });
+  $("wizundo").addEventListener("click", () => {
+    if (!wizHistory.length) return;
+    wiz = wizHistory.pop();
+    wizRun();
+  });
+  $$("[data-ans]").forEach(b => b.addEventListener("click", () => {
+    if (!wiz) return;
+    const a = b.dataset.ans;
+    wizHistory.push({ ...wiz });
+    const next = us => { wiz.us = Math.round(us); wiz.n += 1; wizRun(); };
+    if (wiz.phase === "high") {
+      if (a === "still") return wizEnd("Skivan stod still vid full fart åt ena hållet. Kolla att servot får ström och sitter på rätt kanal (fliken Servokort), och starta guiden igen.", false);
+      wiz.dirHi = a; wiz.phase = "low";
+      return next(WIZ_LOW);
+    }
+    if (wiz.phase === "low") {
+      if (a === "still") return wizEnd("Skivan stod still vid full fart åt andra hållet. Kolla att servot får ström och sitter på rätt kanal, och starta guiden igen.", false);
+      if (a === wiz.dirHi) return wizEnd("Skivan gick åt samma håll båda gångerna. Då ligger servots stilla-punkt utanför det som går att ställa in härifrån. Många 360°-servon har en liten justerskruv för stilla-punkten: vrid den lite och starta guiden igen.", false);
+      wiz.dirLo = a; wiz.phase = "half";
+      return next((wiz.lo + wiz.hi) / 2);
+    }
+    if (a === "still") return wizFinish(wiz.us, wiz.dirHi === "fram");
+    if (a === wiz.dirLo) wiz.lo = wiz.us; else wiz.hi = wiz.us;
+    if (wiz.hi - wiz.lo <= WIZ_DONE) return wizFinish((wiz.lo + wiz.hi) / 2, wiz.dirHi === "fram");
+    next((wiz.lo + wiz.hi) / 2);
+  }));
 
   // ---------- flikar ----------
   const tabs = [...$$("[role=tab]")];
