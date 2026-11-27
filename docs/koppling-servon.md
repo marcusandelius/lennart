@@ -27,7 +27,7 @@ Servona styrs via ett **PCA9685-kort** (16 kanaler, I2C). Kortet skapar servosig
 
 | Servo | Kanal | Kabelfärger (vanligast) |
 |---|---|---|
-| Plockskivan, doseringen (servot på 11 kg) | 0 | Brun = GND, röd = V+, orange/gul = signal |
+| Plockskivan, doseringen (just nu 360°-servot på 5 kg, se nedan) | 0 | Brun = GND, röd = V+, orange/gul = signal |
 | Luckan (MG90S) | 1 | Samma |
 
 Kanalerna går att ändra i adminvyn under "Inställningar för servona".
@@ -40,14 +40,29 @@ Görs en gång, se steg 9 i [SETUP-PI.md](SETUP-PI.md).
 
 1. Logga in på https://lennart.cam/admin.
 2. Under **Servon** ska det stå `✓ PCA9685 på I2C-buss 1 …` när kortet hittats.
-3. Dra reglaget för plockskivan till exempelvis 90° och tryck **Flytta**. Servot vrider sig och släpps efter en sekund.
-4. **Testa utmatning** gör plockskivans rörelse:
-   1. till plocklägets vinkel (standard 0°), där hålet står längst ner i nöthögen;
-   2. ett litet vick på 12° två gånger, som rör om nötterna så att en lägger sig i hålet;
-   3. lugnt upp till utmatningsvinkeln (standard 119°) på den tid som står i **Tid för vridet** (standard 1 500 ms), med mjuk start och inbromsning;
-   4. ett kort stopp på 0,3 s, och sedan lika lugnt tillbaka till plockläget.
+3. Välj under **Inställningar för servona** vilket servo som driver plockskivan: **360°-servo** (just nu) eller **vinkelservo**. Adminvyn visar knapparna som passar.
 
-   Titta när skivan står still uppe: hålet ska ligga mitt över utfallet. Vinklarna och tiden ändras under **Inställningar för servona**, utan ny deploy.
+### Plockskivan med 360°-servo (just nu)
+
+Ett 360°-servo har ingen vinkel. Pulsen styr fart och riktning: 1500 µs är stilla, längre puls snurrar åt ena hållet och kortare åt det andra. Servot stannar när signalen släpps. Därför styrs rörelsen med **tid**, och skivan vet aldrig exakt var den står. Små fel kan växa för varje utmatning, så kolla läget då och då.
+
+**Prova fram inställningarna, utan nötter först:**
+
+1. **Riktning:** tryck **Knuffa upp ▶**. Rör sig hålet bort från nöthögen mot utfallet är riktningen rätt. Annars kryssar du i **Omvänd riktning** och sparar.
+2. **Stilla-läge:** kryper servot när det borde stå still, justera **Stilla-läge** några µs i taget (normalt 1500). Det märks mest vid låg fart.
+3. **Startläge:** knuffa hålet till plockläget, längst ner i nöthögen. Välj 50, 100 eller 250 ms per knuff.
+4. **Tid upp:** tryck **Upp till utfallet**. Hamnar hålet före utfallet, öka **Snurrtid upp**. Hamnar det efter, minska den. Knuffa tillbaka och prova igen.
+5. **Tid ner:** tryck **Ner till plockläget** och justera **Snurrtid ner** på samma sätt. Den blir sällan exakt lika lång som tiden upp, eftersom 360°-servon ofta går olika fort åt olika håll och skivan lutar.
+6. **Fart:** standard är 120 µs från stilla, vilket är lugnt. Ändrar du farten måste tiderna provas fram igen.
+
+**Testa utmatning** gör sedan: ett litet vick (80 ms upp och ner, två gånger) som rör om nötterna, snurr upp till utfallet, ett stopp på 0,3 s där nöten faller ut, och snurr tillbaka ner. Testet utgår från att hålet står i plockläget när det börjar.
+
+### Plockskivan med vinkelservo
+
+1. Dra reglaget till exempelvis 90° och tryck **Flytta**. Servot vrider sig och släpps efter en sekund.
+2. **Testa utmatning** går till plocklägets vinkel (standard 0°), gör ett vick på 12° två gånger och vrids sedan lugnt upp till utmatningsvinkeln (standard 119°). Vridet tar den tid som står i **Tid för vridet** (standard 1 500 ms), med mjuk start och inbromsning. Efter ett stopp på 0,3 s vrids skivan lika lugnt tillbaka.
+
+Titta när skivan står still uppe: hålet ska ligga mitt över utfallet. Alla värden ändras under **Inställningar för servona**, utan ny deploy.
 
 ## Testa från statussidan
 

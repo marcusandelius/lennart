@@ -66,6 +66,11 @@ Kolla i förhandsgranskningen att den tunna väggen (1,1 mm) mot ytterkanten är
 
 ## Provkörning
 
-1. Sätt **Utmatningsvinkel**, **Plocklägets vinkel** och **Tid för vridet** i adminvyn. Värden som redan sparats där gäller före standardvärdena i koden.
-2. Kör **Testa utmatning**. Skivan går till plockläget, vickar, vrids lugnt upp till utfallet och tillbaka (se [koppling-servon.md](koppling-servon.md)). När skivan står still uppe ska hålet ligga mitt över utfallet.
-3. Prova med små och stora nötter. Justera vinkeln ett par grader i taget om någon blir kvar.
+Skivan drivs just nu av ett **360°-servo** (Marcus, 2026-11-27), inte av MG996R. Ett 360°-servo har ingen vinkel, så utmatningsvinkeln 119° gäller inte. Rörelsen styrs i stället med tid.
+
+1. Prova fram riktning, stilla-läge och snurrtider upp och ner i adminvyn, enligt [koppling-servon.md](koppling-servon.md#plockskivan-med-360-servo-just-nu).
+2. Knuffa hålet till plockläget och kör **Testa utmatning**. När skivan står still uppe ska hålet ligga mitt över utfallet.
+3. Prova med små och stora nötter. Justera snurrtiden upp med 10–20 ms i taget om någon blir kvar.
+4. Kör flera utmatningar i rad och kolla att hålet fortfarande hamnar i plockläget. Om felet växer måste tiden ner justeras, eller skivan knuffas tillrätta då och då.
+
+Med ett vinkelservo gäller i stället **Utmatningsvinkel**, **Plocklägets vinkel** och **Tid för vridet**.
