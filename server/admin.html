@@ -8,46 +8,134 @@
 <link rel="icon" href="/static/logo.webp">
 <link rel="stylesheet" href="/static/site.css">
 <style>
-  main { display:grid; gap:1.25rem; padding-top:1.5rem; max-width:44rem; }
-  h1 { font-size:clamp(1.9rem,5vw,2.6rem); font-weight:800; letter-spacing:-.02em; margin:0; }
-  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:1.25rem 1.25rem 1.1rem; }
-  .card h2 { font-size:1.25rem; font-weight:800; margin:0 0 .9rem; }
-  .row { display:grid; grid-template-columns:minmax(9rem, 14rem) 1fr; gap:.4rem 1rem; align-items:center; margin-bottom:.7rem; }
-  @media (max-width:30rem) { .row { grid-template-columns:1fr; } }
-  label { font-weight:600; }
-  select, input[type=number] { font:inherit; padding:.45rem .6rem; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); width:100%; max-width:12rem; }
-  .switch { display:flex; align-items:center; gap:.6rem; font-weight:700; font-size:1.1rem; margin-bottom:1rem; }
-  .switch input { width:1.3rem; height:1.3rem; accent-color:var(--granted); }
-  button { font:inherit; font-weight:700; padding:.55rem 1.1rem; border:0; border-radius:10px; background:var(--ink); color:var(--paper); cursor:pointer; }
-  button.secondary { background:transparent; color:var(--ink); border:1px solid var(--line); }
-  .hint { color:var(--ink-2); font-size:.92rem; margin:.15rem 0 0; }
-  .msg { min-height:1.4em; margin:.75rem 0 0; font-weight:600; }
-  .msg.ok { color:var(--granted); } .msg.no { color:var(--denied); }
-  .warn { background:color-mix(in srgb, var(--denied) 12%, transparent); border:1px solid color-mix(in srgb, var(--denied) 45%, transparent); border-radius:10px; padding:.6rem .8rem; margin:0 0 1rem; }
-  dl { display:grid; grid-template-columns:auto 1fr; gap:.3rem 1rem; margin:0; }
-  dt { color:var(--ink-2); } dd { margin:0; font-variant-numeric:tabular-nums; }
-  .preview img { width:100%; aspect-ratio:16/9; object-fit:cover; background:#000; border-radius:10px; margin:.75rem 0; }
-  .head-actions { display:flex; gap:.6rem; align-items:center; }
-  .servo { border-top:1px solid var(--line); padding-top:.9rem; margin-top:.9rem; }
-  .servo h3 { font-size:1.05rem; margin:0 0 .5rem; }
-  .servo input[type=range] { width:100%; accent-color:var(--ink); }
-  .angle { font-variant-numeric:tabular-nums; font-weight:700; min-width:3.5rem; display:inline-block; }
-  .buttons { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.5rem; align-items:center; }
-  details { margin-top:1rem; } summary { cursor:pointer; font-weight:600; }
-  form h4 { font-size:.98rem; margin:1.1rem 0 .5rem; }
-  .modes { display:flex; flex-wrap:wrap; gap:.5rem; margin:.25rem 0 .5rem; }
-  .mode { display:flex; align-items:center; gap:.45rem; padding:.55rem .9rem; border:1px solid var(--line); border-radius:10px; cursor:pointer; font-weight:700; }
-  .mode input { accent-color:var(--ink); margin:0; }
-  .mode:has(input:checked) { border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
-  .mode.granted:has(input:checked) { border-color:var(--granted); box-shadow:inset 0 0 0 1px var(--granted); color:var(--granted); }
-  .mode.denied:has(input:checked) { border-color:var(--denied); box-shadow:inset 0 0 0 1px var(--denied); color:var(--denied); }
+  main { padding:1.5rem 0 3rem; max-width:54rem; }
+  .top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem 1rem; margin-bottom:1rem; }
+  h1 { font-size:clamp(1.9rem,5vw,2.5rem); font-weight:800; letter-spacing:-.02em; margin:0; }
+  .pill { display:inline-flex; align-items:center; gap:.5rem; font-weight:700; padding:.4rem .85rem; border-radius:999px; background:var(--surface); border:1px solid var(--line); }
+  .dot { width:.7rem; height:.7rem; border-radius:50%; background:var(--ink-2); flex:none; opacity:.55; }
+  .is-ok > .dot { background:var(--granted); opacity:1; box-shadow:0 0 0 3px color-mix(in srgb, var(--granted) 25%, transparent); }
+  .is-bad > .dot { background:var(--denied); opacity:1; }
+
+  /* Flikar */
+  .tabs { display:flex; flex-wrap:wrap; gap:.25rem; padding:3px; margin:0 0 1.25rem;
+          background:var(--surface); border:1px solid var(--line); border-radius:14px; }
+  .tabs button { flex:1 0 auto; justify-content:center; font:inherit; font-weight:700; font-size:.95rem; color:var(--ink-2); background:transparent;
+                 border:0; border-radius:11px; padding:.55rem .9rem; cursor:pointer; display:flex; align-items:center; gap:.45rem; }
+  .tabs button:hover { color:var(--ink); }
+  .tabs button[aria-selected="true"] { background:var(--ink); color:var(--paper); }
+  .tabs .dot { width:.5rem; height:.5rem; box-shadow:none !important; }
+  [role=tabpanel] { display:grid; gap:1rem; }
+  [role=tabpanel][hidden] { display:none; }
+
+  /* Kort och text */
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:1.25rem; }
+  .card > h2 { font-size:1.2rem; font-weight:800; margin:0 0 .35rem; }
+  .card > .lead { color:var(--ink-2); margin:0 0 1rem; }
+  .card h3 { font-size:1.02rem; font-weight:800; margin:0 0 .3rem; }
+  .hint { color:var(--ink-2); font-size:.92rem; margin:.3rem 0 0; }
+  .status { display:flex; gap:.6rem; align-items:flex-start; padding:.7rem .85rem; border-radius:10px; background:var(--paper); border:1px solid var(--line); margin:0 0 1rem; }
+  .status > .dot { margin-top:.45rem; }
+  .status p { margin:0; font-weight:600; }
+  .status small { display:block; font-weight:400; color:var(--ink-2); font-size:.85rem; overflow-wrap:anywhere; margin-top:.15rem; }
+  .warn { background:color-mix(in srgb, var(--denied) 10%, transparent); border:1px solid color-mix(in srgb, var(--denied) 45%, transparent); border-radius:12px; padding:.7rem .9rem; margin:0 0 1rem; }
+  code { font-size:.92em; }
+
+  /* Fält */
+  .field { display:grid; grid-template-columns:minmax(10rem, 14rem) 1fr; gap:.25rem 1.25rem; align-items:start; padding:.85rem 0; border-top:1px solid var(--line); }
+  .field > label, .field > .label { font-weight:700; padding-top:.45rem; }
+  @media (max-width:34rem) { .field { grid-template-columns:1fr; } .field > label, .field > .label { padding-top:0; } }
+  select, input[type=number] { font:inherit; padding:.45rem .65rem; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); width:100%; max-width:11rem; }
+  input[type=number] { font-variant-numeric:tabular-nums; }
+  .unit { color:var(--ink-2); }
+  .inline { display:inline-flex; align-items:center; flex-wrap:wrap; gap:.5rem; }
+  .check { display:inline-flex; align-items:center; gap:.45rem; font-weight:600; cursor:pointer; }
+  .check input { width:1.15rem; height:1.15rem; accent-color:var(--ink); margin:0; }
+  .stepper { display:inline-flex; align-items:stretch; }
+  .stepper input { max-width:6rem; border-radius:0; text-align:center; border-left:0; border-right:0; }
+  .stepper button { padding:.45rem .75rem; }
+  .stepper button:first-child { border-radius:10px 0 0 10px; } .stepper button:last-child { border-radius:0 10px 10px 0; }
+
+  /* Strömbrytare */
+  .switch { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.85rem 1rem; border-radius:12px; background:var(--paper); border:1px solid var(--line); margin-bottom:.5rem; cursor:pointer; }
+  .switch b { display:block; font-size:1.05rem; } .switch span { color:var(--ink-2); font-size:.92rem; }
+  .switch input { appearance:none; flex:none; width:3rem; height:1.7rem; border-radius:999px; background:var(--line); position:relative; cursor:pointer; transition:background .15s; margin:0; }
+  .switch input::after { content:""; position:absolute; top:.2rem; left:.2rem; width:1.3rem; height:1.3rem; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.3); transition:transform .15s; }
+  .switch input:checked { background:var(--granted); }
+  .switch input:checked::after { transform:translateX(1.3rem); }
+
+  /* Knappar */
+  button { font:inherit; font-weight:700; padding:.55rem 1.05rem; border:0; border-radius:10px; background:var(--ink); color:var(--paper); cursor:pointer; }
+  button.secondary { background:var(--paper); color:var(--ink); border:1px solid var(--line); }
+  button.secondary:hover { border-color:var(--ink); }
+  button.big { font-size:1.05rem; padding:.75rem 1.3rem; }
+  .buttons { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-top:.75rem; }
+
+  /* Segmenterade val (radioknappar som ser ut som knappar) */
+  .seg { display:inline-flex; flex-wrap:wrap; gap:3px; padding:3px; border:1px solid var(--line); border-radius:12px; background:var(--paper); }
+  .seg label { cursor:pointer; }
+  .seg input { position:absolute; opacity:0; pointer-events:none; }
+  .seg span { display:block; padding:.42rem .8rem; border-radius:9px; font-weight:700; color:var(--ink-2); }
+  .seg input:checked + span { background:var(--ink); color:var(--paper); }
+  .seg input:focus-visible + span { outline:3px solid var(--focus); outline-offset:1px; }
+
+  /* Valkort, t.ex. skärmens lägen */
+  .choices { display:grid; gap:.6rem; grid-template-columns:repeat(auto-fit, minmax(11.5rem, 1fr)); }
+  .choice { position:relative; display:block; cursor:pointer; padding:.85rem .95rem; border:2px solid var(--line); border-radius:12px; background:var(--paper); }
+  .choice input { position:absolute; opacity:0; pointer-events:none; }
+  .choice b { display:block; } .choice span { display:block; color:var(--ink-2); font-size:.9rem; line-height:1.4; margin-top:.15rem; }
+  .choice:hover { border-color:var(--ink-2); }
+  .choice:has(input:checked) { border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+  .choice.granted b, .text-granted { color:var(--granted); } .choice.denied b, .text-denied { color:var(--denied); }
+  .choice.granted:has(input:checked) { border-color:var(--granted); box-shadow:inset 0 0 0 1px var(--granted); }
+  .choice.denied:has(input:checked) { border-color:var(--denied); box-shadow:inset 0 0 0 1px var(--denied); }
+  .choice:has(input:focus-visible) { outline:3px solid var(--focus); outline-offset:2px; }
+
+  /* Översiktens rutor */
+  .tiles { display:grid; gap:.7rem; grid-template-columns:repeat(auto-fit, minmax(14rem, 1fr)); }
+  .tile { all:unset; box-sizing:border-box; cursor:pointer; display:block; padding:.9rem 1rem; border-radius:12px; background:var(--surface); border:1px solid var(--line); }
+  .tile:hover { border-color:var(--ink-2); }
+  .tile:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+  .tile .name { display:flex; align-items:center; gap:.5rem; font-weight:800; }
+  .tile .what { display:block; color:var(--ink-2); font-size:.92rem; margin-top:.3rem; overflow-wrap:anywhere; }
+  dl.facts { display:grid; grid-template-columns:auto 1fr; gap:.35rem 1.25rem; margin:0; }
+  dl.facts dt { color:var(--ink-2); } dl.facts dd { margin:0; font-variant-numeric:tabular-nums; }
+
+  /* Reglage för vinkel */
+  .angle-row { display:flex; align-items:center; gap:1rem; }
+  .angle-row input[type=range] { flex:1; accent-color:var(--ink); height:1.6rem; }
+  .angle-val { font-variant-numeric:tabular-nums; font-weight:800; font-size:1.2rem; min-width:3.5rem; text-align:right; }
+
+  /* Steg för steg (360°-servot) */
+  .steps { list-style:none; counter-reset:steg; margin:0; padding:0; display:grid; gap:.7rem; }
+  .steps > li { counter-increment:steg; position:relative; padding:.95rem 1rem .95rem 3.3rem; border-radius:12px; background:var(--paper); border:1px solid var(--line); }
+  .steps > li::before { content:counter(steg); position:absolute; left:1rem; top:.95rem; width:1.6rem; height:1.6rem; border-radius:50%; display:grid; place-items:center; background:var(--ink); color:var(--paper); font-weight:800; font-size:.9rem; }
+  .steps .seg { background:var(--surface); }
+  @media (max-width:34rem) {
+    .card { padding:1rem; }
+    .steps > li { padding:.85rem .85rem .85rem 2.75rem; }
+    .steps > li::before { left:.75rem; top:.85rem; width:1.4rem; height:1.4rem; font-size:.8rem; }
+    .tabs button { padding:.5rem .7rem; font-size:.9rem; }
+  }
+
+  details.more { margin-top:1rem; border-top:1px solid var(--line); padding-top:.8rem; }
+  details.more summary { cursor:pointer; font-weight:700; color:var(--ink-2); }
+  details.more[open] summary { margin-bottom:.4rem; }
+
+  .preview img { width:100%; aspect-ratio:16/9; object-fit:cover; background:#000; border-radius:10px; margin-top:.75rem; }
+
+  /* Kvitto längst ner: sparat, skickat eller fel */
+  #toast { position:fixed; left:50%; bottom:1.25rem; transform:translate(-50%, 1rem); opacity:0; pointer-events:none; margin:0;
+           width:max-content; max-width:min(32rem, calc(100vw - 2rem)); padding:.7rem 1rem; border-radius:12px; font-weight:700;
+           background:var(--ink); color:var(--paper); box-shadow:0 6px 24px rgba(0,0,0,.25); transition:opacity .2s, transform .2s; z-index:10; }
+  #toast.show { opacity:1; transform:translate(-50%, 0); }
+  #toast.ok { background:var(--granted); color:#fff; } #toast.no { background:var(--denied); color:#fff; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="site-head">
     <a class="brand" href="/status" aria-label="Lennart.cam, till statussidan"><img src="/static/logo.webp" alt="Lennart.cam" width="720" height="490"></a>
-    <div class="head-actions">
+    <div class="inline">
       <nav class="nav" aria-label="Sidor">
         <a href="/status">Status</a>
         <a href="/demo">Demo</a>
@@ -59,347 +147,583 @@
   </header>
 
   <main>
-    <h1>Admin</h1>
+    <div class="top">
+      <h1>Admin</h1>
+      <span class="pill" id="stationpill"><span class="dot"></span><span id="stationtext">Hämtar status …</span></span>
+    </div>
+    <p class="warn" id="notpersisted" hidden><b>Inställningarna sparas bara i minnet</b> och återställs vid nästa deploy. Lägg till en volym på <code>/data</code> i Coolify.</p>
 
-    <section class="card">
-      <h2>Livebild</h2>
-      <p class="warn" id="notpersisted" hidden>Inställningarna sparas bara i minnet och återställs vid nästa deploy. Lägg till en volym på <code>/data</code> i Coolify.</p>
-      <form id="settings">
-        <label class="switch"><input type="checkbox" id="live_enabled"> Livebilden är på</label>
-        <div class="row">
+    <div class="tabs" role="tablist" aria-label="Delar av stationen">
+      <button role="tab" id="tab-oversikt" aria-controls="oversikt" data-tab="oversikt">Översikt</button>
+      <button role="tab" id="tab-livebild" aria-controls="livebild" data-tab="livebild"><span class="dot" data-dot="live"></span>Livebild</button>
+      <button role="tab" id="tab-kamera" aria-controls="kamera" data-tab="kamera"><span class="dot" data-dot="camera"></span>Kamera</button>
+      <button role="tab" id="tab-inspelning" aria-controls="inspelning" data-tab="inspelning"><span class="dot" data-dot="recording"></span>Inspelning</button>
+      <button role="tab" id="tab-skarmen" aria-controls="skarmen" data-tab="skarmen"><span class="dot" data-dot="display"></span>Skärmen</button>
+      <button role="tab" id="tab-dosering" aria-controls="dosering" data-tab="dosering"><span class="dot" data-dot="servo"></span>Nötdosering</button>
+      <button role="tab" id="tab-luckan" aria-controls="luckan" data-tab="luckan"><span class="dot" data-dot="servo"></span>Luckan</button>
+      <button role="tab" id="tab-servokort" aria-controls="servokort" data-tab="servokort"><span class="dot" data-dot="servo"></span>Servokort</button>
+    </div>
+
+    <!-- ===================== Översikt ===================== -->
+    <section role="tabpanel" id="oversikt" aria-labelledby="tab-oversikt" hidden>
+      <div class="tiles">
+        <button class="tile" data-goto="kamera"><span class="name"><span class="dot" data-dot="camera"></span>Kamera</span><span class="what" id="ov-camera">–</span></button>
+        <button class="tile" data-goto="skarmen"><span class="name"><span class="dot" data-dot="display"></span>Skärmen</span><span class="what" id="ov-display">–</span></button>
+        <button class="tile" data-goto="dosering"><span class="name"><span class="dot" data-dot="servo"></span>Servon</span><span class="what" id="ov-servo">–</span></button>
+        <button class="tile" data-goto="inspelning"><span class="name"><span class="dot" data-dot="recording"></span>Inspelning</span><span class="what" id="ov-recording">–</span></button>
+        <button class="tile" data-goto="livebild"><span class="name"><span class="dot" data-dot="live"></span>Livebild</span><span class="what" id="ov-live">–</span></button>
+      </div>
+      <div class="card">
+        <h2>Stationen</h2>
+        <p class="warn" id="ov-message" hidden></p>
+        <dl class="facts">
+          <dt>Senast hörd av</dt><dd id="ov-seen">–</dd>
+          <dt>Temperatur</dt><dd id="ov-temp">–</dd>
+          <dt>Uppkoppling</dt><dd id="ov-net">–</dd>
+          <dt>Igång sedan</dt><dd id="ov-uptime">–</dd>
+          <dt>Version på stationen</dt><dd id="ov-version">–</dd>
+          <dt>Version på servern</dt><dd id="ov-sversion">–</dd>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ===================== Livebild ===================== -->
+    <section role="tabpanel" id="livebild" aria-labelledby="tab-livebild" hidden>
+      <div class="card">
+        <h2>Livebild på statussidan</h2>
+        <p class="lead">Besökare på lennart.cam kan se kameran live. Kameran skickar bara bilder medan någon tittar. Ändringar sparas direkt.</p>
+        <label class="switch"><div><b>Livebilden är på</b><span>När den är av ser besökarna "Livebilden är avstängd just nu".</span></div><input type="checkbox" data-key="live_enabled"></label>
+        <div class="field">
           <label for="resolution">Upplösning</label>
-          <select id="resolution"></select>
+          <div><select id="resolution" data-key="resolution"></select><p class="hint">Högre upplösning ger skarpare bild men mer mobildata från stationen.</p></div>
         </div>
-        <div class="row">
+        <div class="field">
           <label for="fps">Bilder per sekund</label>
-          <div><input type="number" id="fps" step="1"><p class="hint">Fler bilder ger mjukare bild men mer mobildata.</p></div>
+          <div><input type="number" id="fps" data-key="fps" data-label="Bilder per sekund"><p class="hint">Fler bilder ger mjukare rörelser men mer data. 2 räcker för att se vem som är på besök.</p></div>
         </div>
-        <div class="row">
-          <label for="quality">JPEG-kvalitet</label>
-          <div><input type="number" id="quality" step="5"><p class="hint">70 är en bra balans mellan skärpa och storlek.</p></div>
+        <div class="field">
+          <label for="quality">Bildkvalitet</label>
+          <div><input type="number" id="quality" data-key="quality" data-label="Bildkvaliteten" step="5"><p class="hint">JPEG-kvalitet från 30 till 90. 70 är en bra balans mellan skärpa och storlek.</p></div>
         </div>
-        <div class="row">
+        <div class="field">
           <label for="max_view_min">Minuter per tittning</label>
-          <div><input type="number" id="max_view_min" step="1"><p class="hint">Sedan får besökaren klicka igen, så att en glömd flik inte drar data.</p></div>
+          <div><input type="number" id="max_view_min" data-key="max_view_min" data-label="Minuter per tittning"><p class="hint">Sedan stoppas bilden och besökaren får klicka igen, så att en bortglömd flik inte drar data.</p></div>
         </div>
-        <button type="submit">Spara</button>
-        <p class="msg" id="msg" role="status"></p>
-      </form>
+      </div>
+      <div class="card">
+        <h2>Just nu</h2>
+        <dl class="facts">
+          <dt>Tittar</dt><dd id="viewers">–</dd>
+          <dt>Senaste bild från kameran</dt><dd id="lastframe">–</dd>
+        </dl>
+      </div>
     </section>
 
-    <section class="card">
-      <h2>Skärmen</h2>
-      <p id="displaystatus">–</p>
-      <div class="modes" role="radiogroup" aria-label="Vad skärmen på stationen visar">
-        <label class="mode"><input type="radio" name="display_mode" value="camera"> Kamerabilden</label>
-        <label class="mode granted"><input type="radio" name="display_mode" value="granted"> ACCESS GRANTED</label>
-        <label class="mode denied"><input type="radio" name="display_mode" value="denied"> ACCESS DENIED</label>
-        <label class="mode"><input type="radio" name="display_mode" value="demo"> Demo</label>
-      </div>
-      <p class="hint">Ändras direkt när du klickar. Senare ska igenkänningen sköta det här själv.</p>
-      <p class="hint"><b>Demo:</b> skärmen visar kamerabilden, och när något rör sig lottas ACCESS GRANTED eller ACCESS DENIED fram och visas i 4 sekunder. Rörelsegränsen och ljusgränsen är samma som under <i>Inspelning vid rörelse</i>.</p>
-      <p class="hint" id="demoinfo" hidden></p>
-      <div class="row">
-        <label for="lcd_spi_mhz">SPI-hastighet</label>
-        <div><select id="lcd_spi_mhz"></select><p class="hint">Hur fort bilden skickas till skärmen. Blir bilden randig eller svart med långa kablar: prova lägre. Gäller direkt.</p></div>
-      </div>
-      <div class="buttons"><button type="button" class="secondary" id="displayrestart">Starta om skärmen</button></div>
-      <p class="hint">Skickar skärmens startkommandon igen. Behövs om skärmen fick ström efter att programmet startade.</p>
-      <p class="hint">✓ betyder att programmet kunde starta skärmen. Skärmen kan inte svara tillbaka, så om den ändå är svart sitter felet i kopplingen.</p>
-      <p class="hint" id="displayinfo"></p>
-      <p class="msg" id="displaymsg" role="status"></p>
-    </section>
-
-    <section class="card">
-      <h2>Kamera</h2>
-      <form id="camera">
-        <div class="row">
-          <label for="camera_rotation">Rotation</label>
-          <div><select id="camera_rotation"></select><p class="hint">Vrider bilden medsols, både på skärmen och i livebilden.</p></div>
+    <!-- ===================== Kamera ===================== -->
+    <section role="tabpanel" id="kamera" aria-labelledby="tab-kamera" hidden>
+      <div class="card">
+        <h2>Kameran</h2>
+        <div class="status" id="camerastatus"><span class="dot"></span><p>–</p></div>
+        <div class="field">
+          <span class="label" id="rotlabel">Rotation</span>
+          <div><div class="seg" role="radiogroup" aria-labelledby="rotlabel" id="rotations"></div>
+          <p class="hint">Vrider bilden medsols, både på skärmen i huset och i livebilden. Använd om kameran sitter på sidan eller upp och ner.</p></div>
         </div>
-        <button type="submit">Spara</button>
-        <p class="msg" id="cameramsg" role="status"></p>
-      </form>
+      </div>
+      <div class="card preview">
+        <h2>Förhandsvisning</h2>
+        <p class="lead">Samma bild som besökarna ser. Räknas som en tittare medan den är öppen.</p>
+        <button type="button" id="previewbtn">Visa kamerabilden</button>
+        <img id="previewimg" alt="Livebild från kameran vid matstationen" hidden>
+      </div>
     </section>
 
-    <section class="card">
-      <h2>Inspelning vid rörelse</h2>
-      <p id="recstatus">–</p>
-      <p class="hint" id="recclips">–</p>
-      <form id="recording">
-        <label class="switch"><input type="checkbox" id="recording_enabled"> Spela in när något rör sig</label>
-        <div class="row">
+    <!-- ===================== Inspelning ===================== -->
+    <section role="tabpanel" id="inspelning" aria-labelledby="tab-inspelning" hidden>
+      <div class="card">
+        <h2>Inspelning vid rörelse</h2>
+        <p class="lead">Stationen spelar in ett klipp när något rör sig framför kameran. Klippen blir underlag för att testa och träna igenkänningen. <a href="/admin/klipp">Visa klippen →</a></p>
+        <div class="status" id="recstatus"><span class="dot"></span><p>–</p></div>
+        <label class="switch"><div><b>Spela in när något rör sig</b><span id="recclips">–</span></div><input type="checkbox" data-key="recording_enabled"></label>
+        <div class="field">
           <label for="rec_resolution">Upplösning</label>
-          <div><select id="rec_resolution"></select><p class="hint">1280 × 720 ger bäst underlag för igenkänning. 640 × 360 tar ungefär en fjärdedel så mycket data.</p></div>
+          <div><select id="rec_resolution" data-key="rec_resolution"></select><p class="hint">1280 × 720 ger bäst underlag för igenkänning. 640 × 360 tar ungefär en fjärdedel så mycket plats.</p></div>
         </div>
-        <div class="row">
+        <div class="field">
           <label for="rec_fps">Bilder per sekund</label>
-          <div><input type="number" id="rec_fps" step="1"><p class="hint">Fler bilder ger större filer. Djuren rör sig snabbt, så 10–15 är lagom.</p></div>
+          <div><input type="number" id="rec_fps" data-key="rec_fps" data-label="Bilder per sekund"><p class="hint">Djuren rör sig snabbt, så 10–15 är lagom. Fler bilder ger större filer.</p></div>
         </div>
-        <div class="row">
-          <label for="motion_sensitivity">Rörelsegräns (‰)</label>
-          <div><input type="number" id="motion_sensitivity" step="1"><p class="hint">Hur stor del av bilden, i promille, som måste ändras för att inspelningen ska starta. Lägre = känsligare. Blir det många tomma klipp av blad och skuggor: höj värdet.</p></div>
+        <div class="field">
+          <label for="motion_sensitivity">Rörelsegräns</label>
+          <div><span class="inline"><input type="number" id="motion_sensitivity" data-key="motion_sensitivity" data-label="Rörelsegränsen"><span class="unit">‰ av bilden</span></span>
+          <p class="hint">Hur stor del av bilden som måste ändras för att en inspelning ska starta. <b>Lägre = känsligare.</b> Blir det många tomma klipp av blad och skuggor: höj värdet.</p></div>
         </div>
-        <details>
+        <div class="field">
+          <label for="min_brightness">Lägsta ljusstyrka</label>
+          <div><span class="inline"><input type="number" id="min_brightness" data-key="min_brightness" data-label="Lägsta ljusstyrka"><span class="unit">av 100</span></span>
+          <p class="hint">Ingen inspelning när bilden är mörkare än så, eftersom kameran inte ser något i mörker. Gäller även skärmens demoläge.</p></div>
+        </div>
+        <details class="more">
           <summary>Fler inställningar</summary>
-          <div class="row"><label for="pre_roll_s">Sekunder före rörelsen</label><input type="number" id="pre_roll_s" step="1"></div>
-          <div class="row"><label for="post_roll_s">Sekunder efter sista rörelsen</label><input type="number" id="post_roll_s" step="1"></div>
-          <div class="row"><label for="max_clip_s">Längsta klipp (s)</label><input type="number" id="max_clip_s" step="5"></div>
-          <div class="row">
-            <label for="min_brightness">Lägsta ljusstyrka (0–100)</label>
-            <div><input type="number" id="min_brightness" step="1"><p class="hint">Ingen inspelning när bilden är mörkare än så, eftersom kameran inte ser något utan belysning.</p></div>
+          <div class="field">
+            <label for="pre_roll_s">Före rörelsen</label>
+            <div><span class="inline"><input type="number" id="pre_roll_s" data-key="pre_roll_s" data-label="Tiden före rörelsen"><span class="unit">sekunder</span></span><p class="hint">Så mycket av tiden innan rörelsen som kommer med, så att djuret syns när det kommer in i bild.</p></div>
           </div>
-          <div class="row">
-            <label for="clips_max_gb">Utrymme på servern (GB)</label>
-            <div><input type="number" id="clips_max_gb" step="1"><p class="hint">När det är fullt tar servern inte emot fler klipp. Stationen sparar dem då själv tills det finns plats.</p></div>
+          <div class="field">
+            <label for="post_roll_s">Efter sista rörelsen</label>
+            <div><span class="inline"><input type="number" id="post_roll_s" data-key="post_roll_s" data-label="Tiden efter rörelsen"><span class="unit">sekunder</span></span><p class="hint">Så länge det ska vara stilla innan klippet avslutas.</p></div>
+          </div>
+          <div class="field">
+            <label for="max_clip_s">Längsta klipp</label>
+            <div><span class="inline"><input type="number" id="max_clip_s" data-key="max_clip_s" data-label="Längsta klipp" step="5"><span class="unit">sekunder</span></span></div>
+          </div>
+          <div class="field">
+            <label for="clips_max_gb">Utrymme på servern</label>
+            <div><span class="inline"><input type="number" id="clips_max_gb" data-key="clips_max_gb" data-label="Utrymmet på servern"><span class="unit">GB</span></span><p class="hint">När det är fullt tar servern inte emot fler klipp. Stationen sparar dem då själv tills det finns plats.</p></div>
           </div>
         </details>
-        <p><button type="submit">Spara</button> <a href="/admin/klipp">Visa klippen →</a></p>
-        <p class="msg" id="recmsg" role="status"></p>
-      </form>
+      </div>
     </section>
 
-    <section class="card">
-      <h2>Servon</h2>
-      <p id="servostatus">–</p>
-      <p class="hint">Signalen släpps automatiskt efter varje rörelse, så att servona inte står och surrar. Kommandon som inte når stationen inom 20 sekunder kastas.</p>
-
-      <div class="servo">
-        <h3>Plockskivan (doseringen)</h3>
-        <div id="doser360" hidden>
-          <p class="hint">360°-servo: det har ingen vinkel, och skivan vet inte var den står. Knuffa hålet till plockläget (längst ner) innan du testar, och gör om det om skivan har glidit.</p>
-          <div class="buttons">
-            <button type="button" class="secondary" data-spin="down">◀ Knuffa ner</button>
-            <button type="button" class="secondary" data-spin="up">Knuffa upp ▶</button>
-            <label>Knuff <select id="knuff"><option value="50">50 ms</option><option value="100" selected>100 ms</option><option value="250">250 ms</option></select></label>
-          </div>
-          <div class="buttons">
-            <button type="button" class="secondary" data-spin="up" data-setting="doser_up_ms">Upp till utfallet</button>
-            <button type="button" class="secondary" data-spin="down" data-setting="doser_down_ms">Ner till plockläget</button>
-          </div>
+    <!-- ===================== Skärmen ===================== -->
+    <section role="tabpanel" id="skarmen" aria-labelledby="tab-skarmen" hidden>
+      <div class="card">
+        <h2>Vad skärmen visar</h2>
+        <p class="lead">2"-skärmen på husets framsida. Senare ska igenkänningen styra den. Ändras direkt när du väljer.</p>
+        <div class="status" id="displaystatus"><span class="dot"></span><p>–</p></div>
+        <div class="choices" role="radiogroup" aria-label="Vad skärmen visar">
+          <label class="choice"><input type="radio" name="display_mode" value="camera" data-key="display_mode"><b>Kamerabilden</b><span>Det kameran ser, med en statusrad.</span></label>
+          <label class="choice granted"><input type="radio" name="display_mode" value="granted" data-key="display_mode"><b>ACCESS GRANTED</b><span>Grön skärm hela tiden.</span></label>
+          <label class="choice denied"><input type="radio" name="display_mode" value="denied" data-key="display_mode"><b>ACCESS DENIED</b><span>Röd skärm hela tiden.</span></label>
+          <label class="choice"><input type="radio" name="display_mode" value="demo" data-key="display_mode"><b>Demo</b><span>Kamerabilden. När något rör sig lottas GRANTED eller DENIED fram i 4 sekunder.</span></label>
         </div>
-        <div id="doserVinkel" hidden>
-          <label for="doser_angle">Vinkel: <span class="angle" id="doser_val">0°</span></label>
-          <input type="range" id="doser_angle" min="0" max="180" step="1" value="0">
-          <div class="buttons">
-            <button type="button" data-move="doser">Flytta</button>
-            <button type="button" class="secondary" data-release="doser">Släpp</button>
-          </div>
-        </div>
-        <div class="buttons"><button type="button" id="testdispense">Testa utmatning</button></div>
-        <p class="hint" id="dispensehint"></p>
+        <p class="hint" id="demoinfo" hidden></p>
       </div>
-
-      <div class="servo">
-        <h3>Luckan</h3>
-        <label for="lucka_angle">Vinkel: <span class="angle" id="lucka_val">0°</span></label>
-        <input type="range" id="lucka_angle" min="0" max="180" step="1" value="0">
+      <div class="card">
+        <h2>Visa en kort stund</h2>
+        <p class="lead">Visar bilden i 4 sekunder och går sedan tillbaka till läget ovan. Bra för att testa skärmen eller visa upp stationen.</p>
         <div class="buttons">
-          <button type="button" data-move="lucka">Flytta</button>
-          <button type="button" class="secondary" data-release="lucka">Släpp</button>
-          <label><input type="checkbox" id="lucka_slow" checked> Långsamt</label>
+          <button type="button" class="secondary" data-cmd='{"action":"display_flash","screen":"granted"}' data-label="ACCESS GRANTED"><span class="text-granted">ACCESS GRANTED</span></button>
+          <button type="button" class="secondary" data-cmd='{"action":"display_flash","screen":"denied"}' data-label="ACCESS DENIED"><span class="text-denied">ACCESS DENIED</span></button>
         </div>
-        <p class="hint">Luckan ska stängas långsamt, så att ingen kläms.</p>
+      </div>
+      <div class="card">
+        <h2>Felsökning</h2>
+        <div class="field">
+          <label for="lcd_spi_mhz">SPI-hastighet</label>
+          <div><select id="lcd_spi_mhz" data-key="lcd_spi_mhz" data-type="int"></select><p class="hint">Hur fort bilden skickas till skärmen. Blir bilden randig eller svart med långa kablar: prova en lägre hastighet.</p></div>
+        </div>
+        <div class="field">
+          <span class="label">Starta om skärmen</span>
+          <div><button type="button" class="secondary" data-cmd='{"action":"display_restart"}' data-label="Omstart av skärmen">Starta om</button>
+          <p class="hint">Skickar skärmens startkommandon igen. Behövs om skärmen fick ström efter att programmet startade.</p></div>
+        </div>
+        <p class="hint">Grön prick betyder att programmet kunde starta skärmen. Skärmen kan inte svara tillbaka, så är den ändå svart sitter felet i kopplingen.</p>
+        <p class="hint" id="displayinfo"></p>
+      </div>
+    </section>
+
+    <!-- ===================== Nötdosering ===================== -->
+    <section role="tabpanel" id="dosering" aria-labelledby="tab-dosering" hidden>
+      <div class="card">
+        <h2>Nötdoseringen</h2>
+        <p class="lead">Plockskivan lutar 45°. Hålet i skivan plockar en nöt längst ner i nöthögen (<b>plockläget</b>). Servot vrider sedan upp hålet till <b>utfallet</b>, där nöten faller ner i rännan till skålen.</p>
+        <div class="status" id="doserstatus"><span class="dot"></span><p>–</p></div>
+        <div class="field">
+          <span class="label" id="doserservolabel">Servo för skivan</span>
+          <div>
+            <div class="seg" role="radiogroup" aria-labelledby="doserservolabel">
+              <label><input type="radio" name="doser_servo" value="360" data-key="doser_servo"><span>360°-servo</span></label>
+              <label><input type="radio" name="doser_servo" value="vinkel" data-key="doser_servo"><span>Vinkelservo</span></label>
+            </div>
+            <p class="hint" id="doserservohint"></p>
+          </div>
+        </div>
       </div>
 
-      <div class="buttons"><button type="button" class="secondary" data-release="alla">Släpp alla</button></div>
-      <p class="msg" id="servomsg" role="status"></p>
+      <!-- 360°-servo: styrs med tid -->
+      <div class="card" id="doser360" hidden>
+        <h2>Ställ in skivan, steg för steg</h2>
+        <p class="lead">Ett 360°-servo har ingen vinkel och vet aldrig var skivan står. Rörelsen styrs därför med tid, och tiderna provas fram här. Gör det utan nötter först. Allt sparas direkt.</p>
+        <ol class="steps">
+          <li>
+            <h3>Kolla riktningen</h3>
+            <p class="hint">Tryck <b>Knuffa upp</b>. Hålet ska röra sig från nöthögen mot utfallet. Går det åt andra hållet: kryssa i Omvänd riktning.</p>
+            <div class="buttons">
+              <button type="button" class="secondary" data-spin="up">Knuffa upp ▶</button>
+              <label class="check"><input type="checkbox" data-key="doser_reverse"> Omvänd riktning</label>
+            </div>
+          </li>
+          <li>
+            <h3>Ställ hålet i plockläget</h3>
+            <p class="hint">Knuffa tills hålet står längst ner i nöthögen. Ta mindre knuffar sista biten.</p>
+            <div class="buttons">
+              <button type="button" class="secondary" data-spin="down">◀ Knuffa ner</button>
+              <button type="button" class="secondary" data-spin="up">Knuffa upp ▶</button>
+              <div class="seg" role="radiogroup" aria-label="Hur lång knuff">
+                <label><input type="radio" name="knuff" value="50"><span>50 ms</span></label>
+                <label><input type="radio" name="knuff" value="100" checked><span>100 ms</span></label>
+                <label><input type="radio" name="knuff" value="250"><span>250 ms</span></label>
+              </div>
+            </div>
+          </li>
+          <li>
+            <h3>Hitta tiden upp till utfallet</h3>
+            <p class="hint">Tryck <b>Snurra upp</b>. Stannar hålet före utfallet: öka tiden. Åker det förbi: minska. Knuffa tillbaka till plockläget mellan försöken.</p>
+            <div class="buttons">
+              <span class="stepper"><button type="button" class="secondary" data-step="-20" data-for="doser_up_ms" aria-label="20 ms kortare">−</button><input type="number" id="doser_up_ms" data-key="doser_up_ms" data-label="Tiden upp" step="10" aria-label="Tid upp i millisekunder"><button type="button" class="secondary" data-step="20" data-for="doser_up_ms" aria-label="20 ms längre">+</button></span><span class="unit">ms</span>
+              <button type="button" data-spin="up" data-time="doser_up_ms">Snurra upp</button>
+            </div>
+          </li>
+          <li>
+            <h3>Hitta tiden tillbaka ner</h3>
+            <p class="hint">Med hålet vid utfallet: tryck <b>Snurra ner</b> och justera tills hålet hamnar i plockläget. Tiden blir sällan exakt samma som upp, eftersom skivan lutar och servot går olika fort åt olika håll.</p>
+            <div class="buttons">
+              <span class="stepper"><button type="button" class="secondary" data-step="-20" data-for="doser_down_ms" aria-label="20 ms kortare">−</button><input type="number" id="doser_down_ms" data-key="doser_down_ms" data-label="Tiden ner" step="10" aria-label="Tid ner i millisekunder"><button type="button" class="secondary" data-step="20" data-for="doser_down_ms" aria-label="20 ms längre">+</button></span><span class="unit">ms</span>
+              <button type="button" data-spin="down" data-time="doser_down_ms">Snurra ner</button>
+            </div>
+          </li>
+          <li>
+            <h3>Testa en hel utmatning</h3>
+            <p class="hint" id="dispensehint360"></p>
+            <div class="buttons"><button type="button" class="big" data-cmd='{"action":"test_dispense"}' data-label="Utmatningen">Testa utmatning</button></div>
+          </li>
+        </ol>
+        <details class="more">
+          <summary>Fart och stilla-läge</summary>
+          <div class="field">
+            <label for="doser_speed_us">Fart</label>
+            <div><span class="inline"><input type="number" id="doser_speed_us" data-key="doser_speed_us" data-label="Farten" step="10"><span class="unit">µs från stilla</span></span>
+            <p class="hint">Hur mycket pulsen skiljer sig från stilla-läget. Större = fortare. 120 är lugnt. Ändrar du farten behöver tiderna provas fram igen.</p></div>
+          </div>
+          <div class="field">
+            <label for="doser_neutral_us">Stilla-läge</label>
+            <div><span class="inline"><input type="number" id="doser_neutral_us" data-key="doser_neutral_us" data-label="Stilla-läget" step="5"><span class="unit">µs</span></span>
+            <p class="hint">Pulsen där servot står still, normalt 1500. Kryper skivan åt ena hållet vid knuffarna: justera 5 µs i taget.</p></div>
+          </div>
+        </details>
+      </div>
 
-      <details>
-        <summary>Inställningar för servona</summary>
-        <form id="servosettings">
-          <div class="row"><label for="doser_servo">Servo för plockskivan</label><select id="doser_servo"><option value="360">360°-servo (styrs med tid)</option><option value="vinkel">Vinkelservo (styrs med vinkel)</option></select></div>
-          <h4>Plockskivan med 360°-servo</h4>
-          <div class="row"><label for="doser_up_ms">Snurrtid upp till utfallet (ms)</label><input type="number" id="doser_up_ms" step="10"></div>
-          <div class="row"><label for="doser_down_ms">Snurrtid ner till plockläget (ms)</label><input type="number" id="doser_down_ms" step="10"></div>
-          <div class="row"><label for="doser_speed_us">Fart (µs från stilla)</label><input type="number" id="doser_speed_us" step="10"></div>
-          <div class="row"><label for="doser_neutral_us">Stilla-läge (µs)</label><input type="number" id="doser_neutral_us" step="5"></div>
-          <div class="row"><label for="doser_reverse">Omvänd riktning</label><input type="checkbox" id="doser_reverse"></div>
-          <p class="hint">Fart: hur mycket pulsen skiljer sig från stilla-läget. Större = fortare, 120 är lugnt. Stilla-läget är normalt 1500. Kryper servot när det borde stå still, justera det några steg i taget. Snurrar skivan åt fel håll vid "Knuffa upp", kryssa i Omvänd riktning.</p>
-          <h4>Plockskivan med vinkelservo</h4>
-          <div class="row"><label for="dispense_angle">Utmatningsvinkel (°)</label><input type="number" id="dispense_angle" step="1"></div>
-          <div class="row"><label for="pick_angle">Plocklägets vinkel (°)</label><input type="number" id="pick_angle" step="1"></div>
-          <div class="row"><label for="dispense_move_ms">Tid för vridet (ms)</label><input type="number" id="dispense_move_ms" step="100"></div>
-          <p class="hint">Plockläget är där skivans hål står längst ner i nöthögen. Tiden gäller vridet upp till utfallet, och lika lång tid tillbaka. Längre tid = lugnare.</p>
-          <h4>Kanaler och pulsbredd</h4>
-          <div class="row"><label for="servo_doser_channel">Kanal för doseraren</label><input type="number" id="servo_doser_channel" step="1"></div>
-          <div class="row"><label for="servo_lucka_channel">Kanal för luckan</label><input type="number" id="servo_lucka_channel" step="1"></div>
-          <div class="row"><label for="servo_min_us">Pulsbredd vid 0° (µs)</label><input type="number" id="servo_min_us" step="10"></div>
-          <div class="row"><label for="servo_max_us">Pulsbredd vid 180° (µs)</label><input type="number" id="servo_max_us" step="10"></div>
-          <p class="hint">Kanal = numret på PCA9685-kortet där servot sitter. Pulsbredden vid 0° och 180° gäller vinkelservon, alltså luckan och plockskivan om den har vinkelservo. Står servot och brummar i ändläget, minska intervallet.</p>
-          <button type="submit">Spara</button>
-          <p class="msg" id="servosettingsmsg" role="status"></p>
-        </form>
-      </details>
+      <!-- Vinkelservo: styrs med vinkel -->
+      <div class="card" id="doserVinkel" hidden>
+        <h2>Vinkel och utmatning</h2>
+        <p class="lead">Ett vinkelservo ställer sig på en exakt vinkel, så skivan hamnar på samma ställe varje gång.</p>
+        <div class="field">
+          <label for="doser_angle">Flytta till vinkel</label>
+          <div>
+            <div class="angle-row"><input type="range" id="doser_angle" min="0" max="180" step="1" value="0"><span class="angle-val" id="doser_val">0°</span></div>
+            <div class="buttons"><button type="button" data-move="doser">Flytta</button><button type="button" class="secondary" data-release="doser">Släpp</button></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="pick_angle">Plockläge</label>
+          <div><span class="inline"><input type="number" id="pick_angle" data-key="pick_angle" data-label="Plockläget"><span class="unit">°</span></span><p class="hint">Vinkeln där hålet står längst ner i nöthögen.</p></div>
+        </div>
+        <div class="field">
+          <label for="dispense_angle">Utfallet</label>
+          <div><span class="inline"><input type="number" id="dispense_angle" data-key="dispense_angle" data-label="Utfallets vinkel"><span class="unit">°</span></span><p class="hint">Vinkeln där hålet står mitt över utfallet. 119° enligt modellen för hål Ø 28 mm.</p></div>
+        </div>
+        <div class="field">
+          <label for="dispense_move_ms">Tid för vridet</label>
+          <div><span class="inline"><input type="number" id="dispense_move_ms" data-key="dispense_move_ms" data-label="Tiden för vridet" step="100"><span class="unit">ms</span></span><p class="hint">Från plockläget till utfallet, och lika lång tid tillbaka. Längre tid = lugnare.</p></div>
+        </div>
+        <div class="buttons"><button type="button" class="big" data-cmd='{"action":"test_dispense"}' data-label="Utmatningen">Testa utmatning</button></div>
+        <p class="hint" id="dispensehintVinkel"></p>
+      </div>
     </section>
 
-    <section class="card">
-      <h2>Just nu</h2>
-      <dl>
-        <dt>Stationen</dt><dd id="online">–</dd>
-        <dt>Tittar på livebilden</dt><dd id="viewers">–</dd>
-        <dt>Senaste livebild</dt><dd id="lastframe">–</dd>
-        <dt>Temperatur</dt><dd id="temp">–</dd>
-        <dt>Uppkoppling</dt><dd id="net">–</dd>
-        <dt>Version på stationen</dt><dd id="version">–</dd>
-      </dl>
+    <!-- ===================== Luckan ===================== -->
+    <section role="tabpanel" id="luckan" aria-labelledby="tab-luckan" hidden>
+      <div class="card">
+        <h2>Luckan</h2>
+        <p class="lead">Luckan framför skålen styrs av ett litet vinkelservo (MG90S).</p>
+        <div class="status" id="luckastatus"><span class="dot"></span><p>–</p></div>
+        <div class="field">
+          <label for="lucka_angle">Flytta till vinkel</label>
+          <div>
+            <div class="angle-row"><input type="range" id="lucka_angle" min="0" max="180" step="1" value="0"><span class="angle-val" id="lucka_val">0°</span></div>
+            <div class="buttons">
+              <button type="button" data-move="lucka">Flytta</button>
+              <button type="button" class="secondary" data-release="lucka">Släpp</button>
+              <label class="check"><input type="checkbox" id="lucka_slow" checked> Långsamt</label>
+            </div>
+            <p class="hint">Stäng luckan långsamt, så att ingen kläms.</p>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label">Rörelsetest</span>
+          <div><button type="button" class="secondary" data-cmd='{"action":"sweep","servo":"lucka"}' data-label="Luckans svep">Svep i 3 sekunder</button>
+          <p class="hint">Sveper fram och tillbaka mellan 10° och 170°, sedan släpps servot.</p></div>
+        </div>
+      </div>
     </section>
 
-    <section class="card preview">
-      <h2>Förhandsvisning</h2>
-      <button type="button" id="previewbtn">Visa livebilden</button>
-      <img id="previewimg" alt="Livebild från kameran vid matstationen" hidden>
+    <!-- ===================== Servokort ===================== -->
+    <section role="tabpanel" id="servokort" aria-labelledby="tab-servokort" hidden>
+      <div class="card">
+        <h2>Servokortet (PCA9685)</h2>
+        <p class="lead">Kortet skapar signalerna till servona. Signalen släpps efter varje rörelse, så att servona inte står och surrar. Kommandon som inte når stationen inom 20 sekunder kastas.</p>
+        <div class="status" id="servostatus"><span class="dot"></span><p>–</p></div>
+        <div class="field">
+          <label for="servo_doser_channel">Kanal för nötdoseringen</label>
+          <div><input type="number" id="servo_doser_channel" data-key="servo_doser_channel" data-label="Kanalen för nötdoseringen"><p class="hint">Numret på kortet där servot sitter, 0–15.</p></div>
+        </div>
+        <div class="field">
+          <label for="servo_lucka_channel">Kanal för luckan</label>
+          <div><input type="number" id="servo_lucka_channel" data-key="servo_lucka_channel" data-label="Kanalen för luckan"></div>
+        </div>
+        <div class="field">
+          <label for="servo_min_us">Puls vid 0°</label>
+          <div><span class="inline"><input type="number" id="servo_min_us" data-key="servo_min_us" data-label="Pulsen vid 0°" step="10"><span class="unit">µs</span></span></div>
+        </div>
+        <div class="field">
+          <label for="servo_max_us">Puls vid 180°</label>
+          <div><span class="inline"><input type="number" id="servo_max_us" data-key="servo_max_us" data-label="Pulsen vid 180°" step="10"><span class="unit">µs</span></span>
+          <p class="hint">Gäller vinkelservon. Står ett servo och brummar i ändläget: minska intervallet, till exempel till 600–2400.</p></div>
+        </div>
+        <div class="buttons"><button type="button" class="secondary" data-release="alla">Släpp alla servon</button></div>
+      </div>
     </section>
   </main>
 </div>
 
+<p id="toast" role="status" aria-live="polite"></p>
+
 <script>
   const $ = id => document.getElementById(id);
-  const fields = ["fps", "quality", "max_view_min"];
-  const recFields = ["rec_fps", "motion_sensitivity", "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness", "clips_max_gb"];
-  const servoFields = ["servo_doser_channel", "servo_lucka_channel", "servo_min_us", "servo_max_us", "dispense_angle",
-                       "pick_angle", "dispense_move_ms", "doser_up_ms", "doser_down_ms", "doser_speed_us", "doser_neutral_us"];
-  let servoSettings = {};
-  const dispenseHint = v => v.doser_servo === "360"
-    ? `Ett litet vick, ${v.doser_up_ms} ms upp till utfallet, ett kort stopp och ${v.doser_down_ms} ms tillbaka ner. Utgår från att hålet står i plockläget.`
-    : `Till ${v.pick_angle}°, ett litet vick, på ${(v.dispense_move_ms / 1000).toLocaleString("sv-SE")} s upp till ${v.dispense_angle}° och lika lugnt tillbaka.`;
-  function showServoSettings(v) {
-    servoSettings = v;
-    $("dispensehint").textContent = dispenseHint(v);
-    $("doser360").hidden = v.doser_servo !== "360";
-    $("doserVinkel").hidden = v.doser_servo === "360";
+  const $$ = sel => document.querySelectorAll(sel);
+  let S = null;      // senast sparade inställningar
+  let limits = {};
+
+  // ---------- kvitto längst ner ----------
+  let toastTimer;
+  function toast(text, kind = "") {
+    const t = $("toast");
+    t.textContent = text; t.className = `show ${kind}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = kind; }, kind === "no" ? 6000 : 2500);
   }
 
-  async function saveSettings(body, msgId) {
-    const r = await fetch("/api/admin/settings", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-    });
-    const s = await r.json();
-    $(msgId).className = "msg " + (r.ok ? "ok" : "no");
-    $(msgId).textContent = r.ok ? "Sparat. Stationen får ändringen inom någon sekund." : (s.fel || "Kunde inte spara.");
-    return r.ok ? s : null;
+  async function post(url, body) {
+    const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (r.status === 401) { location.href = "/admin/login"; return { ok: false, s: {} }; }
+    let s = {}; try { s = await r.json(); } catch (e) {}
+    return { ok: r.ok, s };
   }
 
-  async function servo(cmd) { return command(cmd, "servomsg"); }
-
-  async function command(cmd, msgId) {
-    $(msgId).className = "msg"; $(msgId).textContent = "Skickar …";
-    const r = await fetch("/api/admin/servo", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cmd),
+  // ---------- inställningar: sparas direkt när de ändras ----------
+  // Byt ut tekniska namn som "pick_angle" i felmeddelanden mot texten i adminvyn.
+  const labelFor = key => document.querySelector(`[data-key="${key}"]`)?.dataset.label;
+  const friendly = error => error.replace(/\b[a-z_]+\b/g, w => (S && w in S && labelFor(w)) || w);
+  function readValue(el) {
+    if (el.type === "checkbox") return el.checked;
+    if (el.type === "number" || el.dataset.type === "int") return parseInt(el.value, 10);
+    return el.value;
+  }
+  async function save(changes) {
+    const { ok, s } = await post("/api/admin/settings", changes);
+    if (!ok) { toast(friendly(s.fel || "Kunde inte spara."), "no"); fill(); return null; }
+    S = s.settings; $("notpersisted").hidden = s.persisted;
+    fill(); toast("Sparat. Stationen får ändringen inom någon sekund.", "ok");
+    return S;
+  }
+  function fill() {
+    if (!S) return;
+    $$("[data-key]").forEach(el => {
+      const v = S[el.dataset.key];
+      if (el.type === "checkbox") el.checked = v;
+      else if (el.type === "radio") el.checked = String(v) === el.value;
+      else if (document.activeElement !== el) el.value = v;
+      if (el.type === "number" && limits[el.dataset.key]) [el.min, el.max] = limits[el.dataset.key];
     });
-    const s = await r.json();
-    $(msgId).className = "msg " + (r.ok && !s.varning ? "ok" : "no");
-    $(msgId).textContent = !r.ok ? (s.fel || "Kunde inte skicka.") : (s.varning || "Skickat till stationen.");
+    const is360 = S.doser_servo === "360";
+    $("doser360").hidden = !is360;
+    $("doserVinkel").hidden = is360;
+    $("doserservohint").textContent = is360
+      ? "Snurrar så länge det får signal. Styrs med tid, och skivans läge kan glida lite för varje utmatning."
+      : "Ställer sig på en exakt vinkel. Skivan hamnar på samma ställe varje gång.";
+    $("dispensehint360").textContent = `Ett litet vick som rör om nötterna, ${S.doser_up_ms} ms upp till utfallet, ett stopp på 0,3 s där nöten faller ut, och ${S.doser_down_ms} ms tillbaka ner. Utgår från att hålet står i plockläget.`;
+    $("dispensehintVinkel").textContent = `Till ${S.pick_angle}°, ett litet vick, lugnt upp till ${S.dispense_angle}° på ${(S.dispense_move_ms / 1000).toLocaleString("sv-SE")} s och lika lugnt tillbaka.`;
+  }
+  function watch(el) {
+    el.addEventListener("change", () => {
+      if (el.type === "radio" && !el.checked) return;
+      const value = readValue(el);
+      if (Number.isNaN(value)) { fill(); return; }
+      save({ [el.dataset.key]: value });
+    });
+  }
+  $$("[data-key]").forEach(watch);
+  // − och + bredvid tiderna
+  $$("[data-step]").forEach(b => b.addEventListener("click", () => {
+    const el = $(b.dataset.for), [low, high] = limits[el.dataset.key] || [-Infinity, Infinity];
+    const value = Math.min(high, Math.max(low, (parseInt(el.value, 10) || 0) + parseInt(b.dataset.step, 10)));
+    el.value = value;
+    save({ [el.dataset.key]: value });
+  }));
+
+  // ---------- kommandon till stationen ----------
+  async function command(cmd, label) {
+    toast(`${label}: skickar …`);
+    const { ok, s } = await post("/api/admin/servo", cmd);
+    if (!ok) toast(friendly(s.fel || "Kunde inte skicka."), "no");
+    else if (s.varning) toast(s.varning, "no");
+    else toast(`${label}: skickat till stationen.`, "ok");
     setTimeout(load, 1500);  // stationen skickar en rapport direkt efter kommandot
   }
-  let loaded = false;
+  $$("[data-cmd]").forEach(b => b.addEventListener("click", () => command(JSON.parse(b.dataset.cmd), b.dataset.label)));
+  $$("[data-spin]").forEach(b => b.addEventListener("click", () => {
+    const up = b.dataset.spin === "up";
+    const ms = b.dataset.time ? S[b.dataset.time] : parseInt(document.querySelector("input[name=knuff]:checked").value, 10);
+    const label = b.dataset.time ? (up ? "Snurra upp" : "Snurra ner") : (up ? "Knuff upp" : "Knuff ner");
+    command({ action: "spin", servo: "doser", direction: b.dataset.spin, ms }, `${label} ${ms} ms`);
+  }));
+  for (const name of ["doser", "lucka"]) {
+    $(`${name}_angle`).addEventListener("input", e => { $(`${name}_val`).textContent = `${e.target.value}°`; });
+  }
+  $$("[data-move]").forEach(b => b.addEventListener("click", () => {
+    const name = b.dataset.move, angle = parseInt($(`${name}_angle`).value, 10);
+    command({ action: "move", servo: name, angle, slow: name === "lucka" && $("lucka_slow").checked },
+            `${name === "lucka" ? "Luckan" : "Skivan"} till ${angle}°`);
+  }));
+  const releaseLabels = { alla: "Släpp alla servon", doser: "Släpp skivan", lucka: "Släpp luckan" };
+  $$("[data-release]").forEach(b => b.addEventListener("click", () =>
+    command({ action: "release", servo: b.dataset.release }, releaseLabels[b.dataset.release])));
+
+  // ---------- flikar ----------
+  const tabs = [...$$("[role=tab]")];
+  function showTab(name, focus = false) {
+    if (!tabs.some(t => t.dataset.tab === name)) name = "oversikt";
+    tabs.forEach(t => {
+      const on = t.dataset.tab === name;
+      t.setAttribute("aria-selected", on); t.tabIndex = on ? 0 : -1;
+      $(t.dataset.tab).hidden = !on;
+      if (on && focus) t.focus();
+    });
+    history.replaceState(null, "", `#${name}`);
+    if (name !== "kamera") stopPreview();  // förhandsvisningen räknas som tittare, så stäng den
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => showTab(t.dataset.tab));
+    t.addEventListener("keydown", e => {
+      const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (step) { e.preventDefault(); showTab(tabs[(i + step + tabs.length) % tabs.length].dataset.tab, true); }
+    });
+  });
+  $$("[data-goto]").forEach(b => b.addEventListener("click", () => { showTab(b.dataset.goto); window.scrollTo({ top: 0 }); }));
+
+  // ---------- förhandsvisning ----------
+  function stopPreview() {
+    const img = $("previewimg");
+    img.removeAttribute("src"); img.hidden = true; $("previewbtn").textContent = "Visa kamerabilden";
+  }
+  $("previewbtn").addEventListener("click", () => {
+    const img = $("previewimg");
+    if (img.hidden) { img.src = "/live.mjpg?t=" + Date.now(); img.hidden = false; $("previewbtn").textContent = "Stäng"; }
+    else stopPreview();
+  });
+  showTab(location.hash.slice(1));
+  window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
+
+  // ---------- status ----------
   const displayNames = { camera: "kamerabilden", granted: "ACCESS GRANTED", denied: "ACCESS DENIED", demo: "demoläget" };
-  const radio = v => document.querySelector(`input[name=display_mode][value="${v}"]`);
+  const stateClass = state => state === true ? "is-ok" : state === false ? "is-bad" : "";
+  function setStatus(id, state, text, detail = "") {
+    const el = $(id), p = el.querySelector("p");
+    el.className = `status ${stateClass(state)}`;
+    p.textContent = text;
+    if (detail) { const small = document.createElement("small"); small.textContent = detail; p.append(small); }
+  }
+  function setDots(kind, state) {
+    $$(`[data-dot="${kind}"]`).forEach(d => {
+      d.parentElement.classList.toggle("is-ok", state === true);
+      d.parentElement.classList.toggle("is-bad", state === false);
+    });
+  }
+  function ago(s) {
+    if (s == null) return "aldrig";
+    if (s < 60) return `${s} s sedan`;
+    if (s < 3600) return `${Math.round(s / 60)} min sedan`;
+    return `${Math.round(s / 3600)} h sedan`;
+  }
+  function duration(s) {
+    if (s == null) return "–";
+    const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    return d ? `${d} d ${h} h` : h ? `${h} h ${m} min` : `${m} min`;
+  }
+  const options = (id, values, label) => { $(id).innerHTML = values.map(v => `<option value="${v}">${label(v)}</option>`).join(""); };
+  const problem = (rep, prefix) => (rep.message || "").split(" · ").find(p => p.startsWith(prefix)) || "";
 
   async function load() {
     const r = await fetch("/api/admin/state", { cache: "no-store" });
     if (r.status === 401) { location.href = "/admin/login"; return; }
     const s = await r.json();
-    if (!loaded) {
-      $("resolution").innerHTML = s.resolutions.map(v => `<option value="${v}">${v.replace("x", " × ")}</option>`).join("");
-      for (const f of fields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
-      $("resolution").value = s.settings.resolution;
-      $("live_enabled").checked = s.settings.live_enabled;
-      $("camera_rotation").innerHTML = s.rotations.map(v => `<option value="${v}">${v}°</option>`).join("");
-      $("camera_rotation").value = s.settings.camera_rotation;
-      if (radio(s.settings.display_mode)) radio(s.settings.display_mode).checked = true;
-      $("lcd_spi_mhz").innerHTML = s.lcd_spi_mhz.map(v => `<option value="${v}">${v} MHz</option>`).join("");
-      $("lcd_spi_mhz").value = s.settings.lcd_spi_mhz;
-      for (const f of servoFields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
-      $("doser_servo").value = s.settings.doser_servo;
-      $("doser_reverse").checked = s.settings.doser_reverse;
-      showServoSettings(s.settings);
-      $("rec_resolution").innerHTML = s.rec_resolutions.map(v => `<option value="${v}">${v.replace("x", " × ")}</option>`).join("");
-      $("rec_resolution").value = s.settings.rec_resolution;
-      $("recording_enabled").checked = s.settings.recording_enabled;
-      for (const f of recFields) { $(f).min = s.limits[f][0]; $(f).max = s.limits[f][1]; $(f).value = s.settings[f]; }
-      loaded = true;
+    if (!S) {
+      limits = s.limits;
+      options("resolution", s.resolutions, v => v.replace("x", " × "));
+      options("rec_resolution", s.rec_resolutions, v => v.replace("x", " × "));
+      options("lcd_spi_mhz", s.lcd_spi_mhz, v => `${v} MHz`);
+      $("rotations").innerHTML = s.rotations.map(v =>
+        `<label><input type="radio" name="camera_rotation" value="${v}" data-key="camera_rotation" data-type="int"><span>${v}°</span></label>`).join("");
+      $$("[name=camera_rotation]").forEach(watch);
+      S = s.settings;
+      fill();
     }
     $("notpersisted").hidden = s.persisted;
-    const st = s.status, rep = st.report || {};
-    $("online").textContent = st.online ? `igång (hörd av för ${st.seen_ago_s} s sedan)` : "hörs inte av";
+    const st = s.status, rep = st.report || {}, on = st.online;
+    const known = v => on ? v : undefined;
+    const offline = st.report ? "Stationen hörs inte av." : "Ingen kontakt med stationen än.";
+
+    $("stationpill").className = `pill ${on ? "is-ok" : "is-bad"}`;
+    $("stationtext").textContent = on ? "Stationen är igång" : (st.report ? "Stationen hörs inte av" : "Ingen kontakt än");
+
+    // Översikt
+    $("ov-seen").textContent = ago(st.seen_ago_s);
+    $("ov-temp").textContent = rep.cpu_temp_c != null ? `${rep.cpu_temp_c.toFixed(1)} °C` : "–";
+    $("ov-net").textContent = rep.network || "–";
+    $("ov-uptime").textContent = duration(rep.uptime_s);
+    $("ov-version").textContent = rep.version || "–";
+    $("ov-sversion").textContent = st.server_version || "–";
+    $("ov-message").hidden = !(on && rep.message);
+    $("ov-message").textContent = rep.message ? `Meddelande från stationen: ${rep.message}` : "";
+
+    // Kamera
+    setDots("camera", known(rep.camera_ok));
+    const camText = !on ? offline : rep.camera_ok ? `Kameran är igång${rep.fps ? `, ${rep.fps.toFixed(1)} bilder per sekund` : ""}.` : "Kameran fungerar inte.";
+    setStatus("camerastatus", known(rep.camera_ok), camText, on && !rep.camera_ok ? problem(rep, "Kamera:") : "");
+    $("ov-camera").textContent = camText;
+
+    // Skärmen
+    setDots("display", known(rep.display_ok));
+    const dispText = !on ? offline : rep.display_ok === undefined ? "Ingen uppgift från stationen än."
+      : rep.display_ok ? `Skärmen är igång och visar ${displayNames[rep.display_mode] || "kamerabilden"}.` : "Skärmen gick inte att starta.";
+    setStatus("displaystatus", known(rep.display_ok), dispText, on && rep.display_ok === false ? problem(rep, "Skärm:") : "");
+    $("ov-display").textContent = dispText;
+    $("displayinfo").textContent = on && rep.display_info ? `Tekniskt: ${rep.display_info}` : "";
+    $("demoinfo").hidden = !(on && rep.demo_info);
+    $("demoinfo").textContent = rep.demo_info ? `Demoläget just nu: ${rep.demo_info}` : "";
+
+    // Servon (nötdoseringen, luckan och servokortet delar samma kort)
+    setDots("servo", known(rep.servo_ok));
+    const servoText = !on ? offline : rep.servo_info === undefined ? "Ingen uppgift från stationen än."
+      : rep.servo_ok ? "Servokortet är anslutet." : "Servokortet svarar inte.";
+    for (const id of ["servostatus", "doserstatus", "luckastatus"]) setStatus(id, known(rep.servo_ok), servoText, on ? rep.servo_info || "" : "");
+    $("ov-servo").textContent = servoText;
+
+    // Inspelning
+    const recState = on && S.recording_enabled ? rep.recording_ok : undefined;
+    setDots("recording", recState);
+    const recText = !on ? offline : !S.recording_enabled ? "Inspelningen är avstängd." : rep.recording_ok ? "Spelar in när något rör sig." : "Inspelningen fungerar inte.";
+    setStatus("recstatus", recState, recText, on ? rep.recording_info || "" : "");
+    $("ov-recording").textContent = recText;
+    if (s.clips) $("recclips").textContent = `${s.clips.count} klipp på servern, ${(s.clips.bytes / 1e9).toFixed(2)} av ${S.clips_max_gb} GB använt.`;
+
+    // Livebild
+    setDots("live", S.live_enabled ? on : undefined);
     $("viewers").textContent = `${s.live.viewers} av högst ${s.live.max_viewers}`;
     $("lastframe").textContent = s.live.last_frame_age_s == null ? "ingen än" : `${s.live.last_frame_age_s} s sedan`;
-    $("temp").textContent = rep.cpu_temp_c != null ? `${rep.cpu_temp_c.toFixed(1)} °C` : "–";
-    $("net").textContent = rep.network || "–";
-    $("version").textContent = rep.version || "–";
-    const displayProblem = (rep.message || "").split(" · ").find(p => p.startsWith("Skärm:"));
-    $("displaystatus").textContent = !st.online ? "Stationen hörs inte av."
-      : rep.display_ok === undefined ? "Ingen uppgift från stationen än."
-      : rep.display_ok ? `✓ Skärmen är igång och visar ${displayNames[rep.display_mode] || "kamerabilden"}.`
-      : `✗ ${displayProblem || "Skärmen gick inte att starta."}`;
-    $("displayinfo").textContent = st.online && rep.display_info ? `Tekniskt: ${rep.display_info}` : "";
-    $("demoinfo").hidden = !(st.online && rep.demo_info);
-    $("demoinfo").textContent = rep.demo_info || "";
-    $("servostatus").textContent = !st.online ? "Stationen hörs inte av."
-      : rep.servo_info ? `${rep.servo_ok ? "✓" : "✗"} ${rep.servo_info}` : "Ingen uppgift från stationen än.";
-    $("recstatus").textContent = !st.online ? "Stationen hörs inte av."
-      : rep.recording_info ? `${rep.recording_ok ? "✓" : "✗"} ${rep.recording_info}` : "Ingen uppgift från stationen än.";
-    if (s.clips) $("recclips").textContent = `${s.clips.count} klipp på servern, ${(s.clips.bytes / 1e9).toFixed(2)} av ${s.settings.clips_max_gb} GB.`;
+    $("ov-live").textContent = !S.live_enabled ? "Avstängd för besökarna." : `På för besökarna. ${s.live.viewers} tittar just nu.`;
   }
-
-  $("settings").addEventListener("submit", async e => {
-    e.preventDefault();
-    const body = { live_enabled: $("live_enabled").checked, resolution: $("resolution").value };
-    for (const f of fields) body[f] = parseInt($(f).value, 10);
-    const r = await fetch("/api/admin/settings", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-    });
-    const s = await r.json();
-    $("msg").className = "msg " + (r.ok ? "ok" : "no");
-    $("msg").textContent = r.ok ? "Sparat. Ändringen gäller direkt." : (s.fel || "Kunde inte spara.");
-    if (r.ok) $("notpersisted").hidden = s.persisted;
-  });
-
-  $("camera").addEventListener("submit", e => {
-    e.preventDefault();
-    saveSettings({ camera_rotation: parseInt($("camera_rotation").value, 10) }, "cameramsg");
-  });
-  document.querySelectorAll("input[name=display_mode]").forEach(r => r.addEventListener("change", async () => {
-    if (await saveSettings({ display_mode: r.value }, "displaymsg")) setTimeout(load, 1500);
-  }));
-  $("lcd_spi_mhz").addEventListener("change", async () => {
-    if (await saveSettings({ lcd_spi_mhz: parseInt($("lcd_spi_mhz").value, 10) }, "displaymsg")) setTimeout(load, 1500);
-  });
-  $("displayrestart").addEventListener("click", () => command({ action: "display_restart" }, "displaymsg"));
-  $("recording").addEventListener("submit", e => {
-    e.preventDefault();
-    const body = { recording_enabled: $("recording_enabled").checked, rec_resolution: $("rec_resolution").value };
-    for (const f of recFields) body[f] = parseInt($(f).value, 10);
-    saveSettings(body, "recmsg");
-  });
-  $("servosettings").addEventListener("submit", async e => {
-    e.preventDefault();
-    const body = { doser_servo: $("doser_servo").value, doser_reverse: $("doser_reverse").checked };
-    for (const f of servoFields) body[f] = parseInt($(f).value, 10);
-    const s = await saveSettings(body, "servosettingsmsg");
-    if (s) showServoSettings(s.settings);
-  });
-  for (const name of ["doser", "lucka"]) {
-    $(`${name}_angle`).addEventListener("input", e => { $(`${name}_val`).textContent = `${e.target.value}°`; });
-  }
-  document.querySelectorAll("[data-move]").forEach(b => b.addEventListener("click", () => {
-    const name = b.dataset.move;
-    servo({ action: "move", servo: name, angle: parseInt($(`${name}_angle`).value, 10), slow: name === "lucka" && $("lucka_slow").checked });
-  }));
-  document.querySelectorAll("[data-release]").forEach(b => b.addEventListener("click", () => servo({ action: "release", servo: b.dataset.release })));
-  $("testdispense").addEventListener("click", () => servo({ action: "test_dispense" }));
-  // 360°-servot: knuffa en kort stund, eller snurra hela den sparade tiden upp eller ner.
-  document.querySelectorAll("[data-spin]").forEach(b => b.addEventListener("click", () => {
-    const ms = b.dataset.setting ? servoSettings[b.dataset.setting] : parseInt($("knuff").value, 10);
-    servo({ action: "spin", servo: "doser", direction: b.dataset.spin, ms });
-  }));
-
-  $("previewbtn").addEventListener("click", () => {
-    const img = $("previewimg");
-    if (img.hidden) { img.src = "/live.mjpg?t=" + Date.now(); img.hidden = false; $("previewbtn").textContent = "Stäng förhandsvisningen"; }
-    else { img.removeAttribute("src"); img.hidden = true; $("previewbtn").textContent = "Visa livebilden"; }
-  });
 
   load();
   setInterval(load, 5000);
