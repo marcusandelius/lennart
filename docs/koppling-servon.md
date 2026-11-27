@@ -50,16 +50,17 @@ En utmatning är **ett helt varv framåt**: fram till utfallet, ett stopp på 0,
 
 Fliken **Nötdosering** guidar i fem steg. Gör det utan nötter först:
 
-1. **Kolla riktningen:** tryck **Knuffa framåt**. Rör sig hålet från nöthögen mot utfallet är riktningen rätt. Annars kryssar du i **Omvänd riktning**.
+1. **Lär känna servot:** tryck **Starta**. Stationen snurrar skivan en kort stund i taget, och du svarar **Bakåt**, **Stod still** eller **Framåt**. Guiden provar först full fart åt båda hållen och halverar sedan intervallet efter varje svar, som när man gissar ett tal. Efter ungefär 9 prov har den hittat servots stilla-punkt och vilket håll som är framåt, och sparar båda. Med **Ångra senaste svaret** och **Kör samma prov igen** går det att rätta ett felklick. Ställ sedan in **Fart** med reglaget, från Lugn till Snabb.
 2. **Spara plockläget:** knuffa tills hålet står längst ner i nöthögen och tryck **Spara som plockläge**. En räknare börjar då om från 0 ms. Knuffens längd ställs med reglaget bredvid knappen, från 20 till 2 000 ms. Ta långa knuffar första biten och korta sista biten.
 3. **Spara utfallet:** knuffa framåt tills hålet står mitt över utfallet och tryck **Spara som utfall**. Räknarens tid sparas.
 4. **Spara ett helt varv:** knuffa vidare tills hålet är tillbaka i plockläget och tryck **Spara som helt varv**.
 5. **Finjustera och testa:** knuffar summeras inte exakt, eftersom servot behöver en stund för att komma upp i fart. Prova därför med hålet i plockläget: **Prova: till utfallet** ska stanna mitt över utfallet, och **Prova: resten av varvet** ska sedan stanna i plockläget. Justera med − och +. Kör sedan **Testa utmatning**.
 
-Under **Fart, stilla-läge och knuff bakåt** längst ner:
+Under **Justera för hand och knuffa bakåt** längst ner finns stilla-punkten och riktningen, om de behöver ändras för hand, och knappen **Knuffa bakåt**. Det behövs sällan efter guiden.
 
-- **Fart** är 120 µs från stilla-läget som standard, vilket är lugnt. Ändrar du farten behöver tiderna sparas om.
-- **Stilla-läge** (1000–2000 µs) är pulsen där just det här servot står still. 2026-11-27 gick **Knuffa bakåt** åt samma håll som framåt. Det tyder på att servots stilla-punkt ligger en bit från 1500 µs [verifiera]. Ändra värdet tills de två knuffarna går åt var sitt håll. Det behövs bara för att kunna knuffa bakåt.
+**Varför guiden behövs:** 360°-servot står still vid en signal som skiljer sig från servo till servo. Programmet antog 1500 µs. Ligger servots egen stilla-punkt en bit därifrån går både framåt och bakåt åt samma håll, och farten blir olika åt de två hållen. Så var det 2026-11-27: knuffa bakåt gick åt samma håll som framåt, Omvänd riktning hjälpte bara ibland, och farten motsvarade inte inställningen. Farten räknas från stilla-punkten, så när den är rätt stämmer farten åt båda hållen. Den ökar ändå inte jämnt hela vägen, och den sjunker när skivan bär nötter.
+
+Har servot en justerskruv för stilla-punkten [verifiera på servot] och guiden säger att skivan går åt samma håll båda gångerna: vrid skruven lite och kör guiden igen.
 
 **Felet växer för varje varv.** Är tiden för ett helt varv 2 % fel har hålet glidit en femtedel av ett varv efter 10 nötter. Kolla då och då att hålet står i plockläget, och knuffa tillrätta vid behov. En givare som känner av när skivan passerar plockläget, till exempel en magnet i skivan och en hallgivare, skulle låta servot hitta hem varje varv. Det är inte beslutat.
 
