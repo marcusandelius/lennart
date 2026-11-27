@@ -110,6 +110,10 @@
   .steps > li { counter-increment:steg; position:relative; padding:.95rem 1rem .95rem 3.3rem; border-radius:12px; background:var(--paper); border:1px solid var(--line); }
   .steps > li::before { content:counter(steg); position:absolute; left:1rem; top:.95rem; width:1.6rem; height:1.6rem; border-radius:50%; display:grid; place-items:center; background:var(--ink); color:var(--paper); font-weight:800; font-size:.9rem; }
   .steps .seg { background:var(--surface); }
+  .steps .field { border-top:1px dashed var(--line); padding:.65rem 0; }
+  .steps .field > label { padding-top:.55rem; }
+  .counter { font-variant-numeric:tabular-nums; font-weight:700; margin:.6rem 0 0; }
+  .counter:empty { display:none; }
   @media (max-width:34rem) {
     .card { padding:1rem; }
     .steps > li { padding:.85rem .85rem .85rem 2.75rem; }
@@ -344,62 +348,84 @@
       <!-- 360°-servo: styrs med tid -->
       <div class="card" id="doser360" hidden>
         <h2>Ställ in skivan, steg för steg</h2>
-        <p class="lead">Ett 360°-servo har ingen vinkel och vet aldrig var skivan står. Rörelsen styrs därför med tid, och tiderna provas fram här. Gör det utan nötter först. Allt sparas direkt.</p>
+        <p class="lead">Ett 360°-servo vet aldrig var skivan står. Därför sparas lägena som <b>tid från plockläget</b>, och en utmatning är ett helt varv framåt: fram till utfallet, ett kort stopp, och resten av varvet tillbaka till plockläget. Gör det utan nötter först.</p>
         <ol class="steps">
           <li>
             <h3>Kolla riktningen</h3>
-            <p class="hint">Tryck <b>Knuffa upp</b>. Hålet ska röra sig från nöthögen mot utfallet. Går det åt andra hållet: kryssa i Omvänd riktning.</p>
+            <p class="hint">Tryck <b>Knuffa framåt</b>. Hålet ska röra sig från nöthögen mot utfallet. Går det åt andra hållet: kryssa i Omvänd riktning.</p>
             <div class="buttons">
-              <button type="button" class="secondary" data-spin="up">Knuffa upp ▶</button>
+              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button>
               <label class="check"><input type="checkbox" data-key="doser_reverse"> Omvänd riktning</label>
             </div>
           </li>
           <li>
-            <h3>Ställ hålet i plockläget</h3>
-            <p class="hint">Knuffa tills hålet står längst ner i nöthögen. Ta mindre knuffar sista biten.</p>
+            <h3>Spara plockläget</h3>
+            <p class="hint">Knuffa framåt tills hålet står längst ner i nöthögen, och tryck <b>Spara som plockläge</b>. Då börjar räknaren om från noll.</p>
             <div class="buttons">
-              <button type="button" class="secondary" data-spin="down">◀ Knuffa ner</button>
-              <button type="button" class="secondary" data-spin="up">Knuffa upp ▶</button>
+              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button>
               <div class="seg" role="radiogroup" aria-label="Hur lång knuff">
                 <label><input type="radio" name="knuff" value="50"><span>50 ms</span></label>
                 <label><input type="radio" name="knuff" value="100" checked><span>100 ms</span></label>
                 <label><input type="radio" name="knuff" value="250"><span>250 ms</span></label>
               </div>
+              <button type="button" id="markpick">Spara som plockläge</button>
             </div>
+            <p class="counter" id="counter" aria-live="polite"></p>
           </li>
           <li>
-            <h3>Hitta tiden upp till utfallet</h3>
-            <p class="hint">Tryck <b>Snurra upp</b>. Stannar hålet före utfallet: öka tiden. Åker det förbi: minska. Knuffa tillbaka till plockläget mellan försöken.</p>
+            <h3>Spara utfallet</h3>
+            <p class="hint">Knuffa framåt tills hålet står mitt över utfallet, och tryck <b>Spara som utfall</b>.</p>
             <div class="buttons">
-              <span class="stepper"><button type="button" class="secondary" data-step="-20" data-for="doser_up_ms" aria-label="20 ms kortare">−</button><input type="number" id="doser_up_ms" data-key="doser_up_ms" data-label="Tiden upp" step="10" aria-label="Tid upp i millisekunder"><button type="button" class="secondary" data-step="20" data-for="doser_up_ms" aria-label="20 ms längre">+</button></span><span class="unit">ms</span>
-              <button type="button" data-spin="up" data-time="doser_up_ms">Snurra upp</button>
+              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button>
+              <button type="button" data-save-pos="doser_up_ms">Spara som utfall</button>
             </div>
           </li>
           <li>
-            <h3>Hitta tiden tillbaka ner</h3>
-            <p class="hint">Med hålet vid utfallet: tryck <b>Snurra ner</b> och justera tills hålet hamnar i plockläget. Tiden blir sällan exakt samma som upp, eftersom skivan lutar och servot går olika fort åt olika håll.</p>
+            <h3>Spara ett helt varv</h3>
+            <p class="hint">Knuffa vidare framåt tills hålet är tillbaka i plockläget, och tryck <b>Spara som helt varv</b>.</p>
             <div class="buttons">
-              <span class="stepper"><button type="button" class="secondary" data-step="-20" data-for="doser_down_ms" aria-label="20 ms kortare">−</button><input type="number" id="doser_down_ms" data-key="doser_down_ms" data-label="Tiden ner" step="10" aria-label="Tid ner i millisekunder"><button type="button" class="secondary" data-step="20" data-for="doser_down_ms" aria-label="20 ms längre">+</button></span><span class="unit">ms</span>
-              <button type="button" data-spin="down" data-time="doser_down_ms">Snurra ner</button>
+              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button>
+              <button type="button" data-save-pos="doser_rev_ms">Spara som helt varv</button>
             </div>
           </li>
           <li>
-            <h3>Testa en hel utmatning</h3>
+            <h3>Finjustera och testa</h3>
+            <p class="hint">Knuffar summeras inte exakt, eftersom servot behöver en stund för att komma upp i fart. Prova därför tiderna i hela svep och justera med − och +. Börja med hålet i plockläget: <b>till utfallet</b> ska stanna mitt över utfallet, och <b>resten av varvet</b> ska sedan stanna i plockläget igen.</p>
+            <div class="field">
+              <label for="doser_up_ms">Till utfallet</label>
+              <div class="buttons" style="margin-top:0">
+                <span class="stepper"><button type="button" class="secondary" data-step="-20" data-for="doser_up_ms" aria-label="20 ms kortare">−</button><input type="number" id="doser_up_ms" data-key="doser_up_ms" data-label="Tiden till utfallet" step="10" aria-label="Tid till utfallet i millisekunder"><button type="button" class="secondary" data-step="20" data-for="doser_up_ms" aria-label="20 ms längre">+</button></span><span class="unit">ms</span>
+                <button type="button" class="secondary" data-spin="up" data-time="doser_up_ms">Prova: till utfallet</button>
+                <button type="button" class="secondary" data-spin="up" data-time="rest">Prova: resten av varvet</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="doser_rev_ms">Helt varv</label>
+              <div class="buttons" style="margin-top:0">
+                <span class="stepper"><button type="button" class="secondary" data-step="-20" data-for="doser_rev_ms" aria-label="20 ms kortare">−</button><input type="number" id="doser_rev_ms" data-key="doser_rev_ms" data-label="Tiden för ett helt varv" step="10" aria-label="Tid för ett helt varv i millisekunder"><button type="button" class="secondary" data-step="20" data-for="doser_rev_ms" aria-label="20 ms längre">+</button></span><span class="unit">ms</span>
+                <button type="button" class="secondary" data-spin="up" data-time="doser_rev_ms">Prova: ett helt varv</button>
+              </div>
+            </div>
             <p class="hint" id="dispensehint360"></p>
             <div class="buttons"><button type="button" class="big" data-cmd='{"action":"test_dispense"}' data-label="Utmatningen">Testa utmatning</button></div>
           </li>
         </ol>
         <details class="more">
-          <summary>Fart och stilla-läge</summary>
+          <summary>Fart, stilla-läge och knuff bakåt</summary>
           <div class="field">
             <label for="doser_speed_us">Fart</label>
             <div><span class="inline"><input type="number" id="doser_speed_us" data-key="doser_speed_us" data-label="Farten" step="10"><span class="unit">µs från stilla</span></span>
-            <p class="hint">Hur mycket pulsen skiljer sig från stilla-läget. Större = fortare. 120 är lugnt. Ändrar du farten behöver tiderna provas fram igen.</p></div>
+            <p class="hint">Hur mycket pulsen skiljer sig från stilla-läget. Större = fortare. 120 är lugnt. Ändrar du farten behöver tiderna sparas om.</p></div>
           </div>
           <div class="field">
             <label for="doser_neutral_us">Stilla-läge</label>
             <div><span class="inline"><input type="number" id="doser_neutral_us" data-key="doser_neutral_us" data-label="Stilla-läget" step="5"><span class="unit">µs</span></span>
-            <p class="hint">Pulsen där servot står still, normalt 1500. Kryper skivan åt ena hållet vid knuffarna: justera 5 µs i taget.</p></div>
+            <p class="hint">Pulsen där just det här servot står still, ofta runt 1500. Går Knuffa bakåt åt samma håll som framåt ligger servots stilla-punkt någon annanstans: ändra värdet tills de två knuffarna går åt var sitt håll.</p></div>
+          </div>
+          <div class="field">
+            <span class="label">Knuffa bakåt</span>
+            <div><button type="button" class="secondary" data-spin="down">◀ Knuffa bakåt</button>
+            <p class="hint">Bra för att rätta till om hålet åkt förbi. Räknas av från räknaren, men bara ungefär.</p></div>
           </div>
         </details>
       </div>
@@ -540,9 +566,9 @@
     $("doser360").hidden = !is360;
     $("doserVinkel").hidden = is360;
     $("doserservohint").textContent = is360
-      ? "Snurrar så länge det får signal. Styrs med tid, och skivans läge kan glida lite för varje utmatning."
+      ? "Snurrar så länge det får signal. Styrs med tid, och skivans läge kan glida lite för varje varv."
       : "Ställer sig på en exakt vinkel. Skivan hamnar på samma ställe varje gång.";
-    $("dispensehint360").textContent = `Ett litet vick som rör om nötterna, ${S.doser_up_ms} ms upp till utfallet, ett stopp på 0,3 s där nöten faller ut, och ${S.doser_down_ms} ms tillbaka ner. Utgår från att hålet står i plockläget.`;
+    $("dispensehint360").textContent = `Testa utmatning: ${S.doser_up_ms} ms fram till utfallet, ett stopp på 0,3 s där nöten faller ut, och ${S.doser_rev_ms - S.doser_up_ms} ms vidare runt till plockläget. Utgår från att hålet står i plockläget.`;
     $("dispensehintVinkel").textContent = `Till ${S.pick_angle}°, ett litet vick, lugnt upp till ${S.dispense_angle}° på ${(S.dispense_move_ms / 1000).toLocaleString("sv-SE")} s och lika lugnt tillbaka.`;
   }
   function watch(el) {
@@ -572,11 +598,42 @@
     setTimeout(load, 1500);  // stationen skickar en rapport direkt efter kommandot
   }
   $$("[data-cmd]").forEach(b => b.addEventListener("click", () => command(JSON.parse(b.dataset.cmd), b.dataset.label)));
+  // Räknaren: hur länge skivan snurrat framåt sedan plockläget sparades. Ett 360°-servo kan inte
+  // säga var det står, så "lägena" sparas som tid. Sparas i fliken, så att den överlever en omladdning.
+  let counter = null;
+  try { const c = sessionStorage.getItem("lennart-raknare"); if (c !== null) counter = parseInt(c, 10); } catch (e) {}
+  function showCounter() {
+    try { if (counter === null) sessionStorage.removeItem("lennart-raknare"); else sessionStorage.setItem("lennart-raknare", counter); } catch (e) {}
+    $("counter").textContent = counter === null ? "" : `Framåt sedan plockläget: ${counter.toLocaleString("sv-SE")} ms`;
+  }
+  showCounter();
+  $("markpick").addEventListener("click", () => { counter = 0; showCounter(); toast("Plockläget sparat. Räknaren börjar om från 0 ms.", "ok"); });
+  $$("[data-save-pos]").forEach(b => b.addEventListener("click", async () => {
+    if (counter === null || counter <= 0) { toast("Spara plockläget först och knuffa sedan framåt.", "no"); return; }
+    const key = b.dataset.savePos;
+    // Spara båda tiderna samtidigt om det behövs, så att utfallet alltid ligger före ett helt varv.
+    const changes = { [key]: counter };
+    if (key === "doser_up_ms" && counter >= S.doser_rev_ms) changes.doser_rev_ms = counter + 1000;
+    if (!await save(changes)) return;
+    toast(`${key === "doser_up_ms" ? "Utfallet" : "Ett helt varv"} sparat: ${counter.toLocaleString("sv-SE")} ms från plockläget.`, "ok");
+    if (key === "doser_rev_ms") { counter = 0; showCounter(); }  // hålet står i plockläget igen
+  }));
   $$("[data-spin]").forEach(b => b.addEventListener("click", () => {
     const up = b.dataset.spin === "up";
-    const ms = b.dataset.time ? S[b.dataset.time] : parseInt(document.querySelector("input[name=knuff]:checked").value, 10);
-    const label = b.dataset.time ? (up ? "Snurra upp" : "Snurra ner") : (up ? "Knuff upp" : "Knuff ner");
+    const time = b.dataset.time;
+    const ms = time === "rest" ? S.doser_rev_ms - S.doser_up_ms
+      : time ? S[time] : parseInt(document.querySelector("input[name=knuff]:checked").value, 10);
+    const label = { doser_up_ms: "Till utfallet", doser_rev_ms: "Ett helt varv", rest: "Resten av varvet" }[time]
+      || (up ? "Knuff framåt" : "Knuff bakåt");
+    if (counter !== null) {
+      // Ett helt varv slutar där det började, och resten av varvet slutar i plockläget.
+      counter = time === "doser_rev_ms" ? counter : time === "rest" ? 0 : Math.max(0, counter + (up ? ms : -ms));
+      showCounter();
+    }
     command({ action: "spin", servo: "doser", direction: b.dataset.spin, ms }, `${label} ${ms} ms`);
+  }));
+  $$("[data-cmd*=test_dispense]").forEach(b => b.addEventListener("click", () => {
+    if (counter !== null && S.doser_servo === "360") { counter = 0; showCounter(); }  // ett helt varv slutar i plockläget
   }));
   for (const name of ["doser", "lucka"]) {
     $(`${name}_angle`).addEventListener("input", e => { $(`${name}_val`).textContent = `${e.target.value}°`; });
