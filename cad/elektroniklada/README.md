@@ -50,14 +50,27 @@ två fönster, öppna nedåt, där kontakterna sticker ut i fri yta:
   till höger vid fönstret, plinten nedtill.
 * Servoomvandlaren stående i en vagga till vänster om Pi:n, öronen uppåt och nedåt, buntband ovanför. Den är 23 mm hög
   (uppmätt) och har 47–48 mm mellan öronens hål.
-* EKM006 ovanför, vriden 10 grader (vänster ände nedåt): 12 V in till vänster, nedåt mot den fria remsan och
-  golvöppningen; 5 V ut till höger, uppåt mot USB-C-kontakten på Pi:n.
+* EKM006 ovanför servoomvandlaren, vriden 10 grader medurs (vänster ände uppåt) och 5 mm högre: 12 V in till vänster,
+  5 V ut till höger (den klippta USB-C-kabeln till Pi:n). 2 mm till USB-C-kontakten, 1,8 mm till servoomvandlaren.
 * Slitsen i plattan runt förskruvningen är 24 mm bred och öppen nedåt, så att både gängan och muttern får plats.
 * Under lådan ligger bara keystone-uttaget och DC-jacket.
 * Golvöppningarna i bakstycket är oförändrade.
 
 Ändrat sedan förra versionen: bara `24_komponentplatta.stl` och `16b_elkapa.stl` (fönstret för servokontakterna har
 flyttat från vänster till nere till höger). Bakstycket och packningen är oförändrade.
+
+## Efter granskning (Fable, 2026-11-27)
+* Kåpans skruv ska vara **M2,5 × 6**, inte × 8: med × 8 bottnar den i tornets hål och kåpan dras inte fast.
+  Lägg gärna en gummi- eller nylonbricka under skallen, så att vatten inte följer skruven in.
+* Insatshålen i komponentplattan går igenom plattan, så att plasten som trängs undan vid inpressningen kan komma ut
+  bakåt (det finns 1 mm luft bakom plattan).
+* PCA9685:s hål ligger 56,2 × 19,3 mm isär, mitt emellan Adafruits mått och den uppmätta kopian. Använd M2 med
+  en liten bricka under skallen, så tar Ø3-hålen upp skillnaden.
+* Servoomvandlaren buntas vid båda öronen.
+* Plattan har ett fingerhål (Ø12) uppe till vänster, infasade nedre hörn som hittar in i skenorna och en ribba längs
+  benet bredvid slitsen. Slitsens övre hörn är rundade (R2).
+* Kåpan har en förstyvning i högra innerhörnet (sidan hänger annars nästan fritt bredvid GPIO-fönstret), en ribba
+  på remsan mellan fönstren och en låg vall på taket före skarven mot bakstycket, så att vatten leds åt sidorna.
 
 ## Kontroller (`src/elchk.py`, `src/ghostchk.py`, `src/sweep2.py`)
 * Inga överlapp med huset, doseringen eller skärmfickan. Alla kontakter har minst 3 mm till förrådet.
@@ -70,7 +83,7 @@ flyttat från vänster till nere till höger). Bakstycket och packningen är of�
 |---|---|---|
 | Pi 5 | 4 | M2,5-insats (hål Ø3,6 × 5) + M2,5 × 6 |
 | PCA9685 och EKM006 | 8 | M2-insats (hål Ø3,2 × 4,5) + M2 × 5 |
-| Tornet uppe till höger | 1 | M2,5-insats + M2,5 × 8 genom kåpans tak |
+| Tornet uppe till höger | 1 | M2,5-insats + M2,5 × 6 genom kåpans tak |
 | Bakväggen | 4 | M3 × 10 utifrån med gummibricka, M3-mutter i fickan på bakstyckets insida |
 
 PCA9685 är en kopia. Uppmätt cirka 56,5 × 19,5 mm mellan hålens mitt och cirka Ø3 hål. Plattan följer Adafruits mått

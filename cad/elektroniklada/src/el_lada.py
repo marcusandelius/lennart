@@ -151,7 +151,10 @@ def kapa():
             cuts.append(ext_xz(Polygon(pts if sd > 0 else pts[::-1]).buffer(0), Y_FRONT + 7.0, YB0 - 6.0))
     # grepp på taket: en låg fena att nypa i när kåpan lyfts av (skrivs ut från framkanten och uppåt, utan stöd)
     fin = ext_yz(Polygon([(Y_FRONT, Z_TOP - 0.5), (Y_FRONT + 22.0, Z_TOP - 0.5), (Y_FRONT + 22.0, Z_TOP + 2.5), (Y_FRONT + 21.0, Z_TOP + 4.0), (Y_FRONT, Z_TOP + 4.0)]), -1.5, 1.5)
-    m = U([m, fin])
+    dam = ext_yz(Polygon([(YB0 - 4.5, Z_TOP - 0.5), (YB0 - 2.0, Z_TOP - 0.5), (YB0 - 2.0, Z_TOP + 1.5), (YB0 - 2.5, Z_TOP + 1.5)]), -58.0, 58.0)   # låg vall på taket före skarven mot bakstycket: vatten leds åt sidorna, inte in i skarven
+    gus = ext_xy(Polygon([(XO - TC + 0.01, Y_FRONT + TC - 0.01), (XO - TC - 2.4, Y_FRONT + TC - 0.01), (XO - TC + 0.01, Y_FRONT + TC + 7.0)]), ZF + 2.5, 144.0)   # förstyvning i högra innerhörnet (sidan hänger annars fritt bredvid GPIO-fönstret)
+    rib = box(45.0, 47.0, Y_FRONT + TC - 0.01, Y_FRONT + TC + 2.0, ZF + 2.5, 66.0)          # ribba på insidan av remsan mellan fönstren
+    m = U([m, fin, dam, gus, rib])
     return clean(D(m, cuts))
 
 # ---------------------------------------------------------------- 24 komponentplatta
@@ -193,7 +196,7 @@ def standoff(x, z, h, ins, r_out=None):
     r_in, depth = {'m2': INS_M2, 'm25': INS_M25, 'm3': INS_M3}[ins]
     r_out = r_out or r_in + 1.6
     s = cyl_y(x, z, YP0 - h, YP0 + 0.5, r_out, 40)
-    hole = cyl_y(x, z, YP0 - h - 1, YP0 - h + depth, r_in, 24)
+    hole = cyl_y(x, z, YP0 - h - 1, YP1 + 1.0, r_in, 24)        # genomgående: undanträngd plast kommer ut bakåt (1 mm luft bakom plattan)
     return s, hole
 SO = 3.0                                                   # distanshöjd (kortens undersida 3 mm framför plattan)
 PCB = YP0 - SO - 1.6                                       # kortens ovansida (y)
@@ -202,12 +205,12 @@ YPL = PCB - PLUG                                           # så långt fram kon
 PI = dict(name='pi5', pos=(3.5, 77.0), size=(56.0, 85.0), standoff=SO, ins='m25',
           holes=[(3.5, 23.5), (52.5, 23.5), (3.5, 81.5), (52.5, 81.5)])          # Pi 5 stående: USB/nätverk nedåt, GPIO till höger, USB-C till vänster, minneskortet uppåt
 PCA = dict(name='pca9685', pos=(-18.7, 31.5), size=(62.23, 25.4), standoff=SO, ins='m2',
-           holes=[(3.3, 3.3), (59.18, 3.3), (3.3, 22.35), (59.18, 22.35)])        # liggande under Pi:n: kontrollkontakten åt höger (mot GPIO), servokontakterna längs överkanten, kanal 0 och 1 till höger, plinten nedtill
-EKM = dict(name='ekm006', pos=(-60.0, 118.0), size=(60.0, 20.0), standoff=SO, ins='m2', rot=10.0,
-           holes=[(3.0, 3.0), (57.0, 3.0), (3.0, 17.0), (57.0, 17.0)])            # liggande ovanför servoomvandlaren: 12 V in till vänster, 5 V ut till höger (USB-C-kabeln till Pi:n)
+           holes=[(3.0, 3.1), (59.2, 3.1), (3.0, 22.4), (59.2, 22.4)])            # 56,2 x 19,3 mellan hålen: mitt emellan Adafruit (55,9 x 19,05) och uppmätt kopia (56,5 x 19,5); M2 i Ø3-hål med bricka tar upp resten. Liggande under Pi:n: kontrollkontakten åt höger (mot GPIO), servokontakterna längs överkanten, kanal 0 och 1 till höger, plinten nedtill
+EKM = dict(name='ekm006', pos=(-60.0, 123.0), size=(60.0, 20.0), standoff=SO, ins='m2', rot=-10.0,
+           holes=[(3.0, 3.0), (57.0, 3.0), (3.0, 17.0), (57.0, 17.0)])            # ovanför servoomvandlaren, vriden 10 grader medurs (vänster ände uppåt) och 5 mm högre: 12 V in till vänster, 5 V ut till höger (USB-C-kabeln till Pi:n)
 COMPONENTS = [PI, PCA, EKM]
 SERVO_PSU = dict(x0=-29.5, x1=2.0, z0=60.0, z1=116.0)    # stående vagga för servoomvandlaren (23 mm hög, 47–48 mm mellan öronens hål), buntband ovanför
-TIE_SLOTS = [(-50.0, 150.0), (-30.0, 158.0), (-13.75, 118.5), (35.0, 64.0), (52.0, 64.0)]
+TIE_SLOTS = [(-30.0, 158.0), (-13.75, 118.5), (-13.75, 60.0), (35.0, 64.0), (52.0, 64.0)]   # servoomvandlarens båda öron, kablarna vid servofönstret
 WINDOWS = [sbox(14.0, 90.0, 52.0, 154.0).buffer(-3).buffer(3, 12)]   # bakom Pi:n: luft och mindre plast
 # fönster i kåpan, öppna nedåt så att kåpan går att lyfta med allt inkopplat: (x0, x1, z1)
 KAPA_FRONT_WIN = [(52.5, 64.5, 158.0),                    # framför Pi:ns GPIO-kontakter (förrådet rundar av här: 7–20 mm fritt framför)
@@ -237,7 +240,15 @@ def platta():
             cuts.append(box(x + dx - 1.0, x + dx + 1.0, YP0 - 6, YP1 + 1, z - 2.5, z + 2.5))
     for poly in WINDOWS:
         cuts.append(ext_xz(poly, YP0 - 1, YP1 + 1))
-    cuts.append(box(PLATE_SLOT[0], PLATE_SLOT[1], YP0 - 1, YP1 + 1, PZ0 - 1, PLATE_SLOT[2]))   # slits för förskruvningen och strömkabeln, öppen nedåt
+    sl = unary_union([sbox(PLATE_SLOT[0], PZ0 - 3, PLATE_SLOT[1], PLATE_SLOT[2]).buffer(-2.0).buffer(2.0, 16), sbox(PLATE_SLOT[0], PZ0 - 3, PLATE_SLOT[1], PLATE_SLOT[2] - 2.0)])
+    cuts.append(ext_xz(sl, YP0 - 1, YP1 + 1))                                        # slits för förskruvningen och strömkabeln, öppen nedåt, rundade övre hörn (R2)
+    cuts.append(cyl_y(-50.0, 158.0, YP0 - 1, YP1 + 1, 6.0, 48))                       # fingerhål att lyfta plattan i
+    for sx, x_e in ((-1, -PX), (1, PX)):                                              # infasade nedre hörn som hittar in i skenorna
+        cuts.append(ext_xz(Polygon([(x_e - sx * 3.0, PZ0 - 1), (x_e + sx * 1, PZ0 - 1), (x_e + sx * 1, PZ0 + 4.0)]), YP0 - 6, YP1 + 1))
+    for x_e in (PLATE_SLOT[0], PLATE_SLOT[1]):                                        # och vid slitsens nedre öppning
+        sx = 1 if x_e == PLATE_SLOT[0] else -1
+        cuts.append(ext_xz(Polygon([(x_e + sx * 2.0, PZ0 - 1), (x_e - sx * 0.5, PZ0 - 1), (x_e - sx * 0.5, PZ0 + 2.5)]), YP0 - 6, YP1 + 1))
+    adds.append(box(PLATE_SLOT[0] - 2.0, PLATE_SLOT[0], YP0 - 3.0, YP0 + 0.5, PZ0 + 3.0, PLATE_SLOT[2] + 8.0))   # ribba längs benets innerkant (benet bredvid slitsen)
     adds.append(cradle(SERVO_PSU))
     m = U([m] + adds)
     m = I(m, ext_xz(outline_xz(TC + 0.6, z0=PZ0 - 1, z1=Z_TOP - TC - 0.6), YP0 - 40, YB0))     # avfasade övre hörn som kåpan
