@@ -21,6 +21,10 @@ utfall i plattan ned i rännan till skålen. En omrörare på skivans axel hindr
   Urtagets botten ligger 3,5 mm in i skivan. Hornarmarnas ovansida ligger ca 15,0 mm över ovansidan av servots
   fästöron (ur foto mot tumstock, ±0,5 mm, `omritning/servo_horn_hojd.png`). Därför är stativets platta 10,9 mm tjock
   (förut 8,4): servots öron ligger an mot undersidan, och servot sitter 2,5 mm lägre än förut.
+* **Ändrat 2026-11-27:** hornet gick inte ned i urtaget, som hade 0,2 mm spel och byggde på mått ur foto. Urtaget har
+  nu 0,5 mm spel runt armarna, når 22 mm ut (förut 19,5) och navet är Ø13 mm (förut Ø11,8). Hornet behöver inte sitta
+  tätt i urtaget, eftersom skruvarna genom armarna låser läget. Väggen mellan urtaget och fickan är 4,1 mm. Bara
+  `11_plockskiva.stl` är ändrad.
 * Fyra förborrade hål Ø1,0 mm, 10,5 mm djupa, i det andra hålet på varje arm (11,2 mm från mitten: 8,0 mm till det
   innersta hålet, uppmätt, och 3,2 mm mellan hålen, ur foto), för de fyra silverfärgade skruvarna (ca 1,1 mm, ca 12 mm).
 * Hålet i stativets platta runt servots axel är Ø31 mm och 2,5 mm djupt, så att skruvskallarna under hornet går fritt.

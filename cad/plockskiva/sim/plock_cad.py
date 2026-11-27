@@ -62,11 +62,11 @@ uE, vE = -RP * np.sin(K.QX), RP * np.cos(K.QX)
 POCKET_R = 12.5                                  # ficka Ø25 (simulerad som Ø24,5 med åttkantigt hål), för nötter 16–22 mm långa
 # stjärnhornet till MG996R, mätt ur foto mot tumstock 2026-11-25 [verifiera med skjutmått]
 HORN_T = 2.0            # armarnas tjocklek (uppmätt)
-HORN_HUB = 11.0         # navringens diameter
-HORN_R0, HORN_R1, HORN_L = 4.4, 2.9, 16.6   # armens halva bredd vid navet och längst ut, avstånd mellan de två bågarna (armen når 19,5 mm ut)
+HORN_HUB = 12.0         # navringens diameter (rymligt: hornet tog emot med 11,0)
+HORN_R0, HORN_R1, HORN_L = 4.4, 2.9, 18.6   # armens halva bredd vid navet och längst ut, avstånd mellan de två bågarna (urtaget når 22,0 mm ut; hornets arm ca 19,5–20)
 HORN_HOLE_R = 11.2      # andra hålet på armen: 8,0 mm till det innersta (uppmätt), 3,2 mm mellan hålen (ur foto)
 HORN_PILOT = 1.0        # förborrning för de silverfärgade skruvarna (ca 1,1 mm, ca 12 mm långa); utskrivna hål blir lite mindre
-HORN_GAP = 0.2          # spel runt hornet
+HORN_GAP = 0.5          # spel runt hornet (0,2 var för lite: hornet gick inte ned). Skruvarna genom armarna låser läget
 HORN_FLOOR = 3.5        # urtagets botten över skivans undersida = hornarmarnas ovansida
 HORN_ABOVE_EARS = 15.0  # hornarmarnas ovansida över ovansidan av servots fästöron (ur foto mot tumstock, ±0,5)
 SERVO_DROP = HORN_ABOVE_EARS - (K.SLAB_T + GAP + HORN_FLOOR)   # så mycket lägre servots fästöron ska sitta (2,5 mm)
