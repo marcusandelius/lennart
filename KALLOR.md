@@ -105,6 +105,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Claude Code, molnsession | Valruta, demosida och grönt tema på lennart.cam, ny text på demosidan | 2026-11-15 |
 | Claude Code, molnsession | Livebild, adminvy, rotation, servostyrning | 2026-11-15 |
 | Claude Code, molnsession | Inspelning vid rörelse på Pi:n, klipparkiv med märkning i adminvyn | 2026-11-18 |
+| Claude Code, molnsession | Felsökning av plockskivan: utfallet och vinkeln analyserade i modellen, plockskiva med hål Ø 28 mm (`tools/plockskiva_hal28.py`), ny standardvinkel | 2026-11-27 |
 | Behörig elektriker | *Planerat: elsäkerheten för utomhusström ska kontrolleras av en behörig person* | [osäkert] |
 
 ## Samtycke för bilder med personer
