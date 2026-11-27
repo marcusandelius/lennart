@@ -61,3 +61,7 @@ json.dump([{'file': 'kuvert_snett.png', 'o': dict(S0, title='Löstagbart kuvert'
 car = ns['carrier'](0.0)
 sw = U([car.copy().apply_translation([0, 0, dz]) for dz in np.arange(0, 50, 1.0)])
 print('hylsa/bricka (sänkning)', round(I(hyl, sw).volume, 2), 'hylsa/servo', round(I(hyl, sv).volume, 2), 'hylsa x', np.round(hyl.bounds[:, 0], 1))
+inner_free = D(box(X0 + 2, X1 - 2, fr + 2, -2, 2, ns['ZT']), [body])          # luften inne i lådan (utan hylsa och tvärvägg)
+print('slitsen öppen mot lådans insida (mm3):', round(I(chan, inner_free).volume, 3))
+print('minsta godstjocklek runt slitsen: botten', round(1.8 - 0.6, 2), 'sidor', round(2.0 - 0.3, 2), 'fram/bak', round(2.0 - (TH / 2 + CL), 2))
+body2.export('lada_med_slits.stl'); hyl.export('hylsa.stl'); chan.export('slits.stl')
