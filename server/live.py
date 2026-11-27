@@ -55,7 +55,7 @@ DEFAULTS = {
     "servo_lucka_channel": 1,
     "servo_min_us": 500,
     "servo_max_us": 2500,
-    "dispense_angle": 130,  # så långt doseringshjulet vrids för att släppa en nöt
+    "dispense_angle": 119,  # så långt plockskivan vrids för att släppa en nöt (hål Ø 28, se docs/beslut/beslutslogg.md)
     # Inspelning av klipp vid rörelse, för att samla material till igenkänningen.
     "recording_enabled": False,  # av tills admin slår på det
     "rec_resolution": "1280x720",

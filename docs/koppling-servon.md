@@ -41,7 +41,7 @@ Görs en gång, se steg 9 i [SETUP-PI.md](SETUP-PI.md).
 1. Logga in på https://lennart.cam/admin.
 2. Under **Servon** ska det stå `✓ PCA9685 på I2C-buss 1 …` när kortet hittats.
 3. Dra reglaget för doseringshjulet till exempelvis 90° och tryck **Flytta**. Servot vrider sig och släpps efter en sekund.
-4. **Testa utmatning** gör ett litet vick, vrider till utmatningsvinkeln (130°) och tillbaka.
+4. **Testa utmatning** gör ett litet vick, vrider till utmatningsvinkeln (119° för plockskivan med hål Ø 28) och tillbaka. Titta när skivan står still: hålet ska ligga mitt över utfallet. Justera vinkeln i adminvyn vid behov.
 
 | Problem | Gör så här |
 |---|---|

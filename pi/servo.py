@@ -81,7 +81,7 @@ class ServoController:
 
     def __init__(self, on_change) -> None:
         self.config = {"servo_doser_channel": 0, "servo_lucka_channel": 1,
-                       "servo_min_us": 500, "servo_max_us": 2500, "dispense_angle": 130}
+                       "servo_min_us": 500, "servo_max_us": 2500, "dispense_angle": 119}
         self.on_change = on_change         # anropas efter varje kommando, t.ex. för att rapportera direkt
         self.board: PCA9685 | None = None
         self.error = ""
