@@ -58,6 +58,14 @@ DEFAULTS = {
     "dispense_angle": 119,  # så långt plockskivan vrids för att släppa en nöt (hål Ø 28, se docs/beslut/beslutslogg.md)
     "pick_angle": 0,        # plockläget: hålet längst ner i nöthögen
     "dispense_move_ms": 1500,  # så lång tid vridet tar, från plockläget till utfallet och lika lång tid tillbaka
+    # Plockskivan kan drivas av ett 360°-servo. Det har ingen vinkel: pulsen styr fart och riktning,
+    # så rörelsen styrs med tid. Tiderna måste provas fram på plats, se docs/koppling-servon.md.
+    "doser_servo": "360",      # "360" eller "vinkel"
+    "doser_neutral_us": 1500,  # pulsen där 360°-servot står still
+    "doser_speed_us": 120,     # så mycket pulsen skiljer sig från stilla-läget: större = fortare
+    "doser_up_ms": 1000,       # snurrtid från plockläget upp till utfallet [provas fram]
+    "doser_down_ms": 1000,     # snurrtid tillbaka ner till plockläget [provas fram]
+    "doser_reverse": False,    # vänd riktningen om skivan snurrar åt fel håll
     # Inspelning av klipp vid rörelse, för att samla material till igenkänningen.
     "recording_enabled": False,  # av tills admin slår på det
     "rec_resolution": "1280x720",
@@ -75,18 +83,22 @@ LIMITS = {
     "servo_doser_channel": (0, 15), "servo_lucka_channel": (0, 15),
     "servo_min_us": (400, 1500), "servo_max_us": (1500, 2600),
     "dispense_angle": (30, 180), "pick_angle": (0, 90), "dispense_move_ms": (300, 5000),
+    "doser_neutral_us": (1400, 1600), "doser_speed_us": (30, 500),
+    "doser_up_ms": (50, 5000), "doser_down_ms": (50, 5000),
     "rec_fps": (5, 15), "motion_sensitivity": (2, 200), "pre_roll_s": (0, 5),
     "post_roll_s": (2, 30), "max_clip_s": (10, 90), "min_brightness": (0, 100),
     "clips_max_gb": (1, 500),
 }
 
-BOOL_KEYS = ("live_enabled", "recording_enabled")
+BOOL_KEYS = ("live_enabled", "recording_enabled", "doser_reverse")
+DOSER_SERVOS = ("360", "vinkel")
 CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS, "rec_resolution": REC_RESOLUTIONS,
-           "display_mode": DISPLAY_MODES, "lcd_spi_mhz": LCD_SPI_MHZ}
+           "display_mode": DISPLAY_MODES, "lcd_spi_mhz": LCD_SPI_MHZ, "doser_servo": DOSER_SERVOS}
 
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
 DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "servo_doser_channel", "servo_lucka_channel",
                "servo_min_us", "servo_max_us", "dispense_angle", "pick_angle", "dispense_move_ms",
+               "doser_servo", "doser_neutral_us", "doser_speed_us", "doser_up_ms", "doser_down_ms", "doser_reverse",
                "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",
                "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")
 
@@ -128,9 +140,13 @@ def validate(changes: dict, current: dict) -> dict:
 def validate_command(cmd: dict, values: dict) -> dict:
     """Kontrollera ett kommando från adminvyn eller statussidan: servona eller skärmen."""
     action = cmd.get("action")
+    spin = {"neutral_us": values["doser_neutral_us"], "speed_us": values["doser_speed_us"],
+            "reverse": values["doser_reverse"]}
     if action == "move":
         if cmd.get("servo") not in SERVOS:
             raise ValueError("Okänt servo")
+        if cmd["servo"] == "doser" and values["doser_servo"] == "360":
+            raise ValueError("Plockskivans servo är ett 360°-servo och har ingen vinkel. Använd knapparna för att snurra.")
         angle = cmd.get("angle")
         if isinstance(angle, bool) or not isinstance(angle, int) or not 0 <= angle <= 180:
             raise ValueError("Vinkeln ska vara ett heltal mellan 0 och 180")
@@ -143,8 +159,21 @@ def validate_command(cmd: dict, values: dict) -> dict:
             raise ValueError("Okänt servo")
         return {"action": "release", "servo": cmd["servo"]}
     if action == "test_dispense":
+        if values["doser_servo"] == "360":
+            return {"action": "test_dispense", "kind": "360", "up_ms": values["doser_up_ms"],
+                    "down_ms": values["doser_down_ms"], **spin}
         return {"action": "test_dispense", "angle": values["dispense_angle"],
                 "pick": values["pick_angle"], "move_ms": values["dispense_move_ms"]}
+    if action == "spin":
+        # Knuffa eller snurra plockskivans 360°-servo en viss tid, för att ställa skivan och prova fram tiderna.
+        if values["doser_servo"] != "360":
+            raise ValueError("Plockskivans servo är inställt som vinkelservo. Använd Flytta.")
+        direction, ms = cmd.get("direction"), cmd.get("ms")
+        if direction not in ("up", "down"):
+            raise ValueError("Riktningen ska vara up eller down")
+        if isinstance(ms, bool) or not isinstance(ms, int) or not 20 <= ms <= 5000:
+            raise ValueError("Tiden ska vara ett heltal mellan 20 och 5000 ms")
+        return {"action": "spin", "servo": "doser", "direction": direction, "ms": ms, **spin}
     if action == "display_restart":
         return {"action": "display_restart"}
     if action == "sweep":
