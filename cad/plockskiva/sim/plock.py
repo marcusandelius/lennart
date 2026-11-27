@@ -19,7 +19,7 @@ KK = 61.76                           # det sneda takets ovansida: z = y + KK (3 
 YF, YB = 31.9, 106.2                 # förrådets innermått i y
 CH_W, CH_W0, CH_H = 14.0, 15.0, 30.0  # rännans halva innerbredd nedtill och upptill, kanthöjd
 
-def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=38.0, ymouth=6.5, qx=66.0, vs=-4.0, land=12.0, rh=12.25, td=None, bulge=True):
+def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=38.0, ymouth=6.5, qx=66.0, vs=-4.0, land=12.0, rh=12.25, td=None, bulge=True, shift=6.0):
     """dl = hur långt kragen fortsätter luta utåt ovanför skärmens plan innan väggen blir lodrät (ger bredare öppning)."""
     global C, T, DL, ZT, XL, UF, UB, PLANE, XARC0, EX, CH_A, CH_B, WTOP
     global RH, TD, BULGE
@@ -45,6 +45,13 @@ def configure(Cx=-13.0, Cy=65.5, Cz=57.0, dl=25.6, zt=152.0, xl=-46.0, slope=38.
     CH_NECK = np.array([(CH_B[0] - CH_W, CH_B[1]), (CH_B[0] + CH_W, CH_B[1]), (CH_B[0] + CH_W, NECK), (CH_B[0] - CH_W, NECK)])
     CH_FUN = np.array([(CH_B[0] + CH_W, NECK), (EX[0] + CH_W0, yb), (EX[0] - CH_W0, yb), (EX[0] - CH_W0, EX[1] + 0.5), (CH_B[0] - CH_W, NECK)])   # moturs
     CH_POLY = np.array([CH_NECK[0], CH_NECK[1], CH_FUN[0], CH_FUN[1], CH_FUN[2], CH_FUN[3], CH_FUN[4]])
+    if shift:                                  # den sneda främre vänstra väggen flyttad utåt parallellt (2026-11-27): förut låg den under utfallshålets kant och nötter kilades fast
+        a_, b_ = np.array(CH_FUN[3], float), np.array(CH_FUN[4], float); dv = (b_ - a_) / np.linalg.norm(b_ - a_); nv = np.array([dv[1], -dv[0]])
+        if nv @ (EX[:2] - a_) > 0: nv = -nv
+        a2 = a_ + nv * shift
+        p3 = a2 + dv * (CH_FUN[2][0] - a2[0]) / dv[0]; p4 = a2 + dv * (CH_NECK[3][0] - a2[0]) / dv[0]
+        CH_FUN[3] = p3; CH_FUN[4] = p4; CH_NECK[3] = p4
+        CH_POLY = np.array([CH_NECK[0], CH_NECK[1], CH_FUN[0], CH_FUN[1], CH_FUN[2], CH_FUN[3], CH_FUN[4]])
 CAB = dict(x=27.0, y1=37.5, z0=94.0)                 # plats för kontakterna: |x| < 27, y < 37,5 (skenornas bakkant 23,5 + kontakterna ca 6–9 mm + böjen), från z 94 och uppåt
 def cable_bulge(wall=2.4, top=None):
     """Kanal i förrådets framvägg för kontakterna, öppen uppåt; 45 graders sluttning nedtill (konvex)."""

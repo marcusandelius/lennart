@@ -53,6 +53,22 @@ bara i de tre översta lagren.
   det krävs vinklade stiftlister (eller motsvarande) så att kontakterna ligger längs kortet.
 * Skärmklämman och kamerasläden måste vara lossade när stativet sänks ned (två M3 var, uppifrån).
 
+## Rännan under utfallshålet (ändrat 2026-11-27)
+Nötter fastnade i rännan direkt under utfallshålet. Rännans sneda främre vänstra vägg gick in under hålets nedre kant,
+så en nöt kunde kilas fast mellan hålets kant och väggen (`../forhandsgranskning/113_ranna_fore_efter.png`). Väggen är
+flyttad 6 mm utåt, parallellt, så att den fortfarande följer nötens fallriktning mot halsen. Hela hålet ligger nu fritt
+ovanför rännan. Halsen, mynningen, lutningen (38°) och den flacka landningen (12°) är oförändrade. Bara
+`10_doserstativ.stl` är ändrad; stativet har samma yttermått och krockar inte med något nytt.
+
+Test (`sim/chutesim.py`, `sim/resultat_ranna_test.jsonl`): en nöt i taget, 16–22 mm lång och 14–19 mm bred, släpps
+genom hålet med slumpvis vridning. Friktion 0,5 / 0,65 / 0,8, 150 nötter vardera:
+* Förut: 2 / 7 / 9 fastnade, en del i hålet (som på fotot).
+* Nu: 0 / 1 / 1 fastnade, inga i hålet. De som fastnar stannar på den flacka landningen vid hög friktion.
+* Att bara bredda rännan utan att väggen följer fallriktningen gjorde det sämre (en tröskel), så det valdes bort.
+
+Hela doseringen (`sim/resultat_ny_ranna.jsonl`, friktion 0,5, 4 körningar): 36–39 av 40 nötter levererade, ingen
+fast i rännan. En nöt räknades som "fel" i två körningar, men den hade flugit 4 m iväg (numeriskt fel i simuleringen).
+
 ## Mått (husets ram, mm)
 Skivans mitt (-13, 65,5, 57), axeln lutar 45 grader mot +x. Fickan plockar längst ned (180 grader) och släpper vid
 66 grader, alltså 114 graders slag. Servot (MG996R) sitter under plattan med samma mått mot hornet som i det gamla
