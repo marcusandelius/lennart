@@ -27,7 +27,6 @@ PERIOD_US = 1_000_000 / PWM_HZ
 RELEASE_AFTER_S = 1.0   # släpp signalen så här länge efter en rörelse
 GLIDE_STEP_S = 0.02     # ny vinkel var 20:e ms under ett lugnt vrid, nära servots 50 Hz
 VICK_DEG = 12           # vicket i plockläget
-VICK_MS = 80            # vicket för ett 360°-servo: lika kort åt båda hållen, så att skivan hamnar där den var
 SWEEP_ANGLES = (10, 170)  # inte ända ut till 0° och 180°, där servot kan ta i mot sitt stopp
 SWEEP_STEP_S = 0.5      # MG90S hinner 160° på cirka 0,25 s
 
@@ -205,17 +204,12 @@ class ServoController:
         time.sleep(ms / 1000)
         self._release(name)
 
-    def _test_dispense_360(self, cmd: dict) -> None:
-        """Plockskivans rörelse med 360°-servo: vick, upp till utfallet, kort stopp, tillbaka ner."""
-        for _ in range(2):
-            self._spin("doser", "up", VICK_MS, cmd)
-            time.sleep(0.1)
-            self._spin("doser", "down", VICK_MS, cmd)
-            time.sleep(0.1)
-        time.sleep(0.2)
+    def _test_dispense_turn(self, cmd: dict) -> None:
+        """Plockskivans rörelse med 360°-servo: ett helt varv framåt. Fram till utfallet, ett kort
+        stopp där nöten faller ut, och resten av varvet tillbaka till plockläget."""
         self._spin("doser", "up", cmd["up_ms"], cmd)
         time.sleep(0.3)  # nöten faller ut
-        self._spin("doser", "down", cmd["down_ms"], cmd)
+        self._spin("doser", "up", cmd["rev_ms"] - cmd["up_ms"], cmd)
 
     def _run(self) -> None:
         while True:
@@ -233,12 +227,12 @@ class ServoController:
                     for name in (("doser", "lucka") if cmd["servo"] == "alla" else (cmd["servo"],)):
                         self._release(name)
                     self.last = f"släppte {cmd['servo']}"
-                elif action == "test_dispense" and cmd.get("kind") == "360":
-                    self._test_dispense_360(cmd)
-                    self.last = f"testade utmatning (360°: upp {cmd['up_ms']} ms, ner {cmd['down_ms']} ms)"
+                elif action == "test_dispense" and cmd.get("kind") == "varv":
+                    self._test_dispense_turn(cmd)
+                    self.last = f"testade utmatning (helt varv: {cmd['up_ms']} ms till utfallet, {cmd['rev_ms']} ms totalt)"
                 elif action == "spin":
                     self._spin(cmd["servo"], cmd["direction"], cmd["ms"], cmd)
-                    self.last = f"{cmd['servo']} snurrade {'upp' if cmd['direction'] == 'up' else 'ner'} {cmd['ms']} ms"
+                    self.last = f"{cmd['servo']} snurrade {'framåt' if cmd['direction'] == 'up' else 'bakåt'} {cmd['ms']} ms"
                 elif action == "test_dispense":
                     # Äldre server skickar bara vinkeln: då gäller Pi:ns egna inställningar.
                     pick = cmd.get("pick", self.config["pick_angle"])
