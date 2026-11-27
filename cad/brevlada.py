@@ -6,20 +6,24 @@ och dess packning (09b). Mått i husets koordinater (samma som 3D-vyn).
 
   * Luckans axel: y = -8, z = 32,2, längs x. Luckans högra ände är en fyrkanthylsa med ett
     Ø4,8 mm hål, 3 mm djupt (x 38,5-41,5). Servots axel trycks rakt in i hålet.
-  * Brevlådan: x 40-74, y -30 till -2 (öppen baksida mot husväggen), z 0-46. Kabeln går genom
+  * Brevlådan: x 40-74, y -22,5 till -2 (öppen baksida mot husväggen), z 0-46. Kabeln går genom
     hålet i husväggen bakom (x 52-54, z 28-32). 9.14: 6 mm bredare åt höger (var x 40-68), eftersom
     servot är längre längs axeln än vad 9.9 antog. Hörnlisten sticker bara ut 1,6 mm från väggen och
-    lådan slutar 2 mm från väggen, så lådan går fritt framför den.
+    lådan slutar 2 mm från väggen, så lådan går fritt framför den. 9.15: 22,5 mm från väggen i stället
+    för 30; tvärväggen är kortare och insatserna sitter strax framför servot (y -17,8).
+  * Brevfack (9.15): under läppen en springa och ett fack med stängd botten för ett löstagbart kuvert
+    (27, 22 x 15 x 0,8 mm) som lutar ut 26 grader och är vridet 11 grader. Facket ligger i en
+    förtjockning på framväggens insida, utan öppning in i lådan.
   * Väggen mot luckan har en slits, 9 mm bred och öppen uppåt, så att servots axel kan sänkas på
     plats. Luckan sätts på sist och följer servots axel, så ±1,7 mm fel i läget gör inget.
   * Servot (WS-MG90S, mått från användarens ritning: kropp 22,8 lång, 12 bred, 22,8 hög till
     ovansidan, örats undersida 16 över botten, 32 till hornets topp, öronhål 27,7 isär, öronen
     31,8 långa; axeln ca 6 mm från kortänden; axelns topp utan horn antas 30,8 över botten) skruvas
     med sina egna skruvar i servobrickan (26). Brickan sänks ner ovanifrån och skruvas med två
-    M3 i insatser i en tvärvägg, genom förstorade hål (Ø6,5, ±1,7 mm). Tre varianter av brickan
+    M3 i insatser i en tvärvägg, genom spår i höjdled (±1,7 mm; 9.15, var förstorade hål). Tre varianter av brickan
     med servofickan 2 mm lägre (a), som ritat (b) och 2 mm högre (c).
   * Axelns topp hamnar 0,8 mm från botten i luckans hål (2,2 mm i hålet). Om servots axel är kortare
-    än antaget läggs distansen (26d, 0,6 mm) mellan öronen och brickan, då går axeln 0,6 mm djupare
+    än antaget läggs distansbrickorna (26d, 2 st, 0,6 mm) mellan öronen och brickan, då går axeln 0,6 mm djupare
     (axeln når då 38,7, 0,2 mm från hålets botten).
   * Handtaget på dörren är en egen svart del (07_farstukvist_svart), tre färger i ett objekt.
   * Locket (09, 9.10): rundad båge med samma bredd och djup som lådan, sitter direkt på väggarna
@@ -32,7 +36,8 @@ Kör:  python3 brevlada.py <07_farstukvist_vit.stl med en tidigare brevlåda> <u
 import sys, os
 import numpy as np
 import trimesh
-from shapely.geometry import Point, box as sbox
+from shapely.geometry import Point, Polygon, LineString, box as sbox
+from shapely import affinity
 
 SRC_VIT, OUT = sys.argv[1:3]
 U = lambda ms: trimesh.boolean.union(ms, engine="manifold")
@@ -40,7 +45,7 @@ D = lambda a, bs: trimesh.boolean.difference([a] + bs, engine="manifold")
 TO_STL = np.array([-12.4, 23.6, 0.0])         # husets ram -> 07-filens ram
 
 AX_Y, AX_Z = -8.0, 32.2                       # luckans axel
-X0, X1, Y0, Y1, ZT = 40.0, 74.0, -30.0, -2.0, 46.0
+X0, X1, Y0, Y1, ZT = 40.0, 74.0, -22.5, -2.0, 46.0   # 9.15: 22,5 mm från väggen (var 30)
 T = 2.0
 S_W, S_L, S_SPL, S_HOLE = 12.2, 22.8, 6.0, 27.7
 S_EAR, S_TOP, S_TIP, S_EARL = 16.0, 22.8, 30.8, 31.8   # från servots botten: örats undersida, ovansidan, axelns topp; öronens längd
@@ -50,7 +55,7 @@ X_TOP = X_BOT - S_TOP                         # servots ovansida
 EAR = X_BOT - S_EAR                           # örats undersida = brickans framsida
 CX0, CX1 = EAR, EAR + 3.0                     # servobrickan
 BH0, BH1 = X_TOP + 0.8, EAR                   # tvärväggen, mellan servots ovansida och örat
-INS = [(-22.3, 9.0), (-22.3, 38.0)]           # M3-insatser (y, z), i tvärväggens främre del
+INS = [(-17.6, 9.0), (-17.6, 43.5)]           # M3-insatser (y, z): strax framför servot, under och över servokroppen (9.15)
 ADJ = 1.7                                     # justering med förstorade hål
 
 
@@ -81,7 +86,8 @@ XC = (X0 + X1) / 2
 body = D(box(X0, X1, Y0, Y1, 0, ZT), [box(X0 + T, X1 - T, Y0 + T, Y1 + 1, T, ZT + 1)])
 body = D(body, [box(X0 - 1, X0 + T + 1, AX_Y - 4.5, AX_Y + 4.5, 27.5, ZT + 1)])          # slits för luckans hylsa
 # tvärvägg (L-form): främre del med insatserna + låg list i botten, öppen uppåt och bakåt för servot
-bh = U([box(BH0, BH1, Y0 + T - 0.01, -16.5, T - 0.01, ZT), box(BH0, BH1, Y0 + T - 0.01, Y1, T - 0.01, 6.0)])
+bh = U([box(BH0, BH1, Y0 + T - 0.01, -14.7, T - 0.01, ZT), box(BH0, BH1, Y0 + T + 0.2, -14.7, ZT - 0.5, 48.5),   # 9.15: upp i locket för den övre insatsen
+          box(BH0, BH1, Y0 + T - 0.01, Y1, T - 0.01, 6.0)])
 bh = D(bh, [xcyl(2.0, BH0 - 1, BH1 + 1, y, z, 32) for y, z in INS])                     # hål för M3-insatser (Ø4)
 body = U([body, bh])
 # framsidan (y = -30), som en Habo-brevlåda: inramning (spår) längs sidor och båge, dörr,
@@ -104,6 +110,53 @@ body = D(U([body, slot, lip, lip_ch]), [lock])
 # hörnlisten (x 73-, sticker ut till y -1,6): högra väggens bakkant dras in till y -2,6 där
 PIL = box(72.5, X1 + 1, -2.6, 1.0, -1, ZT + 30)
 body = D(body, [PIL])
+
+# ---------------- brevfack och löstagbart kuvert (9.15)
+# Kuvertet lutar 26 grader ut från framsidan och är vridet 11 grader i sitt plan. Det som syns skärs av rakt
+# av springan under läppen. En tunga (7 mm bred) går ner i ett fack med stängd botten i en förtjockning
+# på framväggens insida; ingen öppning in i lådan. Spel 0,15 mm per sida, kuvertet sitter med friktion.
+KW, KH, KT = 22.0, 15.0, 0.8                   # kuvertet: bredd, höjd, tjocklek
+K_TILT, K_ROT = 64.0, 11.0                     # lutning från horisontalplanet, vridning i planet
+K_UC, K_VC = 57.0, -2.6                        # nederkantens mitt i planet (x, under springan)
+K_P0 = np.array([0.0, Y0 + 0.6, 39.75])        # springans linje i kuvertets plan (u = x)
+K_SL = -0.7                                    # det synliga slutar här, dolt under läppen
+TU0, TU1, TL, K_CL = 60.0, 67.0, 8.0, 0.15     # tungan: x från, x till, längd; spel per sida
+
+
+def k_frame():
+    t = np.radians(K_TILT)
+    u = np.array([1.0, 0, 0]); v = np.array([0, -np.cos(t), np.sin(t)]); return u, v, np.cross(u, v)
+
+
+def k_plate(poly, th, off=0.0):
+    u, v, n = k_frame()
+    m = trimesh.creation.extrude_polygon(poly, th); m.apply_translation([0, 0, -th / 2 + off])
+    M = np.eye(4); M[:3, 0], M[:3, 1], M[:3, 2], M[:3, 3] = u, v, n, K_P0
+    m.apply_transform(M); return m
+
+
+def k_place(g):
+    g = affinity.translate(g, -KW / 2, 0); g = affinity.rotate(g, K_ROT, origin=(0, 0)); return affinity.translate(g, K_UC, K_VC)
+
+
+k_rect = k_place(Polygon([(0, 0), (KW, 0), (KW, KH), (0, KH)]).buffer(0.4, join_style=1).buffer(-0.4, join_style=1))
+k_vis = k_rect.intersection(sbox(-100, K_SL, 200, 100))
+k_tung = sbox(TU0, -TL, TU1, K_SL + 0.01)
+kuvert = k_plate(k_vis.union(k_tung), KT)
+k_lines = LineString([(0.3, KH - 0.3), (KW / 2, KH * 0.42), (KW - 0.3, KH - 0.3)]).buffer(0.28).union(
+    LineString([(0.3, 0.3), (KW * 0.38, KH * 0.55)]).buffer(0.22)).union(LineString([(KW - 0.3, 0.3), (KW * 0.62, KH * 0.55)]).buffer(0.22))
+kuvert = D(kuvert, [k_plate(k_place(k_lines).intersection(k_vis), 0.5, off=KT / 2)])     # fliken, 0,25 mm djupa linjer framtill
+assert kuvert.is_watertight and len(kuvert.split(only_watertight=False)) == 1
+_u, _v, _n = k_frame()
+_hp = np.vstack([K_P0 + a * _u + b * _v + c * _n for a in (TU0 - 2.0, TU1 + 2.0) for b in (-TL - 1.8, -0.5) for c in (-2.0, 2.0)])
+_lo = _hp[np.argmax(_hp[:, 1])]                                   # innersta nedre hörnet
+_z45 = _lo[2] - (_lo[1] - (Y0 + T)) - 0.3                            # undersidan 45 grader ner till framväggen (skrivs ut utan stöd)
+hylsa = trimesh.convex.convex_hull(np.vstack([_hp] + [[[x, Y0 + T - 0.01, _z45]] for x in (TU0 - 2.0, TU1 + 2.0)]))
+hylsa = trimesh.boolean.intersection([hylsa, box(X0 + T, X1 - T, Y0 + T - 0.01, -15.0, T, ZT)], engine="manifold")
+fack = k_plate(sbox(TU0 - 0.3, -TL - 0.6, TU1 + 0.3, 1.5).union(sbox(X0 + 4.0, K_SL - 0.3, X1 - 4.0, 3.0)), KT + 2 * K_CL)
+springa = box(X0 + 4.0, X1 - 4.0, Y0 - 2.0, Y0 + 0.6, 39.6, 40.9)
+body = D(U([body, hylsa]), [fack, springa])
+assert body.is_watertight
 assert body.is_watertight
 
 # ---------------- locket: samma bredd och djup som lådan, sitter direkt på väggarna (z 46)
@@ -131,26 +184,28 @@ assert hat.is_watertight and len(hat.split(only_watertight=False)) == 1, 'locket
 
 # ---------------- servobricka, tre varianter
 def carrier(dz):
-    c = box(CX0, CX1, -27.0, -2.5, 4.0, ZT - 0.5)
+    c = box(CX0, CX1, Y0 + 2.2, -2.5, 4.0, 49.0)
     z_lo = AX_Z - (S_L - S_SPL) + dz; z_hi = AX_Z + S_SPL + dz
     c = D(c, [box(CX0 - 1, CX1 + 1, AX_Y - S_W / 2 - 0.2, Y1 + 1, z_lo - 0.2, z_hi + 0.2)])
     zc = (z_lo + z_hi) / 2
     c = D(c, [xcyl(0.85, CX0 - 1, CX1 + 1, AX_Y, zc + s * S_HOLE / 2, 20) for s in (-1, 1)])     # servots skruvar
-    c = D(c, [xcyl(1.6 + ADJ, CX0 - 1, CX1 + 1, y, z, 32) for y, z in INS])                     # M3, förstorade
+    # M3: spår i höjdled (±ADJ), skruvhuvudet ligger direkt mot brickan (ingen bricka får plats framför servot)
+    c = D(c, [U([xcyl(1.7, CX0 - 1, CX1 + 1, y, z - ADJ, 32), xcyl(1.7, CX0 - 1, CX1 + 1, y, z + ADJ, 32),
+                 box(CX0 - 1, CX1 + 1, y - 1.7, y + 1.7, z - ADJ, z + ADJ)]) for y, z in INS])
     assert c.is_watertight
     return c
 
 
 # ---------------- distans 0,6 mm mellan öronen och brickan (om axeln inte når tillräckligt långt in)
 def shim(th=0.6):
+    """Två lösa distansbrickor, en per öra (9.15: ingen tvärslå, den krockade med den kortare tvärväggen)."""
     zc = AX_Z + S_SPL - S_L / 2
-    box = lambda x0, x1, y0, y1, za, zb: globals()['box'](x0, x1, y0, y1, min(za, zb), max(za, zb))
-    pads = [box(EAR - th, EAR, AX_Y - S_W / 2, AX_Y + S_W / 2, zc + s * (S_L / 2 + 0.3), zc + s * (S_EARL / 2)) for s in (-1, 1)]
-    bar = box(EAR - th, EAR, -16.4, AX_Y - S_W / 2 - 0.3 + 0.01, zc - S_EARL / 2, zc + S_EARL / 2)
-    legs = [box(EAR - th, EAR, -16.4, AX_Y - S_W / 2 + 0.5, zc + s * (S_L / 2 + 0.3), zc + s * (S_EARL / 2)) for s in (-1, 1)]
-    sh = U(pads + legs + [bar])
-    sh = D(sh, [xcyl(1.1, EAR - th - 1, EAR + 1, AX_Y, zc + s * S_HOLE / 2, 20) for s in (-1, 1)])
-    assert sh.is_watertight and len(sh.split(only_watertight=False)) == 1
+    pads = []
+    for s in (-1, 1):
+        za, zb = sorted((zc + s * (S_L / 2 + 0.3), zc + s * (S_EARL / 2)))
+        pads.append(D(box(EAR - th, EAR, AX_Y - S_W / 2, AX_Y + S_W / 2, za, zb), [xcyl(1.1, EAR - th - 1, EAR + 1, AX_Y, zc + s * S_HOLE / 2, 20)]))
+    sh = U(pads)
+    assert sh.is_watertight and len(sh.split(only_watertight=False)) == 2
     return sh
 
 
@@ -169,7 +224,7 @@ assert l_stl.is_watertight
 l_stl.export(os.path.join(OUT, "07_farstukvist_svart.stl"))                   # handtaget, svart, samma ram
 
 asm = os.path.join(OUT, "asm"); os.makedirs(asm, exist_ok=True)
-for n, m in (("brevlada_kropp", body), ("brevlada_handtag", lock), ("brevlada_tak", hat), ("servobricka", carrier(0.0)), ("servodistans", shim())):
+for n, m in (("brevlada_kropp", body), ("brevlada_handtag", lock), ("brevlada_tak", hat), ("servobricka", carrier(0.0)), ("servodistans", shim()), ("kuvert", kuvert)):
     m.export(os.path.join(asm, n + ".stl"))
 
 
@@ -185,7 +240,10 @@ Ry = lambda a: trimesh.transformations.rotation_matrix(np.radians(a), [0, 1, 0])
 lay(hat, Rx(90)).export(os.path.join(OUT, "09_brevlada_tak.stl"))               # framsidan mot plattan, öppen bak uppåt
 for tag, dz in (("a_lagre", -2.0), ("b", 0.0), ("c_hogre", 2.0)):
     lay(carrier(dz), Ry(-90)).export(os.path.join(OUT, "26_servobricka_%s.stl" % tag))
-lay(shim(), Ry(-90)).export(os.path.join(OUT, "26d_servodistans_0_6mm.stl"))
+_sh = shim().split(only_watertight=False); _a = lay(_sh[0], Ry(-90)); _b = lay(_sh[1], Ry(-90)); _b.apply_translation([0, _a.extents[1] + 4.0, 0])
+trimesh.util.concatenate([_a, _b]).export(os.path.join(OUT, "26d_servodistans_0_6mm.stl"))      # två brickor
+kp = kuvert.copy(); _M = np.eye(4); _M[:3, :3] = np.vstack([_u, _v, _n]); _M[:3, 3] = -_M[:3, :3] @ K_P0; kp.apply_transform(_M)
+lay(kp).export(os.path.join(OUT, "27_kuvert.stl"))                                  # platt, flikens linjer uppåt
 for f in sorted(os.listdir(OUT)):
     if f.endswith(".stl"):
         m = trimesh.load(os.path.join(OUT, f)); print(f, np.round(m.extents, 1), "tät", m.is_watertight)
