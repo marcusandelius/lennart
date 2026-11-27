@@ -32,6 +32,16 @@ två fönster, öppna nedåt, där kontakterna sticker ut i fri yta:
 * Höger kant, framför Pi:ns GPIO-kontakter (7–20 mm fritt framför, där förrådet rundar av).
 * Nere till höger, framför PCA9685:s kanal 0 och 1 (6–30 mm fritt framför, under förrådets sluttning).
 
+## Kåpan: ventilation som håller vatten ute
+* Taket är helt slutet, så droppar från en otät takskarv kommer inte in ovanifrån.
+* Högst upp framtill är väggen 8 mm tjock och har åtta springor som stiger 45 grader inåt. Varm luft tar sig ut, men
+  vatten som rinner nedför framsidan måste rinna uppför för att komma in (`../forhandsgranskning/114_ellada_lameller.png`).
+  Med kåpan liggande på framsidan skrivs springorna ut i 45 grader, utan stöd.
+* Springorna i sidorna lutar på samma sätt (1,5 mm höga, stiger 2,5 mm inåt).
+* Fönstren har 1 mm fas på kanterna mot sladdarna och ett droppspår i ovankanten, så att vatten släpper utanför.
+* En låg fena (3 × 22 mm, 4 mm hög) på taket att nypa i när kåpan lyfts av. Minst 5,4 mm kvar till husets tak.
+* Fönstret för servokontakterna är brett (x 14–40) så att kamerans flatkabel också kan gå ut där.
+
 ## Layout (sett framifrån, version 2026-11-27)
 * Raspberry Pi 5 till höger, stående och 2 mm högre än förut: USB nedåt, GPIO till höger, USB-C till vänster,
   minneskortet uppåt. Pi:n använder wifi. Under nätverksuttaget finns ca 17 mm fritt till PCA9685, så en vinklad
@@ -40,7 +50,8 @@ två fönster, öppna nedåt, där kontakterna sticker ut i fri yta:
   till höger vid fönstret, plinten nedtill.
 * Servoomvandlaren stående i en vagga till vänster om Pi:n, öronen uppåt och nedåt, buntband ovanför. Den är 23 mm hög
   (uppmätt) och har 47–48 mm mellan öronens hål.
-* EKM006 liggande ovanför: 12 V in till vänster, 5 V ut till höger (den klippta USB-C-kabeln till Pi:n).
+* EKM006 ovanför, vriden 10 grader (vänster ände nedåt): 12 V in till vänster, nedåt mot den fria remsan och
+  golvöppningen; 5 V ut till höger, uppåt mot USB-C-kontakten på Pi:n.
 * Slitsen i plattan runt förskruvningen är 24 mm bred och öppen nedåt, så att både gängan och muttern får plats.
 * Under lådan ligger bara keystone-uttaget och DC-jacket.
 * Golvöppningarna i bakstycket är oförändrade.

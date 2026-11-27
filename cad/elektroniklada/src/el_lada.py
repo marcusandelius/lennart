@@ -133,11 +133,25 @@ def kapa():
     inner = ext_xz(outline_xz(TC, z0=ZF - 1.0, z1=Z_TOP - TC), Y_FRONT + TC, YB0 + 1.0)
     m = D(outer, [inner])
     cuts = [cyl_z(TX, TY, Z_TOP - TC - 1, Z_TOP + 1, 1.45, 24)]       # M2,5 genom taket
-    for x0, x1, z1 in KAPA_FRONT_WIN:                                                # fönster framtill, öppna nedåt
-        cuts.append(box(x0, x1, Y_FRONT - 1, Y_FRONT + TC + 1, ZF - 1, z1))
-    for sd in (-1, 1):                                                               # ventilationsspringor i sidorna, uppe och nere
+    # ventilation högst upp framtill: väggen förtjockad inåt, springorna lutar 45 grader uppåt in mot lådan (vatten som rinner på utsidan kommer inte in)
+    LB = dict(x0=-58.0, x1=48.0, y1=Y_FRONT + TC + 6.0, z0=152.0, z1=Z_TOP - TC)
+    m = U([m, I(box(LB['x0'], LB['x1'], Y_FRONT + 0.5, LB['y1'], LB['z0'], LB['z1']), ext_xz(outline_xz(TC - 0.5, z0=ZF, z1=Z_TOP - TC + 0.5), Y_FRONT, YB0))])
+    dep = LB['y1'] - Y_FRONT; zo = 155.0; hs = 2.5                                    # springans öppning utanpå (z zo..zo+hs), stiger dep mm in till insidan
+    for xc in np.arange(LB['x0'] + 9.0, LB['x1'] - 6.0, 13.0):
+        sl = ext_yz(Polygon([(Y_FRONT - 1.0, zo - 1.0), (Y_FRONT - 1.0, zo + hs - 1.0), (LB['y1'] + 1.0, zo + hs + dep + 1.0), (LB['y1'] + 1.0, zo + dep + 1.0)]), xc - 5.0, xc + 5.0)
+        cuts.append(sl)
+    for x0, x1, z1 in KAPA_FRONT_WIN:                                                # fönster framtill, öppna nedåt, med fasade kanter (1 mm) så att kablarna inte skavs
+        poly = Polygon([(x0 - 1.0, Y_FRONT - 0.01), (x1 + 1.0, Y_FRONT - 0.01), (x1, Y_FRONT + 1.0), (x1 + 1.0, Y_FRONT + TC + 0.01), (x0 - 1.0, Y_FRONT + TC + 0.01), (x0, Y_FRONT + 1.0)])
+        cuts.append(ext_xy(poly, ZF - 1, z1))
+        cuts.append(box(x0 - 1.0, x1 + 1.0, Y_FRONT + 0.5, Y_FRONT + 1.5, z1 - 0.01, z1 + 1.0))   # droppkant: spår i fönstrets ovankant, vattnet släpper utanför
+    for sd in (-1, 1):                                                               # ventilationsspringor i sidorna, sneda (stiger inåt) så att vatten som rinner längs sidan inte kommer in
         for zc in list(np.arange(130.0, 160.0, 6.0)) + list(np.arange(40.0, 64.0, 6.0)):
-            cuts.append(box(sd * XO - 3, sd * XO + 3, Y_FRONT + 7.0, YB0 - 6.0, zc - 1.5, zc + 1.5))
+            xo, xi = sd * (XO + 1.0), sd * (XO - TC - 1.0)
+            pts = [(xo, zc - 0.75 - 0.5), (xo, zc + 0.75 - 0.5), (xi, zc + 0.75 + 2.5), (xi, zc - 0.75 + 2.5)]
+            cuts.append(ext_xz(Polygon(pts if sd > 0 else pts[::-1]).buffer(0), Y_FRONT + 7.0, YB0 - 6.0))
+    # grepp på taket: en låg fena att nypa i när kåpan lyfts av (skrivs ut från framkanten och uppåt, utan stöd)
+    fin = ext_yz(Polygon([(Y_FRONT, Z_TOP - 0.5), (Y_FRONT + 22.0, Z_TOP - 0.5), (Y_FRONT + 22.0, Z_TOP + 2.5), (Y_FRONT + 21.0, Z_TOP + 4.0), (Y_FRONT, Z_TOP + 4.0)]), -1.5, 1.5)
+    m = U([m, fin])
     return clean(D(m, cuts))
 
 # ---------------------------------------------------------------- 24 komponentplatta
@@ -189,7 +203,7 @@ PI = dict(name='pi5', pos=(3.5, 77.0), size=(56.0, 85.0), standoff=SO, ins='m25'
           holes=[(3.5, 23.5), (52.5, 23.5), (3.5, 81.5), (52.5, 81.5)])          # Pi 5 stående: USB/nätverk nedåt, GPIO till höger, USB-C till vänster, minneskortet uppåt
 PCA = dict(name='pca9685', pos=(-18.7, 31.5), size=(62.23, 25.4), standoff=SO, ins='m2',
            holes=[(3.3, 3.3), (59.18, 3.3), (3.3, 22.35), (59.18, 22.35)])        # liggande under Pi:n: kontrollkontakten åt höger (mot GPIO), servokontakterna längs överkanten, kanal 0 och 1 till höger, plinten nedtill
-EKM = dict(name='ekm006', pos=(-60.0, 118.0), size=(60.0, 20.0), standoff=SO, ins='m2',
+EKM = dict(name='ekm006', pos=(-60.0, 118.0), size=(60.0, 20.0), standoff=SO, ins='m2', rot=10.0,
            holes=[(3.0, 3.0), (57.0, 3.0), (3.0, 17.0), (57.0, 17.0)])            # liggande ovanför servoomvandlaren: 12 V in till vänster, 5 V ut till höger (USB-C-kabeln till Pi:n)
 COMPONENTS = [PI, PCA, EKM]
 SERVO_PSU = dict(x0=-29.5, x1=2.0, z0=60.0, z1=116.0)    # stående vagga för servoomvandlaren (23 mm hög, 47–48 mm mellan öronens hål), buntband ovanför
@@ -197,7 +211,7 @@ TIE_SLOTS = [(-50.0, 150.0), (-30.0, 158.0), (-13.75, 118.5), (35.0, 64.0), (52.
 WINDOWS = [sbox(14.0, 90.0, 52.0, 154.0).buffer(-3).buffer(3, 12)]   # bakom Pi:n: luft och mindre plast
 # fönster i kåpan, öppna nedåt så att kåpan går att lyfta med allt inkopplat: (x0, x1, z1)
 KAPA_FRONT_WIN = [(52.5, 64.5, 158.0),                    # framför Pi:ns GPIO-kontakter (förrådet rundar av här: 7–20 mm fritt framför)
-                  (24.0, 40.0, 62.0)]                     # framför PCA9685:s kanal 0 och 1, nere till höger (6–30 mm fritt framför, även med förrådets lyftväg)
+                  (14.0, 40.0, 62.0)]                     # framför PCA9685:s kanal 0 och 1 och för kamerans flatkabel, nere till höger (3–30 mm fritt framför, även med förrådets lyftväg)
 KAPA_SIDE_WIN = None
 
 def cradle(r, h_wall=4.0):
@@ -214,9 +228,10 @@ def platta():
     m.apply_transform(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, PZ0], [0, 0, 0, 1]], float))
     adds, cuts = [], []
     for c in COMPONENTS:
-        x0, z0 = c['pos']
+        x0, z0 = c['pos']; cx, cz = x0 + c['size'][0] / 2, z0 + c['size'][1] / 2; a = np.radians(c.get('rot', 0.0))
         for dx, dz in c['holes']:
-            s, h = standoff(x0 + dx, z0 + dz, c['standoff'], c['ins'], r_out=3.2); adds.append(s); cuts.append(h)
+            px, pz = x0 + dx - cx, z0 + dz - cz; px, pz = cx + px * np.cos(a) - pz * np.sin(a), cz + px * np.sin(a) + pz * np.cos(a)   # vridet moturs (sett framifrån)
+            s, h = standoff(px, pz, c['standoff'], c['ins'], r_out=3.2); adds.append(s); cuts.append(h)
     for x, z in TIE_SLOTS:
         for dx in (-3.5, 3.5):
             cuts.append(box(x + dx - 1.0, x + dx + 1.0, YP0 - 6, YP1 + 1, z - 2.5, z + 2.5))
@@ -248,8 +263,9 @@ def ghosts():
     g['pca9685_kontroll'] = U([box(x1, x1 + 14.0, PCB - 6.0, PCB + 1.6, z0 + 5.0, z0 + 20.5),
                                box(x1 + 14.0, x1 + 17.0, PCB - 6.0, PCB, z0 + 5.0, z0 + 40.0)])   # vinklade kontrollstift med Dupont-kontakter åt höger, kablarna upp mot GPIO
     x0, z0 = EKM['pos']; w, h = EKM['size']
-    g['ekm006'] = U([box(x0, x0 + w, PCB, PCB + 1.6, z0, z0 + h), box(x0 + 1, x0 + w - 1, PCB - 10.0, PCB, z0, z0 + h),
-                     box(-XO + TC + 0.5, x0, PCB - 8.0, PCB, z0 + 4, z0 + h - 4), box(x0 + w, x0 + w + 2.0, PCB - 8.0, PCB, z0 + 4, z0 + h - 4)])   # plintar med ledare i båda ändar
+    e = U([box(x0, x0 + w, PCB, PCB + 1.6, z0, z0 + h), box(x0 + 1, x0 + w - 1, PCB - 10.0, PCB, z0, z0 + h),
+           box(x0 - 7.0, x0, PCB - 8.0, PCB, z0 + 4, z0 + h - 4), box(x0 + w, x0 + w + 2.0, PCB - 8.0, PCB, z0 + 4, z0 + h - 4)])   # plintar med ledare i båda ändar
+    e.apply_transform(trimesh.transformations.rotation_matrix(-np.radians(EKM.get('rot', 0.0)), [0, 1, 0], [x0 + w / 2, 0, z0 + h / 2])); g['ekm006'] = e   # vriden moturs sett framifrån
     gx, gz = GLAND; c = (CHAN_X[0] + CHAN_X[1]) / 2
     g['stromkabel'] = U([cyl_y(gx, gz, 141.0, 146.8, 11.0, 6),                                         # förskruvningens mutter (nyckelvidd 19)
                          box(c - 4.5, c + 4.5, 117.0, 146.8, gz - 4.5, gz + 4.5),                    # kabeln rakt in
