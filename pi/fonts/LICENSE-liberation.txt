@@ -1,4 +1,4 @@
-Liberation Mono Bold (LiberationMono-Bold.ttf), Liberation Fonts
+Liberation Mono Bold och Regular (LiberationMono-Bold.ttf, LiberationMono-Regular.ttf), Liberation Fonts 2.1.5
 https://github.com/liberationfonts
 
 Digitized data copyright (c) 2010 Google Corporation with Reserved Font Arimo, Tinos and Cousine.

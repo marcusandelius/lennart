@@ -85,7 +85,7 @@
   .choice b { display:block; } .choice span { display:block; color:var(--ink-2); font-size:.9rem; line-height:1.4; margin-top:.15rem; }
   .choice:hover { border-color:var(--ink-2); }
   .choice:has(input:checked) { border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
-  .choice.granted b, .text-granted { color:var(--granted); } .choice.denied b, .text-denied { color:var(--denied); }
+  .choice.granted b, .text-granted { color:var(--granted); } .choice.waiting b { color:#3f8f5f; } .choice.denied b, .text-denied { color:var(--denied); }
   .choice.granted:has(input:checked) { border-color:var(--granted); box-shadow:inset 0 0 0 1px var(--granted); }
   .choice.denied:has(input:checked) { border-color:var(--denied); box-shadow:inset 0 0 0 1px var(--denied); }
   .choice:has(input:focus-visible) { outline:3px solid var(--focus); outline-offset:2px; }
@@ -328,6 +328,7 @@
         <div class="status" id="displaystatus"><span class="dot"></span><p>–</p></div>
         <div class="choices" role="radiogroup" aria-label="Vad skärmen visar">
           <label class="choice"><input type="radio" name="display_mode" value="camera" data-key="display_mode"><b>Kamerabilden</b><span>Det kameran ser, med en statusrad.</span></label>
+          <label class="choice waiting"><input type="radio" name="display_mode" value="waiting" data-key="display_mode"><b>Väntar på besökare</b><span>"VÄNTAR PÅ BESÖKARE…", som i trailern.</span></label>
           <label class="choice granted"><input type="radio" name="display_mode" value="granted" data-key="display_mode"><b>ACCESS GRANTED</b><span>Grön skärm hela tiden.</span></label>
           <label class="choice denied"><input type="radio" name="display_mode" value="denied" data-key="display_mode"><b>ACCESS DENIED</b><span>Röd skärm hela tiden.</span></label>
           <label class="choice"><input type="radio" name="display_mode" value="demo" data-key="display_mode"><b>Demo</b><span>Kamerabilden. När något rör sig lottas GRANTED eller DENIED fram i 4 sekunder.</span></label>
@@ -961,7 +962,7 @@
   window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
 
   // ---------- status ----------
-  const displayNames = { camera: "kamerabilden", granted: "ACCESS GRANTED", denied: "ACCESS DENIED", demo: "demoläget" };
+  const displayNames = { camera: "kamerabilden", waiting: "VÄNTAR PÅ BESÖKARE…", granted: "ACCESS GRANTED", denied: "ACCESS DENIED", demo: "demoläget" };
   const stateClass = state => state === true ? "is-ok" : state === false ? "is-bad" : "";
   function setStatus(id, state, text, detail = "") {
     const el = $(id), p = el.querySelector("p");

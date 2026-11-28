@@ -34,7 +34,7 @@ CAMERA_ROTATIONS = (0, 90, 180, 270)  # grader medsols
 # Vad 2"-skärmen på stationen visar. Igenkänningen ska sköta det själv senare,
 # men tills dess kan admin växla för hand, t.ex. för att testa skärmen. "demo" lottar
 # fram ACCESS GRANTED eller ACCESS DENIED när något rör sig framför kameran.
-DISPLAY_MODES = ("camera", "granted", "denied", "demo")
+DISPLAY_MODES = ("camera", "waiting", "granted", "denied", "demo")
 # SPI-hastigheter för skärmen i MHz. Långa eller lösa kopplingskablar kan kräva en lägre.
 LCD_SPI_MHZ = (1, 4, 8, 16, 24, 32)
 
@@ -48,7 +48,7 @@ DEFAULTS = {
     "quality": 70,          # JPEG-kvalitet, 30–90
     "max_view_min": 5,      # efter så här många minuter får besökaren klicka igen
     "camera_rotation": 0,   # vrid kamerabilden, t.ex. om kameran sitter på sidan
-    "display_mode": "camera",  # kamerabilden, ACCESS GRANTED, ACCESS DENIED eller demoläget på skärmen
+    "display_mode": "camera",  # kamerabilden, VÄNTAR PÅ BESÖKARE…, ACCESS GRANTED, ACCESS DENIED eller demoläget
     "lcd_spi_mhz": 32,         # skärmens SPI-hastighet
     "lcd_gamma": "normal",     # skärmens kontrastkurva: mjuk, normal eller stark
     # Servona sitter på PCA9685-kortet. Pulsbredden styr vinkeln: min_us = 0°, max_us = 180°.

@@ -60,70 +60,42 @@ FONT_BIG = load_font(26)
 
 # Skärmlägen som adminvyn kan välja, utöver "camera" (kamerabilden). De ser ut exakt som i
 # filmtrailern: bilderna där ritades av screen() i web/lennarts-matstation-3d.html, på en yta
-# på 336 × 248 med fet "Courier New" i 46 px. I Linux blir det Liberation Mono Bold, som har
-# samma teckenbredd. Här ritas samma sak skalat till skärmens 320 × 240.
-# Bakgrund, textfärg och två rader text.
+# på 336 × 248 med "Courier New". I Linux blir det Liberation Mono, som har samma teckenbredd.
+# Här ritas samma sak skalat till skärmens 320 × 240.
+# Bakgrund, textfärg, fet stil, storlek i px och två rader med sina mittpunkter i trailern.
 ACCESS_SCREENS = {
-    "granted": ("#0d3a1f", "#5CFF8F", "ACCESS", "GRANTED"),
-    "denied": ("#3a0d0d", "#FF6B5C", "ACCESS", "DENIED"),
+    "granted": ("#0d3a1f", "#5CFF8F", True, 46, (("ACCESS", 100), ("GRANTED", 152))),
+    "denied": ("#3a0d0d", "#FF6B5C", True, 46, (("ACCESS", 100), ("DENIED", 152))),
+    "waiting": ("#06120b", "#3f8f5f", False, 24, (("VÄNTAR PÅ", 104), ("BESÖKARE…", 138))),
 }
-TRAILER_W, TRAILER_H = 336, 248          # trailerns yta
-TRAILER_FONT_PX = 46
-TRAILER_LINES_Y = (100, 152)             # mitten av raderna i trailern
-TRAILER_FONT = Path(__file__).parent / "fonts" / "LiberationMono-Bold.ttf"
+TRAILER_H = 248                          # trailerns yta är 336 × 248
+FONT_DIR = Path(__file__).parent / "fonts"
 
 
-def trailer_font(size: int):
-    try:
-        return ImageFont.truetype(str(TRAILER_FONT), size)
-    except OSError:
+def trailer_font(size: int, bold: bool):
+    name = "LiberationMono-Bold.ttf" if bold else "LiberationMono-Regular.ttf"
+    fallback = "DejaVuSansMono-Bold.ttf" if bold else "DejaVuSansMono.ttf"
+    for path in (FONT_DIR / name, Path("/usr/share/fonts/truetype/dejavu") / fallback):
         try:
-            return ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", size)
+            return ImageFont.truetype(str(path), size)
         except OSError:
-            return ImageFont.load_default()
-
-
-def start_camera():
-    """Startar Camera Module 3 med en bildström i 1280 × 720. Rotationen görs i mjukvaran."""
-    from libcamera import controls
-    from picamera2 import Picamera2
-
-    cam = Picamera2()
-    config = cam.create_video_configuration(
-        main={"size": CAMERA_SIZE, "format": "RGB888"},
-        buffer_count=4,
-    )
-    cam.configure(config)
-    cam.start()
-    try:
-        cam.set_controls({"AfMode": controls.AfModeEnum.Continuous})  # autofokus hela tiden
-    except Exception:
-        pass  # kameror utan autofokus klarar sig utan
-    return cam
-
-
-def message_screen(title: str, detail: str = "") -> np.ndarray:
-    img = Image.new("RGB", (WIDTH, HEIGHT), (40, 20, 18))
-    draw = ImageDraw.Draw(img)
-    draw.text((16, 80), title, font=FONT_BIG, fill=WHITE)
-    for i, line in enumerate(textwrap.wrap(detail, 34)[:5]):
-        draw.text((16, 124 + i * 18), line, font=FONT_SMALL, fill=GREY)
-    return np.asarray(img)
+            continue
+    return ImageFont.load_default()
 
 
 def access_screen(mode: str) -> np.ndarray:
-    """Helskärm med ACCESS GRANTED (grön) eller ACCESS DENIED (röd), som i filmtrailern.
+    """Helskärm med ACCESS GRANTED, ACCESS DENIED eller VÄNTAR PÅ BESÖKARE…, som i filmtrailern.
 
     Hela skärmen fylls med en färg, så den fungerar också som test av skärmen
     och kopplingen: syns färgen fungerar både strömmen och datakablarna.
     """
-    background, color, line1, line2 = ACCESS_SCREENS[mode]
+    background, color, bold, size, lines = ACCESS_SCREENS[mode]
     img = Image.new("RGB", (WIDTH, HEIGHT), background)
     draw = ImageDraw.Draw(img)
     # Samma skala på bredd och höjd (248 → 240), så att texten får trailerns proportioner.
     scale = HEIGHT / TRAILER_H
-    font = trailer_font(round(TRAILER_FONT_PX * scale))
-    for text, y in zip((line1, line2), TRAILER_LINES_Y):
+    font = trailer_font(round(size * scale), bold)
+    for text, y in lines:
         # anchor "mm" i Pillow ligger 1 px lägre än webbläsarens textBaseline "middle", därav -1.
         draw.text((WIDTH / 2, (y - 1) * scale), text, font=font, fill=color, anchor="mm")
     return np.asarray(img)

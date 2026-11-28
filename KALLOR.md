@@ -50,7 +50,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Bricolage Grotesque | SIL OFL 1.1 (licenstexten ligger i `server/static/fonts/`) | Webbsidorna. På lennart.cam ligger typsnittsfilen (latin) på servern, hämtad från Google Fonts 2026-11-15. | https://github.com/ateliertriay/bricolage |
 | Special Elite (Astigmatic) | Apache-2.0 (licenstexten ligger i `server/static/fonts/`) | Stämplarna på webbsidorna. På lennart.cam ligger typsnittsfilen (latin) på servern, hämtad från Google Fonts 2026-11-15. | https://fonts.google.com/specimen/Special+Elite |
 | DejaVu Sans | Bitstream Vera-licens / fri [verifiera] | Text i 3D-modellen och på skärmen i huset | https://dejavu-fonts.github.io |
-| Liberation Mono Bold (Liberation Fonts 2.1.5) | SIL OFL 1.1 (licenstexten ligger i `pi/fonts/`) | ACCESS GRANTED och ACCESS DENIED på skärmen i huset, som i filmtrailern. Filen kopierades 2026-11-27 ur Debianpaketet `fonts-liberation` och ligger i `pi/fonts/`, så att inget behöver installeras på Pi:n. | https://github.com/liberationfonts |
+| Liberation Mono Bold och Regular (Liberation Fonts 2.1.5) | SIL OFL 1.1 (licenstexten ligger i `pi/fonts/`) | ACCESS GRANTED, ACCESS DENIED (Bold) och VÄNTAR PÅ BESÖKARE… (Regular) på skärmen i huset, som i filmtrailern. Regular lades till 2026-11-28. Filen kopierades 2026-11-27 ur Debianpaketet `fonts-liberation` och ligger i `pi/fonts/`, så att inget behöver installeras på Pi:n. | https://github.com/liberationfonts |
 
 ## Verktyg och tjänster för drift
 
