@@ -76,6 +76,8 @@ Står GP-namnen tryckta på kortet gäller de framför den här listan.
 
 I fliken **Skärmen** i adminvyn på lennart.cam väljer du vad skärmen visar: **kamerabilden**, **ACCESS GRANTED** (mörkgrön bakgrund) eller **ACCESS DENIED** (mörkröd bakgrund). De ser ut som i filmtrailern: två rader i fet Liberation Mono, ritade av `access_screen()` i `pi/main.py`. Läget **Väntar på besökare** visar "VÄNTAR PÅ BESÖKARE…" i grönt på nästan svart, också som i trailern.
 
+**Glitch-effekt:** när skärmen byter läge, till exempel från Väntar på besökare till ACCESS GRANTED, visas en kort störning i cirka 0,4 sekunder: förskjutna band, rött och blått som glider isär och några brusrader. Koden finns i `pi/glitch.py`, och effekten slås av och på under **Glitch-effekt** i fliken Skärmen. Den är en egen tolkning av glitchen i trailern (12–13 s) och inte jämförd bild för bild [verifiera].
+
 **Kontrast:** under Kontrast i samma flik väljer du **Mjuk**, **Normal** eller **Stark**. Det väljer en av skärmchippets inbyggda kontrastkurvor (gamma 1,8, 2,2 eller 2,5 enligt databladet [verifiera]). Stark gör färgerna mer mättade och bakgrunden mörkare, till exempel om ACCESS DENIED ser dov ut. Gäller direkt. Valet gäller direkt.
 
 Läget **Demo** visar kamerabilden, och när något rör sig framför kameran lottas ACCESS GRANTED eller ACCESS DENIED fram och visas i 4 sekunder. Efter det vilar demoläget i 3 sekunder, och ett djur som blir sittande lottas inte om. Rörelse- och ljusgränsen är samma som för inspelningen. Koden finns i `pi/demo.py`.

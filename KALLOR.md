@@ -28,6 +28,7 @@ Allt som bidraget bygger på och som inte är Marcus eget arbete. Lägg till en 
 | Pillow | MIT-CMU (HPND) [verifiera] | Bilder | https://python-pillow.org |
 | playwright med Chromium och SwiftShader | Apache-2.0 [verifiera] | Skärmdumpar och test av sidorna | https://playwright.dev |
 | markdown (Python) | BSD-3-Clause [verifiera] | Projektdokumentet i förhandsgranskningen | https://github.com/Python-Markdown/markdown |
+| pyflakes | MIT [verifiera] | Kontroll av Python-koden före commit, bland annat odefinierade namn. Används i Claude Code-sessionen, inte på Pi:n. Infört 2026-11-28 efter att Pi-programmet kraschat av en borttagen funktion. | https://github.com/PyCQA/pyflakes |
 | pymeshfix | MIT [verifiera] | Provades 2026-11-13, förstörde geometrin och **användes inte** | https://github.com/pyvista/pymeshfix |
 | three.js r128 | MIT | 3D i förhandsgranskningen och minihusen, från cdnjs.cloudflare.com | https://threejs.org |
 | Bambu Studio | AGPL-3.0 [verifiera] | Skivning, gjord av Marcus | https://bambulab.com/en/download/studio |
