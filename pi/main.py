@@ -27,6 +27,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 import glitch
+import settings_backup
 from demo import DemoMode
 from display import HEIGHT, WIDTH, Display
 from heartbeat import Heartbeat
@@ -246,6 +247,12 @@ def main() -> int:
                     display_requests["flash"] = cmd["screen"]
             else:
                 servo.submit(cmd)
+
+    # Stationens egen kopia av inställningarna gäller tills servern har svarat, så att
+    # skärm, kontrast och servotider är rätt direkt efter en omstart.
+    saved = settings_backup.load()
+    if saved:
+        on_config(saved)
 
     live = LiveSender(lambda: latest["rgb"], on_config, on_commands)
     live.start()

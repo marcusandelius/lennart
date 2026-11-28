@@ -23,6 +23,8 @@ from urllib.parse import urlparse
 
 from PIL import Image
 
+import settings_backup
+
 
 class LiveSender:
     def __init__(self, get_frame, on_config, on_commands) -> None:
@@ -34,6 +36,7 @@ class LiveSender:
         self.on_config = on_config       # anropas med nya inställningar från adminvyn
         self.on_commands = on_commands   # anropas med kommandon från adminvyn
         self.config_version = 0          # vilken version av inställningarna Pi:n har
+        self._backup_sent = False        # har kopian av inställningarna skickats till servern?
         self.active = False              # True medan någon tittar
         self.fps = 2.0
         self._conn = None
@@ -77,6 +80,25 @@ class LiveSender:
             self.on_config(reply["config"])
         if reply.get("commands"):
             self.on_commands(reply["commands"])
+        # Spara en kopia av alla inställningar, och ge den till servern om den saknar egna.
+        if isinstance(reply.get("backup"), dict) and not reply.get("needs_backup"):
+            settings_backup.save(reply["backup"])
+        if not reply.get("needs_backup"):
+            self._backup_sent = False    # nästa gång servern saknar inställningar skickas kopian igen
+        elif not self._backup_sent:
+            self._send_backup()
+
+    def _send_backup(self) -> None:
+        saved = settings_backup.load()
+        if not saved:
+            return                       # ingen kopia än, till exempel innan något har ställts in
+        try:
+            answer = self._request("POST", "/api/device/settings", json.dumps(saved).encode(), "application/json", timeout=10)
+            self._backup_sent = True
+            if answer.get("adopted"):
+                print("Servern saknade inställningar och fick stationens kopia", flush=True)
+        except Exception as e:
+            print(f"Kopian av inställningarna kunde inte skickas: {type(e).__name__}: {e}", flush=True)
 
     @staticmethod
     def encode(rgb, width: int, height: int, quality: int) -> bytes:
