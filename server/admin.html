@@ -114,6 +114,17 @@
   .steps .field > label { padding-top:.55rem; }
   .counter { font-variant-numeric:tabular-nums; font-weight:700; margin:0; }
   .vtimes { display:grid; gap:.5rem; margin:.7rem 0 .2rem; }
+  .dw-bar { display:grid; grid-template-columns:repeat(5, 1fr); gap:.35rem; margin:0 0 1rem; }
+  .dw-bar button { font:inherit; font-size:.88rem; font-weight:700; color:var(--ink-2); background:var(--paper); border:1px solid var(--line);
+                   border-radius:10px; padding:.5rem .3rem; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:.25rem; }
+  .dw-bar button[aria-current="step"] { border-color:var(--ink); color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+  .dw-n { display:grid; place-items:center; width:1.6rem; height:1.6rem; border-radius:50%; background:var(--line); color:var(--ink); font-weight:800; }
+  .dw-bar button[aria-current="step"] .dw-n { background:var(--ink); color:var(--paper); }
+  .dw-bar button.done .dw-n { background:var(--granted); color:#fff; }
+  @media (max-width:34rem) { .dw-bar button { font-size:0; gap:0; } .dw-bar button .dw-n { font-size:.85rem; } }
+  .dw-title { font-size:1.1rem !important; margin:0 0 .5rem !important; }
+  .dw-step { padding:.2rem 0 .4rem; }
+  .dw-nav { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-top:1.1rem; padding-top:.9rem; border-top:1px solid var(--line); }
   .vtime { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem; }
   .vtime b { min-width:4.5rem; }
   .vmark { color:var(--granted); font-weight:700; font-size:.92rem; }
@@ -190,7 +201,7 @@
       <h1>Admin</h1>
       <span class="pill" id="stationpill"><span class="dot"></span><span id="stationtext">Hämtar status …</span></span>
     </div>
-    <p class="warn" id="notpersisted" hidden><b>Inställningarna sparas bara i minnet</b> och återställs vid nästa deploy. Lägg till en volym på <code>/data</code> i Coolify.</p>
+    <p class="warn" id="notpersisted" hidden><b>Servern sparar inställningarna bara i minnet.</b> Stationen har en kopia och lämnar tillbaka den efter en deploy, så de försvinner inte. Säkrast är ändå en volym på <code>/data</code> i Coolify.</p>
 
     <div class="tabs" role="tablist" aria-label="Delar av stationen">
       <button role="tab" id="tab-oversikt" aria-controls="oversikt" data-tab="oversikt">Översikt</button>
@@ -398,11 +409,18 @@
 
       <!-- 360°-servo: styrs med tid -->
       <div class="card" id="doser360" hidden>
-        <h2>Ställ in skivan, steg för steg</h2>
-        <p class="lead">Ett 360°-servo vet aldrig var skivan står. Därför sparas lägena som <b>tid från plockläget</b>, och en utmatning är ett helt varv framåt: fram till utfallet, ett kort stopp, och resten av varvet tillbaka till plockläget. Gör det utan nötter först.</p>
-        <ol class="steps">
-          <li>
-            <h3>Lär känna servot</h3>
+        <h2>Kalibrera nötdoseringen</h2>
+        <p class="lead">En guide i fem steg för plockskivan med 360°-servo. Allt du ställer in sparas direkt, på servern och som en kopia i stationen, så att inget försvinner vid en deploy eller omstart.</p>
+        <nav class="dw-bar" aria-label="Stegen i guiden">
+          <button type="button" data-dw="1"><span class="dw-n">1</span>Servot</button>
+          <button type="button" data-dw="2"><span class="dw-n">2</span>Plockläget</button>
+          <button type="button" data-dw="3"><span class="dw-n">3</span>Varv framåt</button>
+          <button type="button" data-dw="4"><span class="dw-n">4</span>Varv bakåt</button>
+          <button type="button" data-dw="5"><span class="dw-n">5</span>Testa</button>
+        </nav>
+
+        <section class="dw-step" data-dwstep="1" hidden>
+          <h3 class="dw-title">Steg 1 av 5: Lär känna servot</h3>
             <p class="hint">Varje 360°-servo står still vid sin egen signal. Den behöver hittas, annars kan framåt och bakåt gå åt samma håll och farten bli olika. Stationen snurrar skivan en kort stund i taget. Titta på skivan och svara åt vilket håll den gick. Det tar ungefär 9 prov, och resultatet sparas av sig självt.</p>
             <div id="wiz-idle" class="buttons">
               <button type="button" id="wizstart">Starta</button>
@@ -431,35 +449,32 @@
                 <p class="hint">Gäller knuffar, prov och utmatning. Ändrar du farten behöver tiderna i steg 3–5 sparas om.</p>
               </div>
             </div>
-          </li>
-          <li>
-            <h3>Spara plockläget</h3>
+
+        </section>
+
+        <section class="dw-step" data-dwstep="2" hidden>
+          <h3 class="dw-title">Steg 2 av 5: Ställ hålet i plockläget</h3>
             <p class="hint">Knuffa framåt tills hålet står längst ner i nöthögen, och tryck <b>Spara som plockläge</b>. Då börjar räknaren om från noll.</p>
             <div class="buttons">
               <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><label class="knuff"><span>Knuff</span><input type="range" min="0" max="100" step="1" value="35" data-knuff aria-label="Knuffens längd"><output>100 ms</output></label>
               <button type="button" id="markpick">Spara som plockläge</button>
             </div>
             <div class="buttons counter-row"><p class="counter" id="counter" aria-live="polite"></p><button type="button" class="secondary" data-home hidden>Gå till plockläget</button></div>
-          </li>
-          <li>
-            <h3>Spara utfallet</h3>
-            <p class="hint">Knuffa framåt tills hålet står mitt över utfallet, och tryck <b>Spara som utfall</b>.</p>
-            <div class="buttons">
-              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><label class="knuff"><span>Knuff</span><input type="range" min="0" max="100" step="1" value="35" data-knuff aria-label="Knuffens längd"><output>100 ms</output></label>
-              <button type="button" data-save-pos="doser_up_ms">Spara som utfall</button>
-            </div>
-          </li>
-          <li>
-            <h3>Spara ett helt varv</h3>
+
+        </section>
+
+        <section class="dw-step" data-dwstep="3" hidden>
+          <h3 class="dw-title">Steg 3 av 5: Ett helt varv framåt</h3>
+          <details class="more" style="margin-top:0; border-top:0; padding-top:0">
+            <summary>Första gången: gissa varvet med knuffar</summary>
             <p class="hint">Knuffa vidare framåt tills hålet är tillbaka i plockläget, och tryck <b>Spara som helt varv</b>.</p>
             <div class="buttons">
               <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><label class="knuff"><span>Knuff</span><input type="range" min="0" max="100" step="1" value="35" data-knuff aria-label="Knuffens längd"><output>100 ms</output></label>
               <button type="button" data-save-pos="doser_rev_ms">Spara som helt varv</button>
             </div>
-          </li>
-          <li>
-            <h3>Finjustera och testa</h3>
-            <p class="hint">Tiderna från knuffarna är en första gissning. Här provar du ett helt varv i taget, varannan gång framåt och varannan bakåt, precis som utmatningen går. Efter varje varv svarar du var hålet stannade, så rättas tiden för just den riktningen.</p>
+
+          </details>
+          <div class="dw-slot">
             <div class="calib" id="calibV">
               <p class="calib-title">Ett helt varv framåt och bakåt</p>
               <p class="hint">Börja med hålet i plockläget. Varje prov är ett helt varv utan stopp och ska sluta i plockläget igen.</p>
@@ -470,7 +485,6 @@
               <div class="buttons" id="vseed" hidden><button type="button" class="secondary" id="vseedbtn">Bakåt: börja från framåt-tiden</button><span class="hint" style="margin:0">Bakåt har inte provats än. Det ger en första gissning.</span></div>
               <div class="buttons">
                 <button type="button" class="big" id="vgo">Prova nästa varv: framåt</button>
-                <button type="button" class="secondary" id="vswap">Byt håll</button>
               </div>
               <div class="calib-ask" id="vask" hidden>
                 <p><b id="vq">Var stannade hålet efter varvet framåt?</b> <span id="vtext"></span></p>
@@ -485,8 +499,35 @@
               </div>
             </div>
 
-            <p class="calib-done" id="calibmsg" aria-live="polite" hidden></p>
-            <div class="buttons"><button type="button" class="secondary" data-home>Gå till plockläget</button><button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><span class="hint" style="margin:0">Står hålet lite fel efteråt: knuffa sista biten.</span></div>
+          </div>
+        </section>
+
+        <section class="dw-step" data-dwstep="4" hidden>
+          <h3 class="dw-title">Steg 4 av 5: Ett helt varv bakåt</h3>
+          <p class="hint">Bakåt går servot sällan exakt lika fort som framåt, så bakåt får en egen tid. Hålet ska stå i plockläget innan.</p>
+          <div class="dw-slot"></div>
+        </section>
+
+        <section class="dw-step" data-dwstep="5" hidden>
+          <h3 class="dw-title">Steg 5 av 5: Testa utmatningen</h3>
+            <div class="field" style="margin-top:.6rem">
+              <span class="label" id="pauselabel">Stopp vid utfallet</span>
+              <div>
+                <div class="seg" role="radiogroup" aria-labelledby="pauselabel">
+                  <label><input type="radio" name="doser_pause_ms" value="0" data-key="doser_pause_ms" data-type="int"><span>Inget stopp</span></label>
+                  <label><input type="radio" name="doser_pause_ms" value="300" data-key="doser_pause_ms" data-type="int"><span>Kort (0,3 s)</span></label>
+                  <label><input type="radio" name="doser_pause_ms" value="1000" data-key="doser_pause_ms" data-type="int"><span>Längre (1 s)</span></label>
+                </div>
+                <p class="hint">Utan stopp går skivan ett jämnt varv, och nöten ramlar ner när hålet passerar utfallet. Blir nötter kvar i hålet: prova ett kort stopp eller lägre fart.</p>
+              </div>
+            </div>
+          <div id="stopOnly" hidden>
+            <p class="calib-title" style="margin-top:.8rem">Med stopp: spara utfallet</p>
+            <p class="hint">Knuffa framåt tills hålet står mitt över utfallet, och tryck <b>Spara som utfall</b>.</p>
+            <div class="buttons">
+              <button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><label class="knuff"><span>Knuff</span><input type="range" min="0" max="100" step="1" value="35" data-knuff aria-label="Knuffens längd"><output>100 ms</output></label>
+              <button type="button" data-save-pos="doser_up_ms">Spara som utfall</button>
+            </div>
 
             <details class="more">
               <summary>Med stopp vid utfallet: tiden till utfallet (A och B)</summary>
@@ -542,17 +583,7 @@
             </details>
 
 
-            <div class="field" style="margin-top:.6rem">
-              <span class="label" id="pauselabel">Stopp vid utfallet</span>
-              <div>
-                <div class="seg" role="radiogroup" aria-labelledby="pauselabel">
-                  <label><input type="radio" name="doser_pause_ms" value="0" data-key="doser_pause_ms" data-type="int"><span>Inget stopp</span></label>
-                  <label><input type="radio" name="doser_pause_ms" value="300" data-key="doser_pause_ms" data-type="int"><span>Kort (0,3 s)</span></label>
-                  <label><input type="radio" name="doser_pause_ms" value="1000" data-key="doser_pause_ms" data-type="int"><span>Längre (1 s)</span></label>
-                </div>
-                <p class="hint">Utan stopp går skivan ett jämnt varv, och nöten ramlar ner när hålet passerar utfallet. Blir nötter kvar i hålet: prova ett kort stopp eller lägre fart.</p>
-              </div>
-            </div>
+          </div>
             <label class="switch" style="margin-top:1rem"><div><b>Varannan utmatning bakåt</b><span>Skivan går ett helt varv framåt, nästa gång ett helt varv bakåt, och så vidare.</span></div><input type="checkbox" data-key="doser_alternate"></label>
             <p class="hint" id="dispensehint360"></p>
             <div class="buttons">
@@ -561,8 +592,17 @@
               <button type="button" class="secondary" data-cmd='{"action":"test_dispense","direction":"down"}' data-label="Utmatning bakåt">Bara bakåt</button>
             </div>
             <p class="hint" id="nextdir"></p>
-          </li>
-        </ol>
+        </section>
+
+            <p class="calib-done" id="calibmsg" aria-live="polite" hidden></p>
+            <div class="buttons"><button type="button" class="secondary" data-home>Gå till plockläget</button><button type="button" class="secondary" data-spin="up">Knuffa framåt ▶</button><span class="hint" style="margin:0">Står hålet lite fel efteråt: knuffa sista biten.</span></div>
+
+
+        <div class="dw-nav">
+          <button type="button" class="secondary" id="dwprev">← Tillbaka</button>
+          <span class="hint" id="dwpos" style="margin:0"></span>
+          <button type="button" id="dwnext">Nästa →</button>
+        </div>
         <details class="more">
           <summary>Justera för hand och knuffa bakåt</summary>
           <p class="hint">Behövs sällan: guiden i steg 1 ställer in det här av sig själv.</p>
@@ -797,6 +837,7 @@
       ? "Snurrar så länge det får signal. Styrs med tid, och skivans läge kan glida lite för varje varv."
       : "Ställer sig på en exakt vinkel. Skivan hamnar på samma ställe varje gång.";
     if ($("calibAtime")) { calibTexts(); showSegments(); vTexts(); }
+    $("stopOnly").hidden = S.doser_pause_ms === 0;
     luckaSaved(); tbChannelHint(); tbUsText();
     $("dispensehint360").textContent = S.doser_pause_ms === 0
       ? `Ett jämnt varv utan stopp: ${S.doser_rev_ms} ms framåt eller ${S.doser_rev_back_ms} ms bakåt. Utgår från att hålet står i plockläget.`
@@ -1113,9 +1154,9 @@
     const forwardChanged = S.doser_up_ms !== 1000 || S.doser_rev_ms !== 4000;
     $("vseed").hidden = !(backUntouched && forwardChanged);
   }
-  function vNext() { vDir = vDir === "up" ? "down" : "up"; vRevUsed = null; $("vask").hidden = true; vTexts(); }
+  let vLock = null;   // i guiden: steg 3 är alltid framåt och steg 4 alltid bakåt
+  function vNext() { vDir = vLock || (vDir === "up" ? "down" : "up"); vRevUsed = null; $("vask").hidden = true; vTexts(); }
   $("vval").addEventListener("input", vTexts);
-  $("vswap").addEventListener("click", vNext);
   $("vseedbtn").addEventListener("click", async () => {
     if (await save({ doser_up_back_ms: S.doser_rev_ms - S.doser_up_ms, doser_rev_back_ms: S.doser_rev_ms })) {
       vTexts(); toast("Bakåt utgår nu från framåt-tiden. Prova och rätta.", "ok");
@@ -1130,7 +1171,7 @@
   });
   $("vok").addEventListener("click", () => {
     vMarks[vDir] = "✓ stämde senast";
-    calibMsg(`Bra! Varvet ${dirWord(vDir)} stämmer.`);
+    calibMsg(`Bra! Varvet ${dirWord(vDir)} stämmer.${vLock === "up" ? " Gå vidare till steg 4." : vLock === "down" ? " Gå vidare till steg 5." : ""}`);
     vNext();
   });
   $("vsave").addEventListener("click", async () => {
@@ -1148,6 +1189,40 @@
     calibMsg(`Ny tid för ett helt varv ${dirWord(vDir)}: ${fmtMs(newRev)} (förut ${fmtMs(rev)}). Tryck Gå till plockläget, eller knuffa sista biten, och prova nästa varv.`);
     vNext();
   });
+
+  // ---------- guiden för nötdoseringen ----------
+  const DW_STEPS = 5;
+  let dwStep = 1;
+  try { dwStep = Math.min(DW_STEPS, Math.max(1, parseInt(localStorage.getItem("lennart-guide-steg") || "1", 10))); } catch (e) {}
+  function showDw(n) {
+    dwStep = Math.min(DW_STEPS, Math.max(1, n));
+    try { localStorage.setItem("lennart-guide-steg", dwStep); } catch (e) {}
+    $$(".dw-step").forEach(sec => { sec.hidden = parseInt(sec.dataset.dwstep, 10) !== dwStep; });
+    $$("[data-dw]").forEach(b => {
+      const i = parseInt(b.dataset.dw, 10);
+      if (i === dwStep) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+      b.classList.toggle("done", i < dwStep);
+    });
+    // Varv-kalibreringen flyttas till steg 3 (framåt) eller 4 (bakåt).
+    const slot = document.querySelector(`.dw-step[data-dwstep="${dwStep}"] .dw-slot`);
+    if (slot) {
+      slot.append($("calibV"));
+      vLock = dwStep === 3 ? "up" : "down";
+      vDir = vLock; vRevUsed = null; $("vask").hidden = true;
+      if (S) vTexts();
+    } else {
+      vLock = null;
+    }
+    // Meddelandet och Gå till plockläget hör till steg 2–5.
+    $("calibmsg").hidden = true;
+    $("dwprev").disabled = dwStep === 1;
+    $("dwnext").textContent = dwStep === DW_STEPS ? "Börja om från steg 1" : "Nästa →";
+    $("dwpos").textContent = `Steg ${dwStep} av ${DW_STEPS}`;
+  }
+  $$("[data-dw]").forEach(b => b.addEventListener("click", () => showDw(parseInt(b.dataset.dw, 10))));
+  $("dwprev").addEventListener("click", () => showDw(dwStep - 1));
+  $("dwnext").addEventListener("click", () => { showDw(dwStep === DW_STEPS ? 1 : dwStep + 1); $("doser360").scrollIntoView({ block: "start", behavior: "smooth" }); });
+  showDw(dwStep);
 
   // ---------- luckan: sparade lägen ----------
   function luckaShow(angle) {
