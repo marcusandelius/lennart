@@ -4,7 +4,8 @@ Ny lucka på LENNART-skålen (9.19): servots egen arm i luckans högra gavel, sv
 Förut satt luckan direkt på servoaxeln med en hylsa (Ø5,6 med ett Ø4,8-hål, 0,4 mm gods); den slirade,
 glappade, gled av och sprack. Nu:
   * Servots enkla arm (användarens mått: nav Ø7,5 x 3,5, platta 2,5 tjock, 19,5 från mitten till spetsen)
-    filas till en remsa 5,6 mm bred med rund ände Ø8 runt navet (filmall 29). Armen trycks på servoaxeln
+    filas till en remsa 5,6 mm bred med rund ände Ø8 runt navet (filmall 29). Armen smalnar av till 5 mm vid
+    yttersta hålet; där är den redan smalare än remsan och lämnas som den är, och fickan följer avsmalningen. Armen trycks på servoaxeln
     utanför brevlådans vägg och skruvas fast med sin egen skruv i axeln.
   * Luckans högra gavel (vit) har en ficka med armens form (+0,15 mm). Fickan har väggar ovanför och under
     remsan, så armen både lyfter och håller nere luckan. Brevlådans vägg ligger 0,4 mm utanför gaveln,
@@ -33,6 +34,7 @@ Z_RIM = 28.2                                  # luckans undersida (skålens kant
 # servoarmen, filad (användarens mått)
 A_PL, A_HUB_R, A_HUB_H = 2.5, 3.75, 3.5       # plattans tjocklek, navets radie och höjd
 A_END_R, A_HALF, A_LEN = 4.0, 2.8, 19.5       # rund ände runt navet, halva remsans bredd, mitten till spetsen
+A_W0, A_W1 = 12.5, 5.0                        # armens bredd ofilad: vid navet och vid yttersta hålet (spetsens mitt)
 DIST = 0.6                                    # servot flyttas mot luckan med distansbrickorna 26d
 A_X0 = 37.3 - DIST                            # plattans yttre yta (navet vilar på servots växeltorn, x 43,3 - 0,6)
 CL = 0.15                                     # spel i fickan
@@ -59,10 +61,14 @@ def box(x0, x1, y0, y1, z0, z1):
     b = trimesh.creation.box(extents=[x1 - x0, y1 - y0, z1 - z0]); b.apply_translation([(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]); return b
 
 
-def arm_outline(off=0.0):
-    tip = AXY - (A_LEN - A_HALF)
+def arm_outline(off=0.0, smal=True):
+    """Den filade armen: remsa 5,6 mm och rund ände Ø8, men inte bredare än den ofilade armen, som smalnar
+    av från 12,5 mm vid navet till 5 mm vid yttersta hålet (spetsen lämnas som den är)."""
+    tip = AXY - (A_LEN - A_W1 / 2)
+    taper = Point(AXY, AXZ).buffer(A_W0 / 2 + off, resolution=64).union(Point(tip, AXZ).buffer(A_W1 / 2 + off, resolution=48)).convex_hull
     strip = sbox(tip, AXZ - A_HALF - off, AXY, AXZ + A_HALF + off).union(Point(tip, AXZ).buffer(A_HALF + off, resolution=48))
-    return strip.union(Point(AXY, AXZ).buffer(A_END_R + off, resolution=64))
+    o = strip.union(Point(AXY, AXZ).buffer(A_END_R + off, resolution=64))
+    return o.intersection(taper) if smal else o
 
 
 # armen (för kontroller och bilder)
@@ -75,7 +81,7 @@ right = box(X_FACE, 60, -60, 10, 0, 60)
 LG = D(LG, [right]); LV = D(LV, [right])
 # gaveln: armens kontur + 1,2 mm gods, från x 34 till gavelns yta, inte under luckans undersida
 # bakom axeln (y > -8) högst radie 4: den delen vrids ner mot skålens kant när luckan öppnas
-gav2d = arm_outline(CL + 1.2).intersection(sbox(-60, Z_RIM, AXY, 60)).union(Point(AXY, AXZ).buffer(4.0, resolution=64)).intersection(sbox(-60, Z_RIM, 10, 60))
+gav2d = arm_outline(CL + 1.2, smal=False).intersection(sbox(-60, Z_RIM, AXY, 60)).union(Point(AXY, AXZ).buffer(4.0, resolution=64)).intersection(sbox(-60, Z_RIM, 10, 60))
 gavel = xext(gav2d, X_GAV, X_FACE)
 pocket = xext(arm_outline(CL), A_X0 - 0.2, X_FACE + 1)
 head = xcyl(HEAD_R, A_X0 - 0.2 - HEAD_H, A_X0, s=40)
