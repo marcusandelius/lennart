@@ -555,25 +555,55 @@
     <section role="tabpanel" id="luckan" aria-labelledby="tab-luckan" hidden>
       <div class="card">
         <h2>Luckan</h2>
-        <p class="lead">Luckan framför skålen styrs av ett litet vinkelservo (MG90S).</p>
+        <p class="lead">Luckan framför skålen styrs av ett litet vinkelservo (MG90S). Servots vinklar säger inget om vilket håll som är öppet, eftersom det beror på hur servot sitter. Därför sparar du luckans två lägen här, och sedan används bara Öppna och Stäng.</p>
         <div class="status" id="luckastatus"><span class="dot"></span><p>–</p></div>
-        <div class="field">
-          <label for="lucka_angle">Flytta till vinkel</label>
-          <div>
-            <div class="angle-row"><input type="range" id="lucka_angle" min="0" max="180" step="1" value="0"><span class="angle-val" id="lucka_val">0°</span></div>
+        <div class="buttons">
+          <button type="button" class="big" data-lucka-go="open">Öppna</button>
+          <button type="button" class="big secondary" data-lucka-go="closed">Stäng</button>
+          <span class="hint" id="lucka-saved" style="margin:0"></span>
+        </div>
+        <p class="hint">Luckan rör sig långsamt, så att ingen kläms.</p>
+      </div>
+
+      <div class="card">
+        <h2>Ställ in luckans lägen</h2>
+        <ol class="steps">
+          <li>
+            <h3>Flytta luckan försiktigt</h3>
+            <p class="hint">Ta små steg, så att luckan inte trycker mot något. Servot flyttas direkt när du trycker.</p>
             <div class="buttons">
-              <button type="button" data-move="lucka">Flytta</button>
-              <button type="button" class="secondary" data-release="lucka">Släpp</button>
-              <label class="check"><input type="checkbox" id="lucka_slow" checked> Långsamt</label>
+              <span class="stepper"><button type="button" class="secondary" data-lucka-nudge="-5">−5°</button><button type="button" class="secondary" data-lucka-nudge="-1">−1°</button></span>
+              <span class="angle-val" id="lucka_val" aria-live="polite">0°</span>
+              <span class="stepper"><button type="button" class="secondary" data-lucka-nudge="1">+1°</button><button type="button" class="secondary" data-lucka-nudge="5">+5°</button></span>
             </div>
-            <p class="hint">Stäng luckan långsamt, så att ingen kläms.</p>
+            <div class="angle-row" style="margin-top:.7rem"><input type="range" id="lucka_angle" min="0" max="180" step="1" value="0" aria-label="Luckans vinkel"><button type="button" class="secondary" data-move="lucka">Flytta hit</button></div>
+            <label class="check" style="margin-top:.5rem"><input type="checkbox" id="lucka_slow" checked> Långsamt med Flytta hit</label>
+          </li>
+          <li>
+            <h3>Spara lägena</h3>
+            <p class="hint">Flytta luckan till stängt läge och tryck <b>Spara som stängd</b>. Flytta den sedan till öppet läge och tryck <b>Spara som öppen</b>.</p>
+            <div class="buttons">
+              <button type="button" data-lucka-save="closed">Spara som stängd</button>
+              <button type="button" data-lucka-save="open">Spara som öppen</button>
+            </div>
+          </li>
+          <li>
+            <h3>Prova</h3>
+            <p class="hint">Tryck <b>Öppna</b> och <b>Stäng</b> högst upp. Går luckan åt fel håll: spara lägena igen.</p>
+          </li>
+        </ol>
+        <details class="more">
+          <summary>Mer att prova</summary>
+          <div class="field">
+            <span class="label">Rörelsetest</span>
+            <div><button type="button" class="secondary" data-cmd='{"action":"sweep","servo":"lucka"}' data-label="Luckans svep">Svep i 3 sekunder</button>
+            <p class="hint">Sveper fram och tillbaka mellan 10° och 170°. Ta bort luckan först om den inte kan röra sig så långt.</p></div>
           </div>
-        </div>
-        <div class="field">
-          <span class="label">Rörelsetest</span>
-          <div><button type="button" class="secondary" data-cmd='{"action":"sweep","servo":"lucka"}' data-label="Luckans svep">Svep i 3 sekunder</button>
-          <p class="hint">Sveper fram och tillbaka mellan 10° och 170°, sedan släpps servot.</p></div>
-        </div>
+          <div class="field">
+            <span class="label">Släpp servot</span>
+            <div><button type="button" class="secondary" data-release="lucka">Släpp</button><p class="hint">Servot slutar hålla luckan. Den kan då röras för hand.</p></div>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -601,6 +631,51 @@
           <p class="hint">Gäller vinkelservon, som luckan. Standard är 500 och 2500. Står ett servo och brummar i något ändläge: flytta talen lite närmare varandra, till exempel 600 och 2400.</p></div>
         </div>
         <div class="buttons"><button type="button" class="secondary" data-release="alla">Släpp alla servon</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Testbänk</h2>
+        <p class="lead">Prova ett servo på valfri kanal, till exempel för att se vilken sorts servo det är eller hur det reagerar. Signalen hålls en kort stund och släpps sedan.</p>
+        <div class="field">
+          <label for="tb_channel">Kanal</label>
+          <div><input type="number" id="tb_channel" min="0" max="15" step="1" value="1">
+          <p class="hint" id="tb_channel_hint"></p></div>
+        </div>
+
+        <div class="calib">
+          <p class="calib-title">Vilken sorts servo är det?</p>
+          <p class="hint">Två prov, två sekunder vardera. Titta på servot och svara vad det gjorde.</p>
+          <div class="buttons" id="tb-idle"><button type="button" id="tbstart">Starta</button></div>
+          <div id="tb-run" hidden>
+            <p class="wiz-q"><b id="tb-step">Prov 1 av 2.</b> Vad gjorde servot?</p>
+            <div class="wiz-answers">
+              <button type="button" class="secondary" data-tb="vinkel">Vred sig och stannade<small>ställde sig på ett läge</small></button>
+              <button type="button" class="secondary" data-tb="snurr">Snurrade hela tiden<small>tills signalen släpptes</small></button>
+              <button type="button" class="secondary" data-tb="inget">Inget hände<small>eller bara ett ryck</small></button>
+            </div>
+            <div class="buttons"><button type="button" class="secondary" id="tbagain">Kör samma prov igen</button><button type="button" class="secondary" id="tbcancel">Avbryt</button></div>
+          </div>
+          <p class="wiz-result" id="tb-result" hidden></p>
+          <div class="buttons" id="tb-apply" hidden></div>
+        </div>
+
+        <details class="more">
+          <summary>Skicka en egen signal</summary>
+          <div class="field">
+            <label for="tb_us">Signal</label>
+            <div>
+              <div class="speed"><span>Ena hållet</span><input type="range" id="tb_us" min="500" max="2500" step="10" value="1500" aria-label="Signal"><span>Andra hållet</span></div>
+              <p class="hint" id="tb_us_text"></p>
+              <div class="buttons">
+                <button type="button" class="secondary" data-tb-preset="1000">Ena ytterläget</button>
+                <button type="button" class="secondary" data-tb-preset="1500">Mitten</button>
+                <button type="button" class="secondary" data-tb-preset="2000">Andra ytterläget</button>
+                <button type="button" id="tbsend">Skicka i 1 sekund</button>
+              </div>
+              <p class="hint">Ett vinkelservo ställer sig på ett läge som beror på signalen. Ett 360°-servo står still nära mitten och snurrar fortare ju längre ut signalen ligger.</p>
+            </div>
+          </div>
+        </details>
       </div>
     </section>
   </main>
@@ -662,6 +737,7 @@
       ? "Snurrar så länge det får signal. Styrs med tid, och skivans läge kan glida lite för varje varv."
       : "Ställer sig på en exakt vinkel. Skivan hamnar på samma ställe varje gång.";
     if ($("calibAtime")) { calibTexts(); showSegments(); }
+    luckaSaved(); tbChannelHint(); tbUsText();
     $("dispensehint360").textContent = `Testa utmatning: ${S.doser_up_ms} ms fram till utfallet, ett stopp på 0,3 s där nöten faller ut, och ${S.doser_rev_ms - S.doser_up_ms} ms vidare runt till plockläget. Utgår från att hålet står i plockläget.`;
     $("dispensehintVinkel").textContent = `Till ${S.pick_angle}°, ett litet vick, lugnt upp till ${S.dispense_angle}° på ${(S.dispense_move_ms / 1000).toLocaleString("sv-SE")} s och lika lugnt tillbaka.`;
   }
@@ -931,6 +1007,103 @@
     }
   });
 
+  // ---------- luckan: sparade lägen ----------
+  function luckaShow(angle) {
+    $("lucka_angle").value = angle;
+    $("lucka_val").textContent = `${angle}°`;
+  }
+  let luckaKnown = false;   // har reglaget fått ett riktigt startläge?
+  function luckaStart(servoInfo) {
+    // Börja där stationen senast rapporterade luckan, annars i det sparade stängda läget.
+    if (luckaKnown || !S) return;
+    const m = /lucka (\d+)°/.exec(servoInfo || "");
+    luckaShow(m ? parseInt(m[1], 10) : S.lucka_closed_angle);
+    luckaKnown = !!m || servoInfo !== undefined;
+  }
+  function luckaSaved() {
+    if (!S) return;
+    const same = S.lucka_open_angle === S.lucka_closed_angle;
+    $("lucka-saved").textContent = same ? "Spara stängt och öppet läge nedan först."
+      : `Stängd ${S.lucka_closed_angle}°, öppen ${S.lucka_open_angle}°.`;
+  }
+  $$("[data-lucka-nudge]").forEach(b => b.addEventListener("click", () => {
+    luckaKnown = true;
+    const angle = Math.min(180, Math.max(0, parseInt($("lucka_angle").value, 10) + parseInt(b.dataset.luckaNudge, 10)));
+    luckaShow(angle);
+    command({ action: "move", servo: "lucka", angle, slow: false }, `Luckan till ${angle}°`);
+  }));
+  $$("[data-lucka-save]").forEach(b => b.addEventListener("click", async () => {
+    const angle = parseInt($("lucka_angle").value, 10), key = b.dataset.luckaSave === "open" ? "lucka_open_angle" : "lucka_closed_angle";
+    if (await save({ [key]: angle })) {
+      luckaSaved();
+      toast(`${key === "lucka_open_angle" ? "Öppet" : "Stängt"} läge sparat: ${angle}°.`, "ok");
+    }
+  }));
+  $$("[data-lucka-go]").forEach(b => b.addEventListener("click", () => {
+    if (S.lucka_open_angle === S.lucka_closed_angle) { toast("Spara stängt och öppet läge först.", "no"); return; }
+    const open = b.dataset.luckaGo === "open", angle = open ? S.lucka_open_angle : S.lucka_closed_angle;
+    luckaShow(angle);
+    command({ action: "move", servo: "lucka", angle, slow: true }, open ? "Öppna luckan" : "Stäng luckan");
+  }));
+
+  // ---------- testbänken ----------
+  function tbChannelHint() {
+    if (!S) return;
+    const ch = parseInt($("tb_channel").value, 10);
+    $("tb_channel_hint").textContent = ch === S.servo_doser_channel ? "Kanalen för nötdoseringen."
+      : ch === S.servo_lucka_channel ? "Kanalen för luckan." : "Ingen del av stationen använder den här kanalen.";
+  }
+  function tbUsText() {
+    const v = parseInt($("tb_us").value, 10);
+    $("tb_us_text").textContent = Math.abs(v - 1500) <= 20 ? `Signal ${v}: mitten.`
+      : `Signal ${v}: ${v < 1500 ? "åt ena hållet" : "åt andra hållet"}, ${Math.round(Math.abs(v - 1500) / 10)} % från mitten.`;
+  }
+  const tbChannel = () => Math.min(15, Math.max(0, parseInt($("tb_channel").value, 10) || 0));
+  const tbSend = (us, ms, label) => command({ action: "raw_pulse", channel: tbChannel(), us, ms }, label);
+  $("tb_channel").addEventListener("input", tbChannelHint);
+  $("tb_us").addEventListener("input", tbUsText);
+  $$("[data-tb-preset]").forEach(b => b.addEventListener("click", () => { $("tb_us").value = b.dataset.tbPreset; tbUsText(); }));
+  $("tbsend").addEventListener("click", () => tbSend(parseInt($("tb_us").value, 10), 1000, `Kanal ${tbChannel()}`));
+
+  const TB_TESTS = [1000, 2000];
+  let tb = null;
+  function tbRun() {
+    $("tb-step").textContent = `Prov ${tb.n + 1} av ${TB_TESTS.length}.`;
+    tbSend(TB_TESTS[tb.n], 2000, `Prov ${tb.n + 1}`);
+  }
+  function tbEnd(text, ok, apply) {
+    tb = null; $("tb-run").hidden = true; $("tb-idle").hidden = false;
+    $("tb-result").hidden = false; $("tb-result").className = `wiz-result${ok ? "" : " bad"}`; $("tb-result").textContent = text;
+    $("tb-apply").hidden = !apply; $("tb-apply").innerHTML = "";
+    if (apply) {
+      const btn = document.createElement("button"); btn.type = "button"; btn.textContent = apply.label;
+      btn.addEventListener("click", async () => { if (await save(apply.changes)) { $("tb-apply").hidden = true; showTab("dosering"); } });
+      $("tb-apply").append(btn);
+    }
+  }
+  $("tbstart").addEventListener("click", () => {
+    tb = { n: 0, answers: [] };
+    $("tb-result").hidden = true; $("tb-apply").hidden = true; $("tb-run").hidden = false; $("tb-idle").hidden = true;
+    tbRun();
+  });
+  $("tbagain").addEventListener("click", () => tb && tbRun());
+  $("tbcancel").addEventListener("click", () => { tb = null; $("tb-run").hidden = true; $("tb-idle").hidden = false; });
+  $$("[data-tb]").forEach(b => b.addEventListener("click", () => {
+    if (!tb) return;
+    tb.answers.push(b.dataset.tb); tb.n += 1;
+    if (tb.n < TB_TESTS.length) { tbRun(); return; }
+    const ch = tbChannel(), isDoser = ch === S.servo_doser_channel, isLucka = ch === S.servo_lucka_channel;
+    if (tb.answers.includes("snurr")) {
+      const apply = isDoser && S.doser_servo !== "360" ? { label: "Ställ in nötdoseringen för 360°-servo", changes: { doser_servo: "360" } } : null;
+      tbEnd(`Det är ett 360°-servo: det snurrar i stället för att ställa sig på ett läge.${isLucka ? " Luckan behöver ett vinkelservo för att Öppna och Stäng ska fungera." : ""}${isDoser && S.doser_servo === "360" ? " Nötdoseringen är redan inställd för det." : ""}`, true, apply);
+    } else if (tb.answers.includes("vinkel")) {
+      const apply = isDoser && S.doser_servo !== "vinkel" ? { label: "Ställ in nötdoseringen för vinkelservo", changes: { doser_servo: "vinkel" } } : null;
+      tbEnd(`Det är ett vinkelservo: det ställer sig på ett läge som beror på signalen.${isLucka ? " Det stämmer för luckan. Spara luckans lägen i fliken Luckan." : ""}`, true, apply);
+    } else {
+      tbEnd("Servot reagerade inte. Kontrollera att det sitter på rätt kanal och får ström (servokortets skruvplint).", false, null);
+    }
+  }));
+
   // ---------- flikar ----------
   const tabs = [...$$("[role=tab]")];
   function showTab(name, focus = false) {
@@ -1049,6 +1222,7 @@
     const servoText = !on ? offline : rep.servo_info === undefined ? "Ingen uppgift från stationen än."
       : rep.servo_ok ? "Servokortet är anslutet." : "Servokortet svarar inte.";
     for (const id of ["servostatus", "doserstatus", "luckastatus"]) setStatus(id, known(rep.servo_ok), servoText, on ? rep.servo_info || "" : "");
+    luckaStart(on ? rep.servo_info || "" : undefined);
     $("ov-servo").textContent = servoText;
 
     // Inspelning
