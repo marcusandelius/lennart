@@ -88,7 +88,7 @@ XC = (X0 + X1) / 2
 
 # ---------------- brevlådans kropp
 body = D(box(X0, X1, Y0, Y1, 0, ZT), [box(X0 + T, X1 - T, Y0 + T, Y1 + 1, T, ZT + 1)])
-HUB_R = 3.8                                   # 9.17: luckans hylsa är Ø5,6 i väggen; hål Ø7,6 (1 mm luft), slits lika bred uppåt
+HUB_R = 4.5                                   # 9.19: servoarmens nav Ø7,5 i väggen; hål Ø9 (borras upp i utskrivna lådor), slits Ø9 uppåt
 body = D(body, [U([box(X0 - 1, X0 + T + 1, AX_Y - HUB_R, AX_Y + HUB_R, AX_Z, ZT + 1), xcyl(HUB_R, X0 - 1, X0 + T + 1, AX_Y, AX_Z, 48)])])   # slits för luckans hylsa
 # tvärvägg (L-form): främre del med insatserna + låg list i botten, öppen uppåt och bakåt för servot
 bh = U([box(BH0, BH1, Y0 + T - 0.01, -14.7, T - 0.01, ZT), box(BH0, BH1, Y0 + T + 0.2, -14.7, ZT - 0.5, 48.5),   # 9.15: upp i locket för den övre insatsen
@@ -189,7 +189,8 @@ hat = U([hat, lips])
 plugg = D(box(X0 + 0.1, X0 + T + CL + 0.05, AX_Y - HUB_R + 0.15, AX_Y + HUB_R - 0.15, AX_Z, ZT + 0.5), [xcyl(HUB_R, X0 - 1, X0 + T + 1, AX_Y, AX_Z, 48)])
 lx0, lx1 = X0 + T + CL, X0 + T + CL + 1.1
 lipext = U([box(lx0, lx1, Y0 + T + CL, AX_Y - HUB_R + 0.2, AX_Z, ZT + 0.01),
-            box(lx0, lx1, AX_Y - HUB_R + 0.1, AX_Y + HUB_R - 0.15, AX_Z + 3.2, ZT + 0.01)])
+            box(lx0, lx1, AX_Y - HUB_R + 0.1, AX_Y + HUB_R - 0.15, AX_Z + HUB_R, ZT + 0.01)])
+lipext = D(lipext, [xcyl(6.3, X0 + T + 0.4, X0 + T + 2.5, AX_Y, AX_Z, 64)])        # 9.19: fritt runt servots växeltorn (servot 0,6 mm närmare)
 hat = U([hat, plugg, lipext])
 hat = D(hat, [PIL])
 assert hat.is_watertight and len(hat.split(only_watertight=False)) == 1, 'locket ska vara en enda kropp'
