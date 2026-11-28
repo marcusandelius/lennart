@@ -328,7 +328,7 @@ Talet `40` ska synas i tabellen. Det är kortets adress.
 
 Appen behöver inte startas om: den letar efter kortet varje gång ett servokommando kommer.
 
-✅ **Klart när:** `40` syns, och adminvyn på lennart.cam visar `✓ PCA9685 på I2C-buss 1` under Servon efter att du tryckt på **Flytta**.
+✅ **Klart när:** `40` syns, och adminvyn på lennart.cam, fliken **Servokort**, visar "Servokortet är anslutet" och `PCA9685 på I2C-buss 1` efter att du skickat ett servokommando.
 
 ---
 
@@ -354,9 +354,9 @@ sudo apt install -y ffmpeg
 systemctl --user restart lennart
 ```
 
-**10c. Slå på inspelningen** på lennart.cam/admin, under **Inspelning vid rörelse**: kryssa i **Spela in när något rör sig** och tryck **Spara**.
+**10c. Slå på inspelningen** på lennart.cam/admin, i fliken **Inspelning**: slå på **Spela in när något rör sig**. Det sparas direkt.
 
-✅ **Klart när:** kortet visar `✓ Lär in bakgrunden` och efter några sekunder `✓ Väntar på rörelse`. Vifta med handen framför kameran. Efter cirka 10 sekunder ska raden visa `1 klipp sedan start`, och strax efter syns klippet under **Klipp** i adminvyn.
+✅ **Klart när:** statusrutan i fliken har en grön prick och visar `Lär in bakgrunden`, och efter några sekunder `Väntar på rörelse`. Vifta med handen framför kameran. Efter cirka 10 sekunder ska raden visa `1 klipp sedan start`, och strax efter syns klippet under **Klipp** i adminvyn.
 
 **Bra att veta:**
 - Klippen sparas först i `~/lennart-data/clips` på Pi:n och laddas sedan upp. Där ligger de högst 5 GB innan de äldsta uppladdade tas bort. Gränsen kan ändras med `LENNART_CLIP_LOCAL_GB` i `.env`.

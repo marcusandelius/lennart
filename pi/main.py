@@ -21,6 +21,7 @@ import sys
 import textwrap
 import threading
 import time
+from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -33,6 +34,7 @@ from recorder import ClipUploader, Recorder
 from servo import ServoController
 
 CAMERA_RETRY_S = 30
+FLASH_S = 4.0  # så länge ACCESS GRANTED eller DENIED visas när den triggas från statussidan
 # Kameran levererar 1280 × 720 (16:9). Livebilden skalas ner till vald upplösning,
 # och skärmen får var fjärde bildpunkt (320 × 180) med svarta kanter upptill och nedtill.
 CAMERA_SIZE = (1280, 720)
@@ -56,65 +58,46 @@ def load_font(size: int):
 FONT_SMALL = load_font(14)
 FONT_BIG = load_font(26)
 
-# Skärmlägen som adminvyn kan välja, utöver "camera" (kamerabilden).
-# Bakgrund, två rader stor text och en rad på svenska under.
+# Skärmlägen som adminvyn kan välja, utöver "camera" (kamerabilden). De ser ut exakt som i
+# filmtrailern: bilderna där ritades av screen() i web/lennarts-matstation-3d.html, på en yta
+# på 336 × 248 med "Courier New". I Linux blir det Liberation Mono, som har samma teckenbredd.
+# Här ritas samma sak skalat till skärmens 320 × 240.
+# Bakgrund, textfärg, fet stil, storlek i px och två rader med sina mittpunkter i trailern.
 ACCESS_SCREENS = {
-    "granted": ((20, 125, 55), "ACCESS", "GRANTED", "Välkommen, Lennart!"),
-    "denied": ((165, 28, 28), "ACCESS", "DENIED", "Bara för Lennart."),
+    "granted": ("#0d3a1f", "#5CFF8F", True, 46, (("ACCESS", 100), ("GRANTED", 152))),
+    "denied": ("#3a0d0d", "#FF6B5C", True, 46, (("ACCESS", 100), ("DENIED", 152))),
+    "waiting": ("#06120b", "#3f8f5f", False, 24, (("VÄNTAR PÅ", 104), ("BESÖKARE…", 138))),
 }
+TRAILER_H = 248                          # trailerns yta är 336 × 248
+FONT_DIR = Path(__file__).parent / "fonts"
 
 
-def start_camera():
-    """Startar Camera Module 3 med en bildström i 1280 × 720. Rotationen görs i mjukvaran."""
-    from libcamera import controls
-    from picamera2 import Picamera2
-
-    cam = Picamera2()
-    config = cam.create_video_configuration(
-        main={"size": CAMERA_SIZE, "format": "RGB888"},
-        buffer_count=4,
-    )
-    cam.configure(config)
-    cam.start()
-    try:
-        cam.set_controls({"AfMode": controls.AfModeEnum.Continuous})  # autofokus hela tiden
-    except Exception:
-        pass  # kameror utan autofokus klarar sig utan
-    return cam
-
-
-def message_screen(title: str, detail: str = "") -> np.ndarray:
-    img = Image.new("RGB", (WIDTH, HEIGHT), (40, 20, 18))
-    draw = ImageDraw.Draw(img)
-    draw.text((16, 80), title, font=FONT_BIG, fill=WHITE)
-    for i, line in enumerate(textwrap.wrap(detail, 34)[:5]):
-        draw.text((16, 124 + i * 18), line, font=FONT_SMALL, fill=GREY)
-    return np.asarray(img)
-
-
-def fit_font(draw: ImageDraw.ImageDraw, text: str, size: int, max_width: int):
-    """Största typsnittet, från size och nedåt, där texten ryms på bredden."""
-    while size > 10:
-        font = load_font(size)
-        if draw.textlength(text, font=font) <= max_width:
-            return font
-        size -= 2
-    return load_font(size)
+def trailer_font(size: int, bold: bool):
+    name = "LiberationMono-Bold.ttf" if bold else "LiberationMono-Regular.ttf"
+    fallback = "DejaVuSansMono-Bold.ttf" if bold else "DejaVuSansMono.ttf"
+    for path in (FONT_DIR / name, Path("/usr/share/fonts/truetype/dejavu") / fallback):
+        try:
+            return ImageFont.truetype(str(path), size)
+        except OSError:
+            continue
+    return ImageFont.load_default()
 
 
 def access_screen(mode: str) -> np.ndarray:
-    """Helskärm med ACCESS GRANTED (grön) eller ACCESS DENIED (röd).
+    """Helskärm med ACCESS GRANTED, ACCESS DENIED eller VÄNTAR PÅ BESÖKARE…, som i filmtrailern.
 
     Hela skärmen fylls med en färg, så den fungerar också som test av skärmen
     och kopplingen: syns färgen fungerar både strömmen och datakablarna.
     """
-    background, line1, line2, note = ACCESS_SCREENS[mode]
+    background, color, bold, size, lines = ACCESS_SCREENS[mode]
     img = Image.new("RGB", (WIDTH, HEIGHT), background)
     draw = ImageDraw.Draw(img)
-    draw.rectangle((6, 6, WIDTH - 7, HEIGHT - 7), outline=WHITE, width=3)
-    for text, size, y in ((line1, 40, 42), (line2, 56, 92), (note, 20, 178)):
-        font = fit_font(draw, text, size, WIDTH - 40)
-        draw.text((WIDTH // 2, y), text, font=font, fill=WHITE, anchor="mt")  # centrerat kring x
+    # Samma skala på bredd och höjd (248 → 240), så att texten får trailerns proportioner.
+    scale = HEIGHT / TRAILER_H
+    font = trailer_font(round(size * scale), bold)
+    for text, y in lines:
+        # anchor "mm" i Pillow ligger 1 px lägre än webbläsarens textBaseline "middle", därav -1.
+        draw.text((WIDTH / 2, (y - 1) * scale), text, font=font, fill=color, anchor="mm")
     return np.asarray(img)
 
 
@@ -179,7 +162,8 @@ def main() -> int:
               "display_mode": "camera"}
     # Skärmkommandon från adminvyn utförs i huvudslingan, som är den enda tråden som pratar
     # med skärmen. Annars kunde en omstart krocka med en bild som håller på att skickas.
-    display_requests = {"restart": False}
+    # "flash" är en ACCESS-bild som visas en kort stund (från statussidan), och "flash_until" när den slutar.
+    display_requests = {"restart": False, "flash": None, "flash_until": 0.0}
     demo = DemoMode()
 
     # Efter varje servokommando skickas en rapport direkt, så att adminvyn ser resultatet.
@@ -226,6 +210,11 @@ def main() -> int:
             print(f"Kommando från lennart.cam: {cmd}", flush=True)
             if cmd.get("action") == "display_restart":
                 display_requests["restart"] = True
+            elif cmd.get("action") == "display_flash":
+                if cmd.get("screen") in ACCESS_SCREENS:
+                    # Sluttiden sätts först, så att huvudslingan aldrig ser bilden med en gammal sluttid.
+                    display_requests["flash_until"] = time.monotonic() + FLASH_S
+                    display_requests["flash"] = cmd["screen"]
             else:
                 servo.submit(cmd)
 
@@ -244,6 +233,10 @@ def main() -> int:
             mode = demo.screen(now)  # kamerabilden, eller ACCESS-bilden som lottades fram
         elif demo.background is not None:
             demo.reset()             # lär in bakgrunden på nytt nästa gång demoläget slås på
+        if display_requests["flash"] and now < display_requests["flash_until"]:
+            mode = display_requests["flash"]  # en ACCESS-bild från statussidan går före allt annat en stund
+        else:
+            display_requests["flash"] = None
         show_camera = display is not None and mode not in ACCESS_SCREENS
         if display is not None:
             # SPI-hastigheten väljs i adminvyn (i MHz). LCD_SPI_HZ i .env gäller tills servern svarat.
@@ -251,15 +244,22 @@ def main() -> int:
             restart = display_requests["restart"]
             display_requests["restart"] = False
             changed = wanted_hz != display.speed_hz
+            wanted_gamma = device.get("lcd_gamma", "normal")  # kontrasten väljs i adminvyn
+            gamma_changed = wanted_gamma != display.gamma
             try:
                 if changed:
                     display.set_speed(wanted_hz)
                     print(f"Skärmen: SPI-hastighet {wanted_hz / 1e6:g} MHz", flush=True)
+                if gamma_changed:
+                    display.set_gamma(wanted_gamma)
+                    print(f"Skärmen: kontrast {wanted_gamma}", flush=True)
                 if restart:
                     display.restart()
                     print("Skärmen startades om från adminvyn", flush=True)
             except Exception as e:
                 print(f"Skärmen: {type(e).__name__}: {e}", flush=True)
+            if gamma_changed and not (changed or restart):
+                threading.Thread(target=heartbeat.send_once, daemon=True).start()  # adminvyn ser ändringen direkt
             if changed or restart:
                 shown = None  # skicka ACCESS-bilden igen, i den nya hastigheten eller efter omstarten
                 threading.Thread(target=heartbeat.send_once, daemon=True).start()  # adminvyn ser ändringen direkt

@@ -13,6 +13,7 @@ drar ström i onödan.
 """
 
 import glob
+import math
 import os
 import queue
 import threading
@@ -24,6 +25,10 @@ OSC_HZ = 25_000_000     # kortets inbyggda oscillator
 PWM_HZ = 50             # servon vill ha 50 pulser per sekund
 PERIOD_US = 1_000_000 / PWM_HZ
 RELEASE_AFTER_S = 1.0   # släpp signalen så här länge efter en rörelse
+GLIDE_STEP_S = 0.02     # ny vinkel var 20:e ms under ett lugnt vrid, nära servots 50 Hz
+VICK_DEG = 12           # vicket i plockläget
+SWEEP_ANGLES = (10, 170)  # inte ända ut till 0° och 180°, där servot kan ta i mot sitt stopp
+SWEEP_STEP_S = 0.5      # MG90S hinner 160° på cirka 0,25 s
 
 
 def _open_bus(number: int):
@@ -81,7 +86,8 @@ class ServoController:
 
     def __init__(self, on_change) -> None:
         self.config = {"servo_doser_channel": 0, "servo_lucka_channel": 1,
-                       "servo_min_us": 500, "servo_max_us": 2500, "dispense_angle": 130}
+                       "servo_min_us": 500, "servo_max_us": 2500, "dispense_angle": 119,
+                       "pick_angle": 0, "dispense_move_ms": 1500}
         self.on_change = on_change         # anropas efter varje kommando, t.ex. för att rapportera direkt
         self.board: PCA9685 | None = None
         self.error = ""
@@ -149,11 +155,70 @@ class ServoController:
         self.board.off(self._channel(name))
         self.holding[name] = False
 
-    def _test_dispense(self, angle: int) -> None:
-        # Ett litet vick skakar om nötterna så att en lägger sig i fickan, sedan ut och tillbaka.
-        for a, pause in ((0, 0.4), (12, 0.15), (0, 0.15), (12, 0.15), (0, 0.3), (angle, 0.8), (0, 0.6)):
+    def _glide(self, name: str, angle: int, seconds: float) -> None:
+        """Vrid lugnt till en vinkel på angiven tid. Farten ökar mjukt i början och minskar
+        mot slutet, så att nöten inte kastas runt i hålet."""
+        start = self.position[name]
+        steps = max(1, round(seconds / GLIDE_STEP_S))
+        if start is not None and start != angle:
+            for i in range(1, steps):
+                eased = (1 - math.cos(math.pi * i / steps)) / 2   # 0 → 1, mjukt i båda ändar
+                self.board.pulse(self._channel(name), self._us(start + (angle - start) * eased))
+                time.sleep(GLIDE_STEP_S)
+        self._move(name, angle)
+
+    def _test_dispense(self, pick: int, angle: int, move_s: float) -> None:
+        """Plockskivans rörelse: till plockläget, ett litet vick som rör om nötterna så att en
+        lägger sig i hålet, lugnt upp till utfallet där nöten faller ut, och lugnt tillbaka."""
+        self._glide("doser", pick, move_s)  # okänt läge efter start: då går den direkt
+        time.sleep(0.4)
+        vick = pick + VICK_DEG
+        for a, pause in ((vick, 0.15), (pick, 0.15), (vick, 0.15), (pick, 0.3)):
             self._move("doser", a)
             time.sleep(pause)
+        self._glide("doser", angle, move_s)
+        time.sleep(0.3)
+        self._glide("doser", pick, move_s)
+
+    def _sweep(self, name: str, seconds: float) -> None:
+        """Svep ett vinkelservo fram och tillbaka en stund, sedan släpps signalen."""
+        end = time.monotonic() + seconds
+        i = 0
+        while time.monotonic() < end:
+            self._move(name, SWEEP_ANGLES[i % 2])
+            i += 1
+            time.sleep(SWEEP_STEP_S)
+        self._release(name)
+
+    # ---------- 360°-servo: ingen vinkel, bara fart och tid ----------
+
+    def _spin(self, name: str, direction: str, ms: int, cmd: dict) -> None:
+        """Snurra ett 360°-servo åt ett håll en viss tid. Pulsens avstånd från stilla-läget
+        avgör farten. Servot stannar när signalen släpps."""
+        sign = 1 if direction == "up" else -1
+        if cmd["reverse"]:
+            sign = -sign
+        self.board.pulse(self._channel(name), cmd["neutral_us"] + sign * cmd["speed_us"])
+        self.holding[name] = True
+        self.position[name] = None  # ett 360°-servo vet inte var det står
+        time.sleep(ms / 1000)
+        self._release(name)
+
+    def _pulse(self, name: str, us: int, ms: int) -> None:
+        """En exakt puls en kort stund. Guiden för stilla-punkten använder den för att se åt
+        vilket håll ett 360°-servo snurrar vid en viss puls."""
+        self.board.pulse(self._channel(name), us)
+        self.holding[name] = True
+        self.position[name] = None
+        time.sleep(ms / 1000)
+        self._release(name)
+
+    def _test_dispense_turn(self, cmd: dict) -> None:
+        """Plockskivans rörelse med 360°-servo: ett helt varv framåt. Fram till utfallet, ett kort
+        stopp där nöten faller ut, och resten av varvet tillbaka till plockläget."""
+        self._spin("doser", "up", cmd["up_ms"], cmd)
+        time.sleep(0.3)  # nöten faller ut
+        self._spin("doser", "up", cmd["rev_ms"] - cmd["up_ms"], cmd)
 
     def _run(self) -> None:
         while True:
@@ -171,11 +236,26 @@ class ServoController:
                     for name in (("doser", "lucka") if cmd["servo"] == "alla" else (cmd["servo"],)):
                         self._release(name)
                     self.last = f"släppte {cmd['servo']}"
+                elif action == "test_dispense" and cmd.get("kind") == "varv":
+                    self._test_dispense_turn(cmd)
+                    self.last = f"testade utmatning (helt varv: {cmd['up_ms']} ms till utfallet, {cmd['rev_ms']} ms totalt)"
+                elif action == "pulse":
+                    self._pulse(cmd["servo"], cmd["us"], cmd["ms"])
+                    self.last = f"{cmd['servo']} fick {cmd['us']} µs i {cmd['ms']} ms"
+                elif action == "spin":
+                    self._spin(cmd["servo"], cmd["direction"], cmd["ms"], cmd)
+                    self.last = f"{cmd['servo']} snurrade {'framåt' if cmd['direction'] == 'up' else 'bakåt'} {cmd['ms']} ms"
                 elif action == "test_dispense":
-                    self._test_dispense(cmd["angle"])
+                    # Äldre server skickar bara vinkeln: då gäller Pi:ns egna inställningar.
+                    pick = cmd.get("pick", self.config["pick_angle"])
+                    move_s = cmd.get("move_ms", self.config["dispense_move_ms"]) / 1000
+                    self._test_dispense(pick, cmd["angle"], move_s)
                     time.sleep(RELEASE_AFTER_S)
                     self._release("doser")
-                    self.last = f"testade utmatning ({cmd['angle']}°)"
+                    self.last = f"testade utmatning ({pick}° → {cmd['angle']}°, {move_s:g} s)"
+                elif action == "sweep":
+                    self._sweep(cmd["servo"], cmd["seconds"])
+                    self.last = f"{cmd['servo']} svepte {cmd['seconds']} s"
                 print(f"Servo: {self.last}", flush=True)
             except Exception as e:
                 # Tappad kontakt med kortet: försök ansluta på nytt vid nästa kommando.

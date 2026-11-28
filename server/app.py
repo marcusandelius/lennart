@@ -12,8 +12,9 @@ Adresser:
   POST /admin/login      Logga in.
   POST /admin/logout     Logga ut.
   GET  /api/admin/state  Inställningar och läge för adminvyn (kräver inloggning).
+  GET  /api/admin/session  Om webbläsaren är inloggad, så att statussidan vet om testknapparna ska visas.
   POST /api/admin/settings  Ändra inställningar (kräver inloggning).
-  POST /api/admin/servo  Skicka ett kommando till Pi:n, för servona eller omstart av skärmen (kräver inloggning).
+  POST /api/admin/servo  Skicka ett kommando till Pi:n: servona, en kort skärmbild eller omstart av skärmen (kräver inloggning).
   POST /api/heartbeat    Pi:n rapporterar att den lever (kräver enhetsnyckel).
   GET  /api/live/wait    Pi:n väntar på tittare, kommandon eller nya inställningar (kräver enhetsnyckel).
   POST /api/live/frame   Pi:n skickar en bild till livebilden (kräver enhetsnyckel).
@@ -259,6 +260,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._redirect("/admin/login")
         elif path == "/admin/login":
             self._html("login", fel="")
+        elif path == "/api/admin/session":
+            self._json(200, {"admin": self._admin_ok()})
         elif path == "/api/admin/state":
             if not self._admin_ok():
                 self._json(401, {"fel": "Inte inloggad"})

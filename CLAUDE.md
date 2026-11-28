@@ -93,3 +93,4 @@ scripts/             – skript som körs av deploy
 - Filerna i `model/` och `web/` är ordagranna ur HANDOFF-filen. Ändra dem bara med ett tydligt commit-meddelande, så att det syns vad som gjorts i chatten och vad som gjorts här.
 - Geometridatan (`parts_v*.json`) och STL-filerna finns inte i repot. De återskapas med `tools/extract_from_html.py` ur den publicerade förhandsgranskningen.
 - Nya beslut läggs till i `docs/beslut/beslutslogg.md` med datum och skäl.
+- Doseringen är en lutande **plockskiva** (version 9 i artefakten), inte doseringshjulet i `model/patch8.py`. Hål Ø 28 mm och utmatningsvinkel kring 119° sedan 2026-11-27. Se `docs/plockskivan.md`.

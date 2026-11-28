@@ -74,7 +74,9 @@ Står GP-namnen tryckta på kortet gäller de framför den här listan.
 
 ## Testa från adminvyn
 
-Under **Skärmen** i adminvyn på lennart.cam väljer du vad skärmen visar: **kamerabilden**, **ACCESS GRANTED** (helgrön) eller **ACCESS DENIED** (helröd). Valet gäller direkt.
+I fliken **Skärmen** i adminvyn på lennart.cam väljer du vad skärmen visar: **kamerabilden**, **ACCESS GRANTED** (mörkgrön bakgrund) eller **ACCESS DENIED** (mörkröd bakgrund). De ser ut som i filmtrailern: två rader i fet Liberation Mono, ritade av `access_screen()` i `pi/main.py`. Läget **Väntar på besökare** visar "VÄNTAR PÅ BESÖKARE…" i grönt på nästan svart, också som i trailern.
+
+**Kontrast:** under Kontrast i samma flik väljer du **Mjuk**, **Normal** eller **Stark**. Det väljer en av skärmchippets inbyggda kontrastkurvor (gamma 1,8, 2,2 eller 2,5 enligt databladet [verifiera]). Stark gör färgerna mer mättade och bakgrunden mörkare, till exempel om ACCESS DENIED ser dov ut. Gäller direkt. Valet gäller direkt.
 
 Läget **Demo** visar kamerabilden, och när något rör sig framför kameran lottas ACCESS GRANTED eller ACCESS DENIED fram och visas i 4 sekunder. Efter det vilar demoläget i 3 sekunder, och ett djur som blir sittande lottas inte om. Rörelse- och ljusgränsen är samma som för inspelningen. Koden finns i `pi/demo.py`.
 
@@ -107,7 +109,7 @@ Inställningarna läggs i `~/.config/lennart/.env` och börjar gälla när tjän
 |---|---|
 | Bilden står upp och ner | `LCD_ROTATION=270` (standard är 90) |
 | Rött och blått byter plats | `LCD_BGR=1` |
-| Kamerabilden är vriden eller upp och ner | Välj rotation under **Kamera** i adminvyn på lennart.cam (0°, 90°, 180° eller 270°). |
+| Kamerabilden är vriden eller upp och ner | Välj rotation i fliken **Kamera** i adminvyn på lennart.cam (0°, 90°, 180° eller 270°). |
 | Randig eller trasig bild | Sänk **SPI-hastighet** i adminvyn, eller använd kortare kablar. `LCD_SPI_HZ` i `.env` gäller bara tills lennart.cam har svarat. |
 | Annan pinne för DC, RST eller BL | `LCD_DC=`, `LCD_RST=`, `LCD_BL=` (GPIO-nummer) |
 | Fel GPIO-krets hittas | `LCD_GPIOCHIP=` (t.ex. `13`). Normalt hittas den automatiskt: numren skiljer sig mellan kärnversioner, och på Marcus Pi heter kretsarna `gpiochip11`–`15`. |

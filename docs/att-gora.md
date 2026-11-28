@@ -9,6 +9,7 @@ Hämtad ur [HANDOFF-filen](historik/HANDOFF-lennarts-matstation-projekt.md), avs
 3. **Elektroniktest i den gamla kroppen:** kamerafäste, skärmklämma och skärmram, med Pi 5, kameran och skärmen.
 4. **Mätning:** mät servot på 11 kg med sitt runda horn, mikroservot, skärmkortet, LED-ringen och kameran. Justera sedan fästena.
 5. **Doseringen** (doserhus, hjul och magasin) när servot är uppmätt. Provkör med riktiga hasselnötter, gärna 200 varv. Det är bygget viktigaste prov.
+   - *2026-11-27:* plockskivan med hål Ø 28 mm är utskriven och fungerar enligt Marcus. Se [plockskivan.md](plockskivan.md). Provet med 200 doseringar är [inte gjort än, verifiera].
 6. **Resten av plattorna** enligt fliken Utskrift: tak, gräsmattor, framgård, skål, lucka, blomlådor, stuprör och TPU-packningar.
 
 ## Programvara, inte påbörjad

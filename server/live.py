@@ -34,7 +34,7 @@ CAMERA_ROTATIONS = (0, 90, 180, 270)  # grader medsols
 # Vad 2"-skärmen på stationen visar. Igenkänningen ska sköta det själv senare,
 # men tills dess kan admin växla för hand, t.ex. för att testa skärmen. "demo" lottar
 # fram ACCESS GRANTED eller ACCESS DENIED när något rör sig framför kameran.
-DISPLAY_MODES = ("camera", "granted", "denied", "demo")
+DISPLAY_MODES = ("camera", "waiting", "granted", "denied", "demo")
 # SPI-hastigheter för skärmen i MHz. Långa eller lösa kopplingskablar kan kräva en lägre.
 LCD_SPI_MHZ = (1, 4, 8, 16, 24, 32)
 
@@ -48,14 +48,26 @@ DEFAULTS = {
     "quality": 70,          # JPEG-kvalitet, 30–90
     "max_view_min": 5,      # efter så här många minuter får besökaren klicka igen
     "camera_rotation": 0,   # vrid kamerabilden, t.ex. om kameran sitter på sidan
-    "display_mode": "camera",  # kamerabilden, ACCESS GRANTED, ACCESS DENIED eller demoläget på skärmen
+    "display_mode": "camera",  # kamerabilden, VÄNTAR PÅ BESÖKARE…, ACCESS GRANTED, ACCESS DENIED eller demoläget
     "lcd_spi_mhz": 32,         # skärmens SPI-hastighet
+    "lcd_gamma": "normal",     # skärmens kontrastkurva: mjuk, normal eller stark
     # Servona sitter på PCA9685-kortet. Pulsbredden styr vinkeln: min_us = 0°, max_us = 180°.
     "servo_doser_channel": 0,
     "servo_lucka_channel": 1,
     "servo_min_us": 500,
     "servo_max_us": 2500,
-    "dispense_angle": 130,  # så långt doseringshjulet vrids för att släppa en nöt
+    "dispense_angle": 119,  # så långt plockskivan vrids för att släppa en nöt (hål Ø 28, se docs/beslut/beslutslogg.md)
+    "pick_angle": 0,        # plockläget: hålet längst ner i nöthögen
+    "dispense_move_ms": 1500,  # så lång tid vridet tar, från plockläget till utfallet och lika lång tid tillbaka
+    # Plockskivan kan drivas av ett 360°-servo. Det har ingen vinkel: pulsen styr fart och riktning,
+    # så rörelsen styrs med tid. En utmatning är ett helt varv framåt: till utfallet, ett kort stopp,
+    # och resten av varvet tillbaka till plockläget. Tiderna provas fram på plats, se docs/koppling-servon.md.
+    "doser_servo": "360",      # "360" eller "vinkel"
+    "doser_neutral_us": 1500,  # pulsen där 360°-servot står still
+    "doser_speed_us": 120,     # så mycket pulsen skiljer sig från stilla-läget: större = fortare
+    "doser_up_ms": 1000,       # snurrtid från plockläget fram till utfallet [provas fram]
+    "doser_rev_ms": 4000,      # snurrtid för ett helt varv, från plockläget runt till plockläget [provas fram]
+    "doser_reverse": False,    # vänd riktningen om skivan snurrar åt fel håll
     # Inspelning av klipp vid rörelse, för att samla material till igenkänningen.
     "recording_enabled": False,  # av tills admin slår på det
     "rec_resolution": "1280x720",
@@ -72,23 +84,30 @@ LIMITS = {
     "fps": (1, 10), "quality": (30, 90), "max_view_min": (1, 30),
     "servo_doser_channel": (0, 15), "servo_lucka_channel": (0, 15),
     "servo_min_us": (400, 1500), "servo_max_us": (1500, 2600),
-    "dispense_angle": (30, 180),
+    "dispense_angle": (30, 180), "pick_angle": (0, 90), "dispense_move_ms": (300, 5000),
+    "doser_neutral_us": (1000, 2000), "doser_speed_us": (30, 500),
+    "doser_up_ms": (50, 20000), "doser_rev_ms": (300, 20000),
     "rec_fps": (5, 15), "motion_sensitivity": (2, 200), "pre_roll_s": (0, 5),
     "post_roll_s": (2, 30), "max_clip_s": (10, 90), "min_brightness": (0, 100),
     "clips_max_gb": (1, 500),
 }
 
-BOOL_KEYS = ("live_enabled", "recording_enabled")
+BOOL_KEYS = ("live_enabled", "recording_enabled", "doser_reverse")
+DOSER_SERVOS = ("360", "vinkel")
 CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS, "rec_resolution": REC_RESOLUTIONS,
-           "display_mode": DISPLAY_MODES, "lcd_spi_mhz": LCD_SPI_MHZ}
+           "display_mode": DISPLAY_MODES, "lcd_spi_mhz": LCD_SPI_MHZ, "doser_servo": DOSER_SERVOS,
+           "lcd_gamma": ("mjuk", "normal", "stark")}
 
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
-DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "servo_doser_channel", "servo_lucka_channel",
-               "servo_min_us", "servo_max_us", "dispense_angle",
+DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "lcd_gamma", "servo_doser_channel", "servo_lucka_channel",
+               "servo_min_us", "servo_max_us", "dispense_angle", "pick_angle", "dispense_move_ms",
+               "doser_servo", "doser_neutral_us", "doser_speed_us", "doser_up_ms", "doser_rev_ms", "doser_reverse",
                "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",
                "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")
 
 SERVOS = ("doser", "lucka")
+TEST_S = 3                      # så länge servona rör sig vid ett test från statussidan
+FLASH_SCREENS = ("granted", "denied")
 COMMAND_MAX_AGE_S = 20      # äldre kommandon kastas, så att inget servo rör sig långt senare
 
 MAX_VIEWERS = 25            # skyddar Pi:ns uppkoppling och servern
@@ -116,15 +135,23 @@ def validate(changes: dict, current: dict) -> dict:
         raise ValueError("Doseraren och luckan kan inte sitta på samma kanal")
     if result["servo_min_us"] >= result["servo_max_us"]:
         raise ValueError("servo_min_us måste vara mindre än servo_max_us")
+    if result["doser_up_ms"] >= result["doser_rev_ms"]:
+        raise ValueError("Tiden till utfallet måste vara kortare än tiden för ett helt varv")
+    if result["dispense_angle"] - result["pick_angle"] < 20:
+        raise ValueError("Utmatningsvinkeln måste vara minst 20° större än plocklägets vinkel")
     return result
 
 
 def validate_command(cmd: dict, values: dict) -> dict:
-    """Kontrollera ett kommando från adminvyn: servona eller omstart av skärmen."""
+    """Kontrollera ett kommando från adminvyn eller statussidan: servona eller skärmen."""
     action = cmd.get("action")
+    spin = {"neutral_us": values["doser_neutral_us"], "speed_us": values["doser_speed_us"],
+            "reverse": values["doser_reverse"]}
     if action == "move":
         if cmd.get("servo") not in SERVOS:
             raise ValueError("Okänt servo")
+        if cmd["servo"] == "doser" and values["doser_servo"] == "360":
+            raise ValueError("Plockskivans servo är ett 360°-servo och har ingen vinkel. Använd knapparna för att snurra.")
         angle = cmd.get("angle")
         if isinstance(angle, bool) or not isinstance(angle, int) or not 0 <= angle <= 180:
             raise ValueError("Vinkeln ska vara ett heltal mellan 0 och 180")
@@ -137,9 +164,44 @@ def validate_command(cmd: dict, values: dict) -> dict:
             raise ValueError("Okänt servo")
         return {"action": "release", "servo": cmd["servo"]}
     if action == "test_dispense":
-        return {"action": "test_dispense", "angle": values["dispense_angle"]}
+        if values["doser_servo"] == "360":
+            return {"action": "test_dispense", "kind": "varv", "up_ms": values["doser_up_ms"],
+                    "rev_ms": values["doser_rev_ms"], **spin}
+        return {"action": "test_dispense", "angle": values["dispense_angle"],
+                "pick": values["pick_angle"], "move_ms": values["dispense_move_ms"]}
+    if action == "pulse":
+        # En exakt puls till 360°-servot en kort stund. Används av guiden som hittar servots stilla-punkt:
+        # admin ser åt vilket håll skivan snurrar vid olika pulser och svarar.
+        if values["doser_servo"] != "360":
+            raise ValueError("Plockskivans servo är inställt som vinkelservo.")
+        us, ms = cmd.get("us"), cmd.get("ms")
+        if isinstance(us, bool) or not isinstance(us, int) or not 900 <= us <= 2100:
+            raise ValueError("Pulsen ska vara ett heltal mellan 900 och 2100 µs")
+        if isinstance(ms, bool) or not isinstance(ms, int) or not 200 <= ms <= 3000:
+            raise ValueError("Tiden ska vara ett heltal mellan 200 och 3000 ms")
+        return {"action": "pulse", "servo": "doser", "us": us, "ms": ms}
+    if action == "spin":
+        # Knuffa eller snurra plockskivans 360°-servo en viss tid, för att ställa skivan och prova fram tiderna.
+        if values["doser_servo"] != "360":
+            raise ValueError("Plockskivans servo är inställt som vinkelservo. Använd Flytta.")
+        direction, ms = cmd.get("direction"), cmd.get("ms")
+        if direction not in ("up", "down"):
+            raise ValueError("Riktningen ska vara up eller down")
+        if isinstance(ms, bool) or not isinstance(ms, int) or not 20 <= ms <= 20000:
+            raise ValueError("Tiden ska vara ett heltal mellan 20 och 20000 ms")
+        return {"action": "spin", "servo": "doser", "direction": direction, "ms": ms, **spin}
     if action == "display_restart":
         return {"action": "display_restart"}
+    if action == "sweep":
+        # Ett vinkelservo sveper fram och tillbaka i TEST_S sekunder (luckans test på statussidan).
+        if cmd.get("servo") != "lucka":
+            raise ValueError("Bara luckan kan svepas. Plockskivan testas med Testa utmatning.")
+        return {"action": action, "servo": cmd["servo"], "seconds": TEST_S}
+    if action == "display_flash":
+        # Visa ACCESS GRANTED eller ACCESS DENIED en kort stund, sedan tillbaka till det vanliga läget.
+        if cmd.get("screen") not in FLASH_SCREENS:
+            raise ValueError("Okänd skärmbild")
+        return {"action": "display_flash", "screen": cmd["screen"]}
     raise ValueError("Okänt kommando")
 
 

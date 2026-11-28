@@ -30,6 +30,11 @@ CASET = 0x2A    # kolumnfönster
 RASET = 0x2B    # radfönster
 RAMWR = 0x2C    # skriv pixlar
 MADCTL = 0x36   # rotation och färgordning
+GAMSET = 0x26   # välj en av panelens inbyggda kontrastkurvor (gamma)
+
+# Kontrastkurvorna i ST7789 enligt databladet [verifiera]: 0x01 = gamma 2.2, 0x02 = 1.8, 0x04 = 2.5,
+# 0x08 = 1.0. Högre gamma gör mellantonerna mörkare: färgerna blir mättade och bakgrunden mörkare.
+GAMMA_CURVES = {"mjuk": 0x02, "normal": 0x01, "stark": 0x04}
 COLMOD = 0x3A   # pixelformat
 
 # MADCTL-värden för liggande bild (320 bred). Prova 90 eller 270 om bilden står upp och ner.
@@ -93,6 +98,7 @@ class Display:
         self.spi.max_speed_hz = _env_int("LCD_SPI_HZ", 32_000_000)
 
         self._madctl = ROTATIONS.get(rotation, 0x60) | (0x08 if bgr else 0x00)
+        self.gamma = "normal"
         self._init_panel()
         self.bl.on()
 
@@ -103,6 +109,12 @@ class Display:
     def set_speed(self, hz: int) -> None:
         """Byt SPI-hastighet. Gäller från nästa överföring, utan omstart av skärmen."""
         self.spi.max_speed_hz = hz
+
+    def set_gamma(self, name: str) -> None:
+        """Byt kontrastkurva. Gäller direkt för det som visas, utan att bilden skickas om."""
+        if name in GAMMA_CURVES:
+            self.gamma = name
+            self._command(GAMSET, bytes([GAMMA_CURVES[name]]))
 
     def restart(self) -> None:
         """Starta om skärmen: omstart via RST och alla startkommandon igen.
@@ -117,7 +129,7 @@ class Display:
         import glob
 
         found = ", ".join(p.removeprefix("/dev/spidev") for p in sorted(glob.glob("/dev/spidev*")))
-        return (f"{self.spi_device} i {self.speed_hz / 1e6:g} MHz, gpiochip{self.gpiochip}"
+        return (f"{self.spi_device} i {self.speed_hz / 1e6:g} MHz, kontrast {self.gamma}, gpiochip{self.gpiochip}"
                 f" (SPI-enheter: {found or 'inga'})")
 
     def _command(self, cmd: int, data: bytes = b"") -> None:
@@ -138,6 +150,7 @@ class Display:
         self._command(SLPOUT)
         time.sleep(0.12)
         self._command(COLMOD, bytes([0x55]))  # 16 bitar per pixel
+        self._command(GAMSET, bytes([GAMMA_CURVES[self.gamma]]))
         self._command(MADCTL, bytes([self._madctl]))
         self._command(INVON)
         self._command(NORON)
