@@ -217,6 +217,31 @@ sudo ./svc.sh status
 
 ✅ **Klart när:** runnern syns som **Idle** med etiketten `pi` under Settings → Actions → Runners.
 
+**Om runnern slutar hämta jobb** (jobben står i kö i GitHub Actions). Det hände 2026-11-28, med felet "The runner registration has been deleted from the server" i `sudo ./svc.sh status`. Registrera då om den:
+
+1. Hämta en ny token under **Settings → Actions → Runners → New self-hosted runner**. Den gäller i en timme och ska aldrig sparas eller klistras in någon annanstans.
+2. Ta bort den gamla registreringen. Kör kommandona ett i taget, så att ett fel i det första inte hindrar det andra:
+
+```bash
+cd ~/.config/lennart/actions-runner
+```
+
+```bash
+sudo ./svc.sh uninstall
+```
+
+```bash
+rm -f .runner .credentials .credentials_rsaparams .runner_migrated .credentials_migrated
+```
+
+3. Registrera på nytt med `--replace`, eftersom en runner med samma namn kan finnas kvar hos GitHub:
+
+```bash
+./config.sh --url https://github.com/marcusandelius/lennart --token <TOKEN-FRÅN-SIDAN> --name lennart-pi --labels pi --unattended --replace
+```
+
+4. Installera och starta tjänsten igen: `sudo ./svc.sh install <du>` och `sudo ./svc.sh start`.
+
 ---
 
 ## Steg 6 – systemd-tjänsten för appen
