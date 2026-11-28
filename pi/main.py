@@ -26,6 +26,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+import glitch
 from demo import DemoMode
 from display import HEIGHT, WIDTH, Display
 from heartbeat import Heartbeat
@@ -252,6 +253,15 @@ def main() -> int:
 
     frames, fps_since = 0, time.monotonic()
     shown = None  # vad skärmen senast fick, så att ACCESS-bilderna bara skickas när läget ändras
+    last_image = {"img": None}  # senast visade bilden, som glitch-övergången börjar från
+
+    def show(img: np.ndarray, transition: bool) -> None:
+        """Visa en bild. Vid byte av läge spelas en kort glitch-övergång först, om den är påslagen."""
+        if transition and device.get("lcd_glitch", True) and last_image["img"] is not None:
+            for frame in glitch.frames(last_image["img"], img):
+                display.show(frame)
+        display.show(img)
+        last_image["img"] = img
     while running:
         now = time.monotonic()
         # Läs läget en gång per varv: det kan ändras från adminvyn mitt i varvet.
@@ -292,7 +302,7 @@ def main() -> int:
                 shown = None  # skicka ACCESS-bilden igen, i den nya hastigheten eller efter omstarten
                 threading.Thread(target=heartbeat.send_once, daemon=True).start()  # adminvyn ser ändringen direkt
         if display is not None and not show_camera and shown != mode:
-            display.show(access_screen(mode))
+            show(access_screen(mode), transition=shown is not None)
             shown = mode
         if camera is None and now - camera_tried > CAMERA_RETRY_S:
             camera_tried = now
@@ -308,7 +318,8 @@ def main() -> int:
         if camera is None or not (show_camera or demo_on or live.active or recorder.enabled):
             latest["rgb"] = None
             if show_camera and camera is None:
-                display.show(add_status_bar(message_screen("Ingen kamera", camera_error), heartbeat.last_ok, fps))
+                show(add_status_bar(message_screen("Ingen kamera", camera_error), heartbeat.last_ok, fps),
+                     transition=shown not in (None, "no-camera"))
                 shown = "no-camera"
             time.sleep(0.2 if display is not None else 0.5)  # kort väntan, så att ett nytt skärmläge syns direkt
             continue
@@ -328,7 +339,7 @@ def main() -> int:
             demo.feed(rgb, now, device.get("motion_sensitivity", 10), device.get("min_brightness", 15))
 
         if show_camera:
-            display.show(add_status_bar(for_display(rgb), heartbeat.last_ok, fps))
+            show(add_status_bar(for_display(rgb), heartbeat.last_ok, fps), transition=shown not in (None, "camera"))
             shown = "camera"
 
         # Vänta in nästa bild, i den snabbaste takt som någon av skärmen, livebilden
