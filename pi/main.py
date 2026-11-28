@@ -83,6 +83,34 @@ def trailer_font(size: int, bold: bool):
     return ImageFont.load_default()
 
 
+def start_camera():
+    """Startar Camera Module 3 med en bildström i 1280 × 720. Rotationen görs i mjukvaran."""
+    from libcamera import controls
+    from picamera2 import Picamera2
+
+    cam = Picamera2()
+    config = cam.create_video_configuration(
+        main={"size": CAMERA_SIZE, "format": "RGB888"},
+        buffer_count=4,
+    )
+    cam.configure(config)
+    cam.start()
+    try:
+        cam.set_controls({"AfMode": controls.AfModeEnum.Continuous})  # autofokus hela tiden
+    except Exception:
+        pass  # kameror utan autofokus klarar sig utan
+    return cam
+
+
+def message_screen(title: str, detail: str = "") -> np.ndarray:
+    img = Image.new("RGB", (WIDTH, HEIGHT), (40, 20, 18))
+    draw = ImageDraw.Draw(img)
+    draw.text((16, 80), title, font=FONT_BIG, fill=WHITE)
+    for i, line in enumerate(textwrap.wrap(detail, 34)[:5]):
+        draw.text((16, 124 + i * 18), line, font=FONT_SMALL, fill=GREY)
+    return np.asarray(img)
+
+
 def access_screen(mode: str) -> np.ndarray:
     """Helskärm med ACCESS GRANTED, ACCESS DENIED eller VÄNTAR PÅ BESÖKARE…, som i filmtrailern.
 
