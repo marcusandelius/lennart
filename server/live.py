@@ -127,34 +127,68 @@ MAX_VIEWERS = 25            # skyddar Pi:ns uppkoppling och servern
 NO_FRAME_GIVE_UP_S = 20     # ingen bild från Pi:n på så här länge = avsluta strömmen
 
 
+def check_value(key: str, value) -> None:
+    """Kontrollera ett enskilt värde. Fel ger ValueError."""
+    if key in BOOL_KEYS:
+        if not isinstance(value, bool):
+            raise ValueError(f"{key} ska vara sant eller falskt")
+    elif key in CHOICES:
+        if isinstance(value, bool) or value not in CHOICES[key]:
+            raise ValueError(f"{key} ska vara en av {', '.join(map(str, CHOICES[key]))}")
+    elif key in LIMITS:
+        low, high = LIMITS[key]
+        if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+            raise ValueError(f"{key} ska vara ett heltal mellan {low} och {high}")
+    else:
+        raise ValueError(f"Okänd inställning: {key}")
+
+
+# Regler som gäller flera värden tillsammans: (värdena, godkänt?, felmeddelande)
+COMBINATIONS = (
+    (("servo_doser_channel", "servo_lucka_channel"), lambda r: r["servo_doser_channel"] != r["servo_lucka_channel"],
+     "Doseraren och luckan kan inte sitta på samma kanal"),
+    (("servo_min_us", "servo_max_us"), lambda r: r["servo_min_us"] < r["servo_max_us"],
+     "servo_min_us måste vara mindre än servo_max_us"),
+    (("doser_up_ms", "doser_rev_ms"), lambda r: r["doser_up_ms"] < r["doser_rev_ms"],
+     "Tiden till utfallet måste vara kortare än tiden för ett helt varv"),
+    (("doser_up_back_ms", "doser_rev_back_ms"), lambda r: r["doser_up_back_ms"] < r["doser_rev_back_ms"],
+     "Tiden till utfallet bakåt måste vara kortare än tiden för ett helt varv bakåt"),
+    (("pick_angle", "dispense_angle"), lambda r: r["dispense_angle"] - r["pick_angle"] >= 20,
+     "Utmatningsvinkeln måste vara minst 20° större än plocklägets vinkel"),
+)
+
+
 def validate(changes: dict, current: dict) -> dict:
     """Kontrollera ändringar från adminvyn. Okända fält och fel värden ger ValueError."""
     result = dict(current)
     for key, value in changes.items():
-        if key in BOOL_KEYS:
-            if not isinstance(value, bool):
-                raise ValueError(f"{key} ska vara sant eller falskt")
-        elif key in CHOICES:
-            if isinstance(value, bool) or value not in CHOICES[key]:
-                raise ValueError(f"{key} ska vara en av {', '.join(map(str, CHOICES[key]))}")
-        elif key in LIMITS:
-            low, high = LIMITS[key]
-            if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
-                raise ValueError(f"{key} ska vara ett heltal mellan {low} och {high}")
-        else:
-            raise ValueError(f"Okänd inställning: {key}")
+        check_value(key, value)
         result[key] = value
-    if result["servo_doser_channel"] == result["servo_lucka_channel"]:
-        raise ValueError("Doseraren och luckan kan inte sitta på samma kanal")
-    if result["servo_min_us"] >= result["servo_max_us"]:
-        raise ValueError("servo_min_us måste vara mindre än servo_max_us")
-    if result["doser_up_ms"] >= result["doser_rev_ms"]:
-        raise ValueError("Tiden till utfallet måste vara kortare än tiden för ett helt varv")
-    if result["doser_up_back_ms"] >= result["doser_rev_back_ms"]:
-        raise ValueError("Tiden till utfallet motsols måste vara kortare än tiden för ett helt varv motsols")
-    if result["dispense_angle"] - result["pick_angle"] < 20:
-        raise ValueError("Utmatningsvinkeln måste vara minst 20° större än plocklägets vinkel")
+    for _keys, ok, message in COMBINATIONS:
+        if not ok(result):
+            raise ValueError(message)
     return result
+
+
+def tolerant(saved: dict) -> tuple[dict, list[str]]:
+    """Läs in sparade inställningar värde för värde. Ett värde som inte godkänns (till exempel
+    efter att en regel har ändrats) ersätts med standardvärdet, men resten behålls.
+    Returnerar inställningarna och namnen på det som fick standardvärden."""
+    result, reset = dict(DEFAULTS), []
+    for key, value in saved.items():
+        if key not in DEFAULTS:
+            continue
+        try:
+            check_value(key, value)
+            result[key] = value
+        except ValueError:
+            reset.append(key)
+    for keys, ok, _message in COMBINATIONS:
+        if not ok(result):
+            for key in keys:
+                result[key] = DEFAULTS[key]
+            reset.extend(keys)
+    return result, reset
 
 
 def validate_command(cmd: dict, values: dict) -> dict:
@@ -251,9 +285,16 @@ class Settings:
         # Räknas upp vid varje ändring, så att Pi:n ser när något ändrats. Startar på
         # klockslaget, så att en omstart av servern också räknas som en ändring.
         self.version = int(time.time())
+        # fresh = servern har inga sparade inställningar. Då tar den gärna över stationens kopia,
+        # se adopt() och pi/settings_backup.py.
+        self.fresh = True
         try:
             saved = json.loads(self.path.read_text())
-            self.values = validate({k: v for k, v in saved.items() if k in DEFAULTS}, DEFAULTS)
+            if isinstance(saved, dict):
+                self.values, reset = tolerant(saved)
+                self.fresh = False
+                if reset:
+                    print(f"Inställningar som fick standardvärden vid start: {', '.join(reset)}", flush=True)
         except (OSError, ValueError):
             pass
         self.persisted = self._durable()
@@ -272,9 +313,27 @@ class Settings:
         except OSError:
             return False
 
+    def adopt(self, saved: dict) -> bool:
+        """Ta över stationens kopia av inställningarna, men bara om servern själv saknar sparade
+        inställningar (till exempel efter en deploy utan volym). Annars gäller serverns."""
+        if not self.fresh or not isinstance(saved, dict):
+            return False
+        self.values, reset = tolerant(saved)
+        self.fresh = False
+        self.version += 1
+        self._write()
+        if reset:
+            print(f"Stationens kopia: fick standardvärden för {', '.join(reset)}", flush=True)
+        return True
+
     def update(self, changes: dict) -> dict:
         self.values = validate(changes, self.values)
+        self.fresh = False
         self.version += 1
+        self._write()
+        return self.values
+
+    def _write(self) -> None:
         if self._writable():
             # Skriv till en tillfällig fil och byt namn, så att filen aldrig blir halvskriven.
             fd, tmp = tempfile.mkstemp(dir=self.path.parent)
@@ -282,7 +341,6 @@ class Settings:
                 json.dump(self.values, f)
             os.replace(tmp, self.path)
         self.persisted = self._durable()
-        return self.values
 
     def for_device(self) -> dict:
         return {key: self.values[key] for key in DEVICE_KEYS}
@@ -358,6 +416,10 @@ class LiveRelay:
             **(self.settings.for_pi() if self.wanted else {}),
             "config": self.settings.for_device(),
             "config_version": self.settings.version,
+            # Stationen sparar en kopia av alla inställningar. Saknar servern sparade inställningar
+            # ber den om kopian (needs_backup), se pi/settings_backup.py.
+            "backup": self.settings.values,
+            "needs_backup": self.settings.fresh,
             "commands": self.take_commands(),
         }
 

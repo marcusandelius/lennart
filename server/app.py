@@ -17,6 +17,7 @@ Adresser:
   POST /api/admin/servo  Skicka ett kommando till Pi:n: servona, en kort skärmbild eller omstart av skärmen (kräver inloggning).
   POST /api/heartbeat    Pi:n rapporterar att den lever (kräver enhetsnyckel).
   GET  /api/live/wait    Pi:n väntar på tittare, kommandon eller nya inställningar (kräver enhetsnyckel).
+  POST /api/device/settings  Pi:n skickar sin kopia av inställningarna, om servern saknar egna (kräver enhetsnyckel).
   POST /api/live/frame   Pi:n skickar en bild till livebilden (kräver enhetsnyckel).
   GET  /static/...       Logotyp, typsnitt, stilmall och demobilder.
   GET  /healthz          För Coolifys hälsokontroll.
@@ -412,6 +413,16 @@ class Handler(BaseHTTPRequestHandler):
             with _lock:
                 _history.append({"received_at": time.time(), "report": clean_report(raw)})
             self._json(200, {"ok": True})
+        elif path == "/api/device/settings":
+            if self._device_ok():
+                raw = self._read_json(64 * 1024)
+                if raw is None:
+                    return
+                adopted = settings.adopt(raw)
+                if adopted:
+                    relay.notify()
+                    print("Inställningarna återställdes från stationens kopia", flush=True)
+                self._json(200, {"adopted": adopted})
         elif path == "/api/live/frame":
             if not self._device_ok():
                 return
