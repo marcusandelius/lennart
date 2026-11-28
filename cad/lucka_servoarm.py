@@ -14,6 +14,8 @@ glappade, gled av och sprack. Nu:
     ner till z 26,6). 07_farstukvist_rod.stl i utkatalogen har haket för nya utskrifter.
   * Hålet i brevlådans vägg borras upp till Ø9 (navet Ø7,5). Brevlådans lock får en större plugg (brevlada.py).
   * Servot flyttas 0,6 mm mot luckan med distansbrickorna 26d, så att armen går fri från väggen (0,8 mm).
+  * Vänster tapp: en M3 x 16-skruv genom lagerklotsen och distansringen, gängad in i valsen (Ø2,5 x 6 mm efter
+    3,4 mm frigång), så att den roterar med luckan och inte kan vandra ut.
   * Luckan monteras genom att skjutas 3,3 mm åt höger över armen. Luckans vänstra ände vid axeln är därför
     3,1 mm kortare, och en distansring (08c, 3,4 mm) på tappen vid lagerklotsen hindrar luckan att glida tillbaka.
 Husets ram: luckans axel längs x vid y -8, z 32,2. Utskriftsfilerna är förskjutna (-2, 25,8, -28,2), som förut.
@@ -96,6 +98,10 @@ LG = D(LG, [pocket, head])
 # vänstra änden vid axeln 3,1 mm kortare (montering: luckan skjuts 3,3 mm), tapphålet kvar
 rull = box(-36.7, -33.6, -16.6, 1.0, 20.0, 45.0)
 LG = D(LG, [rull]); LV = D(LV, [rull])
+# 9.21: tappen är en M3 x 16-skruv genom lagerklotsen (hål Ø3,4) och distansringen; den gängar sig in i
+# valsen (Ø2,5, 6 mm) och roterar med luckan, så den kan inte vandra ut. Förut Ø3,4 x 6 mm utan gänga.
+LG = D(LG, [U([xcyl(1.7, -35.0, -30.4, s=40), xcyl(1.25, -30.6, -24.5, s=40)])])
+for m in (LG, LV): assert m.is_watertight
 for m in (LG, LV): assert m.is_watertight
 
 # distansring 08c på tappen: C-form, 3,3 lång, ytter Ø7, inner Ø3,5, öppning 2,7
@@ -106,10 +112,13 @@ rod = trimesh.load(ROD); rod.apply_translation(-TO_ROD)
 rod = D(rod, [box(36.0, 40.05, -14.5, -2.0, NOTCH_Z, 28.1)]); assert rod.is_watertight
 
 os.makedirs(OUT, exist_ok=True); asm = os.path.join(OUT, "asm"); os.makedirs(asm, exist_ok=True)
-for n, m in (("lucka_svart", LG), ("lucka_vit", LV), ("servoarm", arm), ("skal_rod_hak", rod)):
+ring_asm = D(xcyl(3.5, -37.0, -37.0 + RING_L), [xcyl(1.75, -38, -32), box(-38, -32, AXY - 1.35, AXY + 1.35, AXZ - 5, AXZ - 1.2)])   # öppningen nedåt
+skruv = U([xcyl(2.75, -42.0, -40.0, s=6), xcyl(1.5, -40.01, -26.0, s=24)])
+for n, m in (("lucka_svart", LG), ("lucka_vit", LV), ("servoarm", arm), ("skal_rod_hak", rod), ("distansring", ring_asm), ("tapp_m3", skruv)):
     m.export(os.path.join(asm, n + ".stl"))
 for n, m in (("08_lucka_svart.stl", LG), ("08_lucka_vit.stl", LV)):
-    mm = m.copy(); mm.apply_translation(T); mm.export(os.path.join(OUT, n))
+    mm = m.copy(); mm.apply_translation(T); mm = U([mm, box(500, 501, 500, 501, 500, 501)]).split(only_watertight=False)
+    mm = max(mm, key=lambda q: q.volume); mm.export(os.path.join(OUT, n))           # städat efter förflyttningen
 
 
 def flat(m, R):
