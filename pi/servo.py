@@ -216,8 +216,9 @@ class ServoController:
         self._release(name)
 
     def _test_dispense_turn(self, cmd: dict) -> str:
-        """Plockskivans rörelse med 360°-servo: ett helt varv, till utfallet, ett kort stopp där
-        nöten faller ut, och resten av varvet tillbaka till plockläget.
+        """Plockskivans rörelse med 360°-servo: ett helt varv. Utan stopp (pause_ms 0) är det ett
+        enda jämnt varv, och nöten faller ut när hålet passerar utfallet. Med stopp går skivan
+        till utfallet, väntar, och kör sedan resten av varvet tillbaka till plockläget.
 
         Med "alternate" går varannan utmatning medsols ("up") och varannan motsols ("down").
         Motsols har egna tider, eftersom servot sällan går lika fort åt båda hållen.
@@ -228,9 +229,13 @@ class ServoController:
             to_outlet, revolution = cmd["up_ms"], cmd["rev_ms"]
         else:
             to_outlet, revolution = cmd["up_back_ms"], cmd["rev_back_ms"]
-        self._spin("doser", direction, to_outlet, cmd)
-        time.sleep(0.3)  # nöten faller ut
-        self._spin("doser", direction, revolution - to_outlet, cmd)
+        pause_ms = cmd.get("pause_ms", 300)
+        if pause_ms <= 0:
+            self._spin("doser", direction, revolution, cmd)   # ett jämnt varv, utan stopp
+        else:
+            self._spin("doser", direction, to_outlet, cmd)
+            time.sleep(pause_ms / 1000)  # nöten faller ut
+            self._spin("doser", direction, revolution - to_outlet, cmd)
         self.next_direction = "down" if direction == "up" else "up"
         return direction
 

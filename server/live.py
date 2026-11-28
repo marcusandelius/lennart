@@ -77,6 +77,7 @@ DEFAULTS = {
     "doser_up_back_ms": 3000,  # motsols från plockläget till utfallet [provas fram]
     "doser_rev_back_ms": 4000, # ett helt varv motsols [provas fram]
     "doser_alternate": True,   # varannan utmatning medsols och varannan motsols
+    "doser_pause_ms": 0,       # stopp vid utfallet. 0 = ett jämnt varv utan stopp
     "doser_reverse": False,    # vänd riktningen om skivan snurrar åt fel håll
     # Inspelning av klipp vid rörelse, för att samla material till igenkänningen.
     "recording_enabled": False,  # av tills admin slår på det
@@ -98,7 +99,7 @@ LIMITS = {
     "lucka_closed_angle": (0, 180), "lucka_open_angle": (0, 180),
     "doser_neutral_us": (1000, 2000), "doser_speed_us": (30, 500),
     "doser_up_ms": (50, 20000), "doser_rev_ms": (300, 20000),
-    "doser_up_back_ms": (50, 20000), "doser_rev_back_ms": (300, 20000),
+    "doser_up_back_ms": (50, 20000), "doser_rev_back_ms": (300, 20000), "doser_pause_ms": (0, 2000),
     "rec_fps": (5, 15), "motion_sensitivity": (2, 200), "pre_roll_s": (0, 5),
     "post_roll_s": (2, 30), "max_clip_s": (10, 90), "min_brightness": (0, 100),
     "clips_max_gb": (1, 500),
@@ -113,7 +114,7 @@ CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
 DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "lcd_gamma", "lcd_glitch", "servo_doser_channel", "servo_lucka_channel",
                "servo_min_us", "servo_max_us", "dispense_angle", "pick_angle", "dispense_move_ms",
-               "doser_servo", "doser_neutral_us", "doser_speed_us", "doser_up_ms", "doser_rev_ms", "doser_up_back_ms", "doser_rev_back_ms", "doser_alternate", "doser_reverse", "lucka_closed_angle", "lucka_open_angle",
+               "doser_servo", "doser_neutral_us", "doser_speed_us", "doser_up_ms", "doser_rev_ms", "doser_up_back_ms", "doser_rev_back_ms", "doser_alternate", "doser_pause_ms", "doser_reverse", "lucka_closed_angle", "lucka_open_angle",
                "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",
                "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")
 
@@ -187,6 +188,7 @@ def validate_command(cmd: dict, values: dict) -> dict:
             return {"action": "test_dispense", "kind": "varv", "up_ms": values["doser_up_ms"],
                     "rev_ms": values["doser_rev_ms"], "up_back_ms": values["doser_up_back_ms"],
                     "rev_back_ms": values["doser_rev_back_ms"], "alternate": values["doser_alternate"],
+                    "pause_ms": values["doser_pause_ms"],
                     "direction": direction, **spin}
         return {"action": "test_dispense", "angle": values["dispense_angle"],
                 "pick": values["pick_angle"], "move_ms": values["dispense_move_ms"]}
