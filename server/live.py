@@ -58,6 +58,10 @@ DEFAULTS = {
     "servo_min_us": 500,
     "servo_max_us": 2500,
     "dispense_angle": 119,  # så långt plockskivan vrids för att släppa en nöt (hål Ø 28, se docs/beslut/beslutslogg.md)
+    # Luckans lägen sparas i adminvyn. Lika värden betyder "inte sparade än", och då rör
+    # Öppna och Stäng inte luckan.
+    "lucka_closed_angle": 0,
+    "lucka_open_angle": 0,
     "pick_angle": 0,        # plockläget: hålet längst ner i nöthögen
     "dispense_move_ms": 1500,  # så lång tid vridet tar, från plockläget till utfallet och lika lång tid tillbaka
     # Plockskivan kan drivas av ett 360°-servo. Det har ingen vinkel: pulsen styr fart och riktning,
@@ -86,6 +90,7 @@ LIMITS = {
     "servo_doser_channel": (0, 15), "servo_lucka_channel": (0, 15),
     "servo_min_us": (400, 1500), "servo_max_us": (1500, 2600),
     "dispense_angle": (30, 180), "pick_angle": (0, 90), "dispense_move_ms": (300, 5000),
+    "lucka_closed_angle": (0, 180), "lucka_open_angle": (0, 180),
     "doser_neutral_us": (1000, 2000), "doser_speed_us": (30, 500),
     "doser_up_ms": (50, 20000), "doser_rev_ms": (300, 20000),
     "rec_fps": (5, 15), "motion_sensitivity": (2, 200), "pre_roll_s": (0, 5),
@@ -102,7 +107,7 @@ CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
 DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "lcd_gamma", "lcd_glitch", "servo_doser_channel", "servo_lucka_channel",
                "servo_min_us", "servo_max_us", "dispense_angle", "pick_angle", "dispense_move_ms",
-               "doser_servo", "doser_neutral_us", "doser_speed_us", "doser_up_ms", "doser_rev_ms", "doser_reverse",
+               "doser_servo", "doser_neutral_us", "doser_speed_us", "doser_up_ms", "doser_rev_ms", "doser_reverse", "lucka_closed_angle", "lucka_open_angle",
                "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",
                "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")
 
@@ -170,6 +175,15 @@ def validate_command(cmd: dict, values: dict) -> dict:
                     "rev_ms": values["doser_rev_ms"], **spin}
         return {"action": "test_dispense", "angle": values["dispense_angle"],
                 "pick": values["pick_angle"], "move_ms": values["dispense_move_ms"]}
+    if action == "raw_pulse":
+        # Testbänken i adminvyn: en valfri signal till en valfri kanal en kort stund, sedan släpps den.
+        channel, us, ms = cmd.get("channel"), cmd.get("us"), cmd.get("ms")
+        for value, low, high, text in ((channel, 0, 15, "Kanalen ska vara ett heltal mellan 0 och 15"),
+                                       (us, 500, 2500, "Signalen ska vara ett heltal mellan 500 och 2500"),
+                                       (ms, 200, 3000, "Tiden ska vara ett heltal mellan 200 och 3000 ms")):
+            if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+                raise ValueError(text)
+        return {"action": "raw_pulse", "channel": channel, "us": us, "ms": ms}
     if action == "pulse":
         # En exakt puls till 360°-servot en kort stund. Används av guiden som hittar servots stilla-punkt:
         # admin ser åt vilket håll skivan snurrar vid olika pulser och svarar.

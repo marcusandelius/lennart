@@ -239,6 +239,15 @@ class ServoController:
                 elif action == "test_dispense" and cmd.get("kind") == "varv":
                     self._test_dispense_turn(cmd)
                     self.last = f"testade utmatning (helt varv: {cmd['up_ms']} ms till utfallet, {cmd['rev_ms']} ms totalt)"
+                elif action == "raw_pulse":
+                    # Testbänken: valfri kanal och signal. Servot vet inte sitt läge efteråt.
+                    self.board.pulse(cmd["channel"], cmd["us"])
+                    time.sleep(cmd["ms"] / 1000)
+                    self.board.off(cmd["channel"])
+                    for name in ("doser", "lucka"):
+                        if self._channel(name) == cmd["channel"]:
+                            self.position[name], self.holding[name] = None, False
+                    self.last = f"testbänken: kanal {cmd['channel']}, signal {cmd['us']} i {cmd['ms']} ms"
                 elif action == "pulse":
                     self._pulse(cmd["servo"], cmd["us"], cmd["ms"])
                     self.last = f"{cmd['servo']} fick {cmd['us']} µs i {cmd['ms']} ms"
