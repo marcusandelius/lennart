@@ -357,5 +357,37 @@ def main() -> int:
     return 0
 
 
+def report_crash(error: str) -> None:
+    """Visa felet på lennart.cam och på skärmen i stället för att bara dö.
+
+    Programmet skickar en rapport med felet var 30:e sekund i fem minuter och avslutas
+    sedan, så att systemd startar om det. Är felet tillfälligt fungerar nästa start, och
+    är det ett fel i koden syns det i adminvyn utan att någon behöver logga in på Pi:n.
+    """
+    # Avsluta direkt om systemd stoppar tjänsten, t.ex. vid en ny deploy.
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    message = f"Programmet kraschade: {error}"[:200]
+    try:
+        Display().show(message_screen("Programfel", error))
+    except Exception:
+        pass  # skärmen kan vara orsaken, eller redan upptagen
+    heartbeat = Heartbeat(lambda: {"message": message, "camera_ok": False, "display_ok": False})
+    if not heartbeat.enabled:
+        return
+    end = time.monotonic() + 300
+    while time.monotonic() < end:
+        heartbeat.send_once()
+        time.sleep(30)
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+        last = traceback.extract_tb(e.__traceback__)[-1]
+        report_crash(f"{type(e).__name__}: {e} ({Path(last.filename).name} rad {last.lineno})")
+        sys.exit(1)
