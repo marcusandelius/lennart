@@ -61,6 +61,18 @@ Görs en gång, se steg 9 i [SETUP-PI.md](SETUP-PI.md).
 2. Under fliken **Servokort** ska det stå "Servokortet är anslutet", med en grön prick, när kortet hittats.
 3. Öppna fliken **Nötdosering** och välj vilket servo som driver plockskivan: **360°-servo** (just nu) eller **Vinkelservo**. Fliken visar då knapparna och inställningarna som passar. Allt sparas direkt när det ändras.
 
+### Guiden för nötdoseringen (sedan 2026-11-28)
+
+Med 360°-servo visar fliken **Nötdosering** en guide i fem steg, ett steg i taget, med **Tillbaka** och **Nästa** och en stegrad överst:
+
+1. **Servot:** Lär känna servot (stilla-punkt och riktning) och farten.
+2. **Plockläget:** knuffa hålet längst ner i nöthögen och spara.
+3. **Varv framåt:** första gången en gissning med knuffar, sedan **Prova nästa varv** och rätta tills det stämmer.
+4. **Varv bakåt:** samma sak bakåt. **Bakåt: börja från framåt-tiden** ger en första gissning.
+5. **Testa:** stopp vid utfallet, växling framåt och bakåt, och **Testa utmatning**. Det som rör utfallet (steg 3 i den gamla listan, och A och B) syns bara om du väljer stopp.
+
+**Inställningarna försvinner inte.** Allt sparas på servern i `/data/settings.json`. Stationen sparar också en kopia i `~/.local/state/lennart/settings.json` på Pi:n, utanför appens mapp, så att deployen inte skriver över den. Startar servern utan sparade inställningar, ber den stationen om kopian och tar över den. Stationen använder kopian direkt när den själv startar om. Servern läser dessutom inställningarna värde för värde: ett värde som inte längre godkänns får standardvärdet, men resten behålls.
+
 ### Plockskivan med 360°-servo (just nu)
 
 Ett 360°-servo har ingen vinkel. Pulsen styr fart och riktning: vid servots stilla-punkt (ofta runt 1500 µs) står det still, längre puls snurrar åt ena hållet och kortare åt det andra. Servot stannar när signalen släpps. Därför kan servot inte veta var skivan står, och **lägena sparas som tid från plockläget**.
