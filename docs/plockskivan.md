@@ -71,6 +71,7 @@ Skivan drivs just nu av ett **360°-servo** (Marcus, 2026-11-27), inte av MG996R
 1. Spara plockläget, utfallet och ett helt varv i adminvyn, fliken **Nötdosering**, enligt [koppling-servon.md](koppling-servon.md#plockskivan-med-360-servo-just-nu).
 2. Finjustera med **Prova: till utfallet** och **Prova: resten av varvet**. När skivan står still vid utfallet ska hålet ligga mitt över det.
 3. Prova med små och stora nötter. Justera tiden till utfallet med 10–20 ms i taget om någon blir kvar.
-4. Kör flera utmatningar i rad och kolla att hålet fortfarande hamnar i plockläget. Om det glider: justera tiden för ett helt varv.
+4. Med **Varannan utmatning bakåt** (standard sedan 2026-11-28) behövs även bakåt-tiderna: välj Bakåt i steg 5 och prova fram dem på samma sätt.
+5. Kör flera utmatningar i rad och kolla att hålet fortfarande hamnar i plockläget. Om det glider: justera tiden för ett helt varv.
 
 Med ett vinkelservo gäller i stället **Utmatningsvinkel**, **Plocklägets vinkel** och **Tid för vridet**.
