@@ -1,9 +1,12 @@
 """Inloggning till adminvyn på lennart.cam.
 
 - Lösenordet ligger i miljövariabeln ADMIN_PASSWORD i Coolify, aldrig i repot.
-- Efter inloggning får webbläsaren en slumpmässig sessionskaka som bara servern
-  känner till. Kakan är HttpOnly (JavaScript kommer inte åt den), Secure (bara
-  över https) och SameSite=Strict (skickas inte med från andra webbplatser).
+- Efter inloggning får webbläsaren en sessionskaka som gäller i 30 dagar. Kakan är
+  signerad (HMAC-SHA256) med en nyckel som räknas fram ur ADMIN_PASSWORD, så servern
+  behöver inte spara sessionerna. Därför överlever inloggningen en omstart eller
+  deploy. Byts lösenordet blir alla gamla kakor ogiltiga.
+- Kakan är HttpOnly (JavaScript kommer inte åt den), Secure (bara över https) och
+  SameSite=Strict (skickas inte med från andra webbplatser).
 - Efter för många felaktiga försök spärras inloggningen en stund.
 """
 
@@ -24,7 +27,7 @@ def _clean(value: str) -> str:
 
 ADMIN_PASSWORD = _clean(os.environ.get("ADMIN_PASSWORD", ""))
 COOKIE_NAME = "lennart_admin"
-SESSION_S = 12 * 3600
+SESSION_S = 30 * 24 * 3600  # 30 dagar
 COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "1") != "0"  # 0 bara vid test utan https
 
 FAIL_WINDOW_S = 15 * 60
@@ -32,7 +35,7 @@ MAX_FAILS_PER_IP = 5
 MAX_FAILS_TOTAL = 30  # skydd även om någon försöker från många adresser
 
 _lock = threading.Lock()
-_sessions: dict[str, float] = {}       # kaka -> giltig till (i minnet, nollställs vid deploy)
+_logged_out: set[str] = set()          # utloggade kakor fram till nästa omstart, se end_session()
 _fails: dict[str, list[float]] = {}    # ip -> tidpunkter för felaktiga försök
 
 
@@ -70,30 +73,44 @@ def check_password(ip: str, password: str) -> bool:
     return ok
 
 
+def _key() -> bytes:
+    """Nyckeln som signerar kakorna. Räknas fram ur lösenordet, så den är densamma efter
+    en omstart men ändras om lösenordet byts."""
+    return hmac.new(ADMIN_PASSWORD.encode(), b"lennart-admin-session-v1", hashlib.sha256).digest()
+
+
+def _sign(payload: str) -> str:
+    return hmac.new(_key(), payload.encode(), hashlib.sha256).hexdigest()
+
+
 def new_session() -> str:
-    token = secrets.token_urlsafe(32)
-    with _lock:
-        _sessions[token] = time.time() + SESSION_S
-    return token
+    """Kakans innehåll: giltig-till (unixtid), ett slumpvärde och signaturen."""
+    payload = f"{int(time.time()) + SESSION_S}.{secrets.token_urlsafe(16)}"
+    return f"{payload}.{_sign(payload)}"
 
 
 def end_session(token: str | None) -> None:
+    # Kakan tas bort i webbläsaren vid utloggning. Servern minns också att den är utloggad,
+    # men bara fram till nästa omstart, eftersom inget sparas på disk.
     if token:
         with _lock:
-            _sessions.pop(token, None)
+            _logged_out.add(token)
 
 
 def valid(token: str | None) -> bool:
-    if not token:
+    if not token or not enabled():
+        return False
+    payload, _, signature = token.rpartition(".")
+    expires, _, _nonce = payload.partition(".")
+    if not payload or not hmac.compare_digest(signature, _sign(payload)):
+        return False
+    try:
+        if int(expires) < time.time():
+            return False
+    except ValueError:
         return False
     with _lock:
-        expires = _sessions.get(token)
-        if expires is None:
-            return False
-        if expires < time.time():
-            del _sessions[token]
-            return False
-        return True
+        return token not in _logged_out
 
 
 def cookie_header(token: str, max_age: int = SESSION_S) -> str:
