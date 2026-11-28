@@ -50,6 +50,7 @@ DEFAULTS = {
     "camera_rotation": 0,   # vrid kamerabilden, t.ex. om kameran sitter på sidan
     "display_mode": "camera",  # kamerabilden, ACCESS GRANTED, ACCESS DENIED eller demoläget på skärmen
     "lcd_spi_mhz": 32,         # skärmens SPI-hastighet
+    "lcd_gamma": "normal",     # skärmens kontrastkurva: mjuk, normal eller stark
     # Servona sitter på PCA9685-kortet. Pulsbredden styr vinkeln: min_us = 0°, max_us = 180°.
     "servo_doser_channel": 0,
     "servo_lucka_channel": 1,
@@ -94,10 +95,11 @@ LIMITS = {
 BOOL_KEYS = ("live_enabled", "recording_enabled", "doser_reverse")
 DOSER_SERVOS = ("360", "vinkel")
 CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS, "rec_resolution": REC_RESOLUTIONS,
-           "display_mode": DISPLAY_MODES, "lcd_spi_mhz": LCD_SPI_MHZ, "doser_servo": DOSER_SERVOS}
+           "display_mode": DISPLAY_MODES, "lcd_spi_mhz": LCD_SPI_MHZ, "doser_servo": DOSER_SERVOS,
+           "lcd_gamma": ("mjuk", "normal", "stark")}
 
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
-DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "servo_doser_channel", "servo_lucka_channel",
+DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "lcd_gamma", "servo_doser_channel", "servo_lucka_channel",
                "servo_min_us", "servo_max_us", "dispense_angle", "pick_angle", "dispense_move_ms",
                "doser_servo", "doser_neutral_us", "doser_speed_us", "doser_up_ms", "doser_rev_ms", "doser_reverse",
                "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",

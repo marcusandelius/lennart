@@ -343,6 +343,16 @@
         </div>
       </div>
       <div class="card">
+        <h2>Kontrast</h2>
+        <p class="lead">Skärmen har tre inbyggda kontrastlägen. <b>Stark</b> gör rött och grönt mer mättat och bakgrunden mörkare, <b>Mjuk</b> gör mellantonerna ljusare. Gäller allt på skärmen och ändras direkt.</p>
+        <div class="seg" role="radiogroup" aria-label="Skärmens kontrast">
+          <label><input type="radio" name="lcd_gamma" value="mjuk" data-key="lcd_gamma"><span>Mjuk</span></label>
+          <label><input type="radio" name="lcd_gamma" value="normal" data-key="lcd_gamma"><span>Normal</span></label>
+          <label><input type="radio" name="lcd_gamma" value="stark" data-key="lcd_gamma"><span>Stark</span></label>
+        </div>
+        <p class="hint">Jämför genom att visa ACCESS DENIED en kort stund ovan och byta läge medan den syns.</p>
+      </div>
+      <div class="card">
         <h2>Felsökning</h2>
         <div class="field">
           <label for="lcd_spi_mhz">SPI-hastighet</label>

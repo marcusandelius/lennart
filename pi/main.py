@@ -272,15 +272,22 @@ def main() -> int:
             restart = display_requests["restart"]
             display_requests["restart"] = False
             changed = wanted_hz != display.speed_hz
+            wanted_gamma = device.get("lcd_gamma", "normal")  # kontrasten väljs i adminvyn
+            gamma_changed = wanted_gamma != display.gamma
             try:
                 if changed:
                     display.set_speed(wanted_hz)
                     print(f"Skärmen: SPI-hastighet {wanted_hz / 1e6:g} MHz", flush=True)
+                if gamma_changed:
+                    display.set_gamma(wanted_gamma)
+                    print(f"Skärmen: kontrast {wanted_gamma}", flush=True)
                 if restart:
                     display.restart()
                     print("Skärmen startades om från adminvyn", flush=True)
             except Exception as e:
                 print(f"Skärmen: {type(e).__name__}: {e}", flush=True)
+            if gamma_changed and not (changed or restart):
+                threading.Thread(target=heartbeat.send_once, daemon=True).start()  # adminvyn ser ändringen direkt
             if changed or restart:
                 shown = None  # skicka ACCESS-bilden igen, i den nya hastigheten eller efter omstarten
                 threading.Thread(target=heartbeat.send_once, daemon=True).start()  # adminvyn ser ändringen direkt
