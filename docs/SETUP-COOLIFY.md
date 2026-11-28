@@ -92,6 +92,6 @@ Svaret ska bli `{"ok": true}`, och sidan ska visa "Stationen är igång" i två 
 
 ## Bra att veta
 
-- **Precis efter en deploy** kan Coolify under en kort stund köra både den gamla och den nya containern. En inloggning i adminvyn kan då hamna i den gamla och försvinna. Vänta en minut och logga in igen. Adminsessioner och livebildens tittare finns bara i minnet och nollställs vid varje deploy, medan inställningarna sparas i `/data`.
+- **Precis efter en deploy** kan Coolify under en kort stund köra både den gamla och den nya containern. Inloggningen i adminvyn överlever det: kakan är signerad med en nyckel ur `ADMIN_PASSWORD` och gäller i 30 dagar (sedan 2026-11-28). Livebildens tittare finns bara i minnet och nollställs vid varje deploy, medan inställningarna sparas i `/data`.
 - **Cloudflare-proxy (orange moln):** servern läser besökarens adress från `CF-Connecting-IP`, så att spärren efter felaktiga inloggningar gäller per besökare och inte per Cloudflare-nod.
 
