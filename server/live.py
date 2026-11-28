@@ -72,6 +72,11 @@ DEFAULTS = {
     "doser_speed_us": 120,     # så mycket pulsen skiljer sig från stilla-läget: större = fortare
     "doser_up_ms": 1000,       # snurrtid från plockläget fram till utfallet [provas fram]
     "doser_rev_ms": 4000,      # snurrtid för ett helt varv, från plockläget runt till plockläget [provas fram]
+    # Samma två tider motsols. Servot går sällan lika fort åt båda hållen, så de provas fram för sig.
+    # Motsols når hålet utfallet efter den långa vägen runt, och plockläget efter den korta.
+    "doser_up_back_ms": 3000,  # motsols från plockläget till utfallet [provas fram]
+    "doser_rev_back_ms": 4000, # ett helt varv motsols [provas fram]
+    "doser_alternate": True,   # varannan utmatning medsols och varannan motsols
     "doser_reverse": False,    # vänd riktningen om skivan snurrar åt fel håll
     # Inspelning av klipp vid rörelse, för att samla material till igenkänningen.
     "recording_enabled": False,  # av tills admin slår på det
@@ -93,12 +98,13 @@ LIMITS = {
     "lucka_closed_angle": (0, 180), "lucka_open_angle": (0, 180),
     "doser_neutral_us": (1000, 2000), "doser_speed_us": (30, 500),
     "doser_up_ms": (50, 20000), "doser_rev_ms": (300, 20000),
+    "doser_up_back_ms": (50, 20000), "doser_rev_back_ms": (300, 20000),
     "rec_fps": (5, 15), "motion_sensitivity": (2, 200), "pre_roll_s": (0, 5),
     "post_roll_s": (2, 30), "max_clip_s": (10, 90), "min_brightness": (0, 100),
     "clips_max_gb": (1, 500),
 }
 
-BOOL_KEYS = ("live_enabled", "recording_enabled", "doser_reverse", "lcd_glitch")
+BOOL_KEYS = ("live_enabled", "recording_enabled", "doser_reverse", "lcd_glitch", "doser_alternate")
 DOSER_SERVOS = ("360", "vinkel")
 CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS, "rec_resolution": REC_RESOLUTIONS,
            "display_mode": DISPLAY_MODES, "lcd_spi_mhz": LCD_SPI_MHZ, "doser_servo": DOSER_SERVOS,
@@ -107,7 +113,7 @@ CHOICES = {"resolution": tuple(RESOLUTIONS), "camera_rotation": CAMERA_ROTATIONS
 # Vad Pi:n behöver veta om inställningarna (allt utom livebildens egna).
 DEVICE_KEYS = ("camera_rotation", "display_mode", "lcd_spi_mhz", "lcd_gamma", "lcd_glitch", "servo_doser_channel", "servo_lucka_channel",
                "servo_min_us", "servo_max_us", "dispense_angle", "pick_angle", "dispense_move_ms",
-               "doser_servo", "doser_neutral_us", "doser_speed_us", "doser_up_ms", "doser_rev_ms", "doser_reverse", "lucka_closed_angle", "lucka_open_angle",
+               "doser_servo", "doser_neutral_us", "doser_speed_us", "doser_up_ms", "doser_rev_ms", "doser_up_back_ms", "doser_rev_back_ms", "doser_alternate", "doser_reverse", "lucka_closed_angle", "lucka_open_angle",
                "recording_enabled", "rec_resolution", "rec_fps", "motion_sensitivity",
                "pre_roll_s", "post_roll_s", "max_clip_s", "min_brightness")
 
@@ -143,6 +149,8 @@ def validate(changes: dict, current: dict) -> dict:
         raise ValueError("servo_min_us måste vara mindre än servo_max_us")
     if result["doser_up_ms"] >= result["doser_rev_ms"]:
         raise ValueError("Tiden till utfallet måste vara kortare än tiden för ett helt varv")
+    if result["doser_up_back_ms"] >= result["doser_rev_back_ms"]:
+        raise ValueError("Tiden till utfallet motsols måste vara kortare än tiden för ett helt varv motsols")
     if result["dispense_angle"] - result["pick_angle"] < 20:
         raise ValueError("Utmatningsvinkeln måste vara minst 20° större än plocklägets vinkel")
     return result
@@ -171,8 +179,15 @@ def validate_command(cmd: dict, values: dict) -> dict:
         return {"action": "release", "servo": cmd["servo"]}
     if action == "test_dispense":
         if values["doser_servo"] == "360":
+            # direction: "up" = medsols, "down" = motsols. Utan riktning väljer Pi:n själv,
+            # och växlar varannan gång om doser_alternate är på.
+            direction = cmd.get("direction")
+            if direction not in (None, "up", "down"):
+                raise ValueError("Riktningen ska vara up eller down")
             return {"action": "test_dispense", "kind": "varv", "up_ms": values["doser_up_ms"],
-                    "rev_ms": values["doser_rev_ms"], **spin}
+                    "rev_ms": values["doser_rev_ms"], "up_back_ms": values["doser_up_back_ms"],
+                    "rev_back_ms": values["doser_rev_back_ms"], "alternate": values["doser_alternate"],
+                    "direction": direction, **spin}
         return {"action": "test_dispense", "angle": values["dispense_angle"],
                 "pick": values["pick_angle"], "move_ms": values["dispense_move_ms"]}
     if action == "raw_pulse":

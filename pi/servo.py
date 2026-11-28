@@ -96,6 +96,7 @@ class ServoController:
         self.position = {"doser": None, "lucka": None}
         self.holding = {"doser": False, "lucka": False}  # skickas signal just nu?
         self.last = ""
+        self.next_direction = "up"   # nästa utmatning med 360°-servo när riktningen växlar
         self._queue: queue.Queue = queue.Queue()
         threading.Thread(target=self._run, name="servo", daemon=True).start()
 
@@ -112,7 +113,8 @@ class ServoController:
             angle = self.position[name]
             where = "okänt läge" if angle is None else f"{angle}°"
             return f"{name} {where}{'' if self.holding[name] else ' (släppt)'}"
-        text = f"PCA9685 på I2C-buss {self.board.bus_number} · {show('doser')} · {show('lucka')}"
+        text = (f"PCA9685 på I2C-buss {self.board.bus_number} · {show('doser')} · {show('lucka')}"
+                f" · nästa utmatning {'framåt' if self.next_direction == 'up' else 'bakåt'}")
         return f"{text} · senast: {self.last}" if self.last else text
 
     # ---------- kommandon ----------
@@ -213,12 +215,24 @@ class ServoController:
         time.sleep(ms / 1000)
         self._release(name)
 
-    def _test_dispense_turn(self, cmd: dict) -> None:
-        """Plockskivans rörelse med 360°-servo: ett helt varv framåt. Fram till utfallet, ett kort
-        stopp där nöten faller ut, och resten av varvet tillbaka till plockläget."""
-        self._spin("doser", "up", cmd["up_ms"], cmd)
+    def _test_dispense_turn(self, cmd: dict) -> str:
+        """Plockskivans rörelse med 360°-servo: ett helt varv, till utfallet, ett kort stopp där
+        nöten faller ut, och resten av varvet tillbaka till plockläget.
+
+        Med "alternate" går varannan utmatning medsols ("up") och varannan motsols ("down").
+        Motsols har egna tider, eftersom servot sällan går lika fort åt båda hållen.
+        Returnerar riktningen som användes.
+        """
+        direction = cmd.get("direction") or (self.next_direction if cmd.get("alternate") else "up")
+        if direction == "up":
+            to_outlet, revolution = cmd["up_ms"], cmd["rev_ms"]
+        else:
+            to_outlet, revolution = cmd["up_back_ms"], cmd["rev_back_ms"]
+        self._spin("doser", direction, to_outlet, cmd)
         time.sleep(0.3)  # nöten faller ut
-        self._spin("doser", "up", cmd["rev_ms"] - cmd["up_ms"], cmd)
+        self._spin("doser", direction, revolution - to_outlet, cmd)
+        self.next_direction = "down" if direction == "up" else "up"
+        return direction
 
     def _run(self) -> None:
         while True:
@@ -237,8 +251,8 @@ class ServoController:
                         self._release(name)
                     self.last = f"släppte {cmd['servo']}"
                 elif action == "test_dispense" and cmd.get("kind") == "varv":
-                    self._test_dispense_turn(cmd)
-                    self.last = f"testade utmatning (helt varv: {cmd['up_ms']} ms till utfallet, {cmd['rev_ms']} ms totalt)"
+                    used = self._test_dispense_turn(cmd)
+                    self.last = f"testade utmatning {'framåt' if used == 'up' else 'bakåt'}"
                 elif action == "raw_pulse":
                     # Testbänken: valfri kanal och signal. Servot vet inte sitt läge efteråt.
                     self.board.pulse(cmd["channel"], cmd["us"])
