@@ -1,29 +1,31 @@
 """
-Ny lucka på LENNART-skålen (9.19): servots egen arm i luckans högra gavel, svart ovansida och vit kant.
+Ny lucka på LENNART-skålen (9.19/9.20): servots egen arm i luckans högra gavel, svart ovansida och vit kant.
 
 Förut satt luckan direkt på servoaxeln med en hylsa (Ø5,6 med ett Ø4,8-hål, 0,4 mm gods); den slirade,
 glappade, gled av och sprack. Nu:
-  * Servots enkla arm (användarens mått: nav Ø7,5 x 3,5, platta 2,5 tjock, 19,5 från mitten till spetsen)
-    filas till en remsa 5,6 mm bred med rund ände Ø8 runt navet (filmall 29). Armen smalnar av till 5 mm vid
-    yttersta hålet; där är den redan smalare än remsan och lämnas som den är, och fickan följer avsmalningen. Armen trycks på servoaxeln
-    utanför brevlådans vägg och skruvas fast med sin egen skruv i axeln.
-  * Luckans högra gavel (vit) har en ficka med armens form (+0,15 mm). Fickan har väggar ovanför och under
-    remsan, så armen både lyfter och håller nere luckan. Brevlådans vägg ligger 0,4 mm utanför gaveln,
-    så armen kan inte glida ut ur fickan.
+  * Servots enkla arm, ofilad (användarens mått: nav Ø7,5 x 3,5, platta 2,5 tjock, rund ände Ø10,5, 10 mm bred
+    där armen börjar 4,5 mm från mitten, 5 mm vid yttersta hålet, 19,5 från mitten till spetsen), trycks på
+    servoaxeln utanför brevlådans vägg och skruvas fast med sin egen skruv i axeln.
+  * Luckans högra gavel (vit) har en ficka med armens form (+0,15 mm), lutad 12 grader uppåt framåt så att armen
+    går fri över skålens kant. Fickan har vägg över armen och under armens yttre halva, så armen både lyfter och håller
+    nere luckan. Gaveln sticker därför upp några mm över luckan, som en vindskiva. Brevlådans vägg ligger 0,4 mm
+    utanför gaveln, så armen kan inte glida ut ur fickan.
+  * Armens runda ände når 1,3 mm ner i skålens kant: ett hak filas i kanten under navet (x 36-40, y -14,5..-2,
+    ner till z 26,6). 07_farstukvist_rod.stl i utkatalogen har haket för nya utskrifter.
   * Hålet i brevlådans vägg borras upp till Ø9 (navet Ø7,5). Brevlådans lock får en större plugg (brevlada.py).
   * Servot flyttas 0,6 mm mot luckan med distansbrickorna 26d, så att armen går fri från väggen (0,8 mm).
   * Luckan monteras genom att skjutas 3,3 mm åt höger över armen. Luckans vänstra ände vid axeln är därför
     3,1 mm kortare, och en distansring (08c, 3,4 mm) på tappen vid lagerklotsen hindrar luckan att glida tillbaka.
-  * Gaveln är rund (radie 4) bakom axeln, så att den går fri från skålens kant när luckan öppnas.
 Husets ram: luckans axel längs x vid y -8, z 32,2. Utskriftsfilerna är förskjutna (-2, 25,8, -28,2), som förut.
-    python3 lucka_servoarm.py lucka_src/lucka_gra_9_13_hus.stl lucka_src/lucka_vit_9_13_hus.stl <utkatalog>
+    python3 lucka_servoarm.py lucka_src/lucka_gra_9_13_hus.stl lucka_src/lucka_vit_9_13_hus.stl <07_farstukvist_rod.stl> <utkatalog>
 """
 import sys, os
 import numpy as np
 import trimesh
 from shapely.geometry import Point, Polygon, box as sbox
+from shapely import affinity
 
-GRA, VIT, OUT = sys.argv[1:4]
+GRA, VIT, ROD, OUT = sys.argv[1:5]
 U = lambda ms: trimesh.boolean.union(ms, engine="manifold")
 D = lambda a, bs: trimesh.boolean.difference([a] + bs, engine="manifold")
 I = lambda a, b: trimesh.boolean.intersection([a, b], engine="manifold")
@@ -33,8 +35,10 @@ Z_RIM = 28.2                                  # luckans undersida (skålens kant
 
 # servoarmen, filad (användarens mått)
 A_PL, A_HUB_R, A_HUB_H = 2.5, 3.75, 3.5       # plattans tjocklek, navets radie och höjd
-A_END_R, A_HALF, A_LEN = 4.0, 2.8, 19.5       # rund ände runt navet, halva remsans bredd, mitten till spetsen
-A_W0, A_W1 = 12.5, 5.0                        # armens bredd ofilad: vid navet och vid yttersta hålet (spetsens mitt)
+A_END_R, A_LEN = 5.25, 19.5                   # 9.20: ofilad arm: rund ände Ø10,5 runt navet, mitten till spetsen
+A_DJ, A_WJ, A_W1 = 4.5, 10.0, 5.0             # armen börjar 4,5 mm från mitten, 10 mm bred, smalnar till 5 mm vid yttersta hålet
+A_ANG = 12.0                                  # fickan lutar 12 grader uppåt framåt, så att armen går över skålens kant
+NOTCH_Z = 26.6                                # hak i skålens kant under navet (y -14,5..-2, x 36..40), från 28,0 ner till 26,6
 DIST = 0.6                                    # servot flyttas mot luckan med distansbrickorna 26d
 A_X0 = 37.3 - DIST                            # plattans yttre yta (navet vilar på servots växeltorn, x 43,3 - 0,6)
 CL = 0.15                                     # spel i fickan
@@ -62,13 +66,14 @@ def box(x0, x1, y0, y1, z0, z1):
 
 
 def arm_outline(off=0.0, smal=True):
-    """Den filade armen: remsa 5,6 mm och rund ände Ø8, men inte bredare än den ofilade armen, som smalnar
-    av från 12,5 mm vid navet till 5 mm vid yttersta hålet (spetsen lämnas som den är)."""
-    tip = AXY - (A_LEN - A_W1 / 2)
-    taper = Point(AXY, AXZ).buffer(A_W0 / 2 + off, resolution=64).union(Point(tip, AXZ).buffer(A_W1 / 2 + off, resolution=48)).convex_hull
-    strip = sbox(tip, AXZ - A_HALF - off, AXY, AXZ + A_HALF + off).union(Point(tip, AXZ).buffer(A_HALF + off, resolution=48))
-    o = strip.union(Point(AXY, AXZ).buffer(A_END_R + off, resolution=64))
-    return o.intersection(taper) if smal else o
+    """Armen som den är (ofilad), i armens eget läge: lutar A_ANG grader uppåt framåt."""
+    tip_d = A_LEN - A_W1 / 2
+    pts = [Point(0, 0).buffer(A_END_R + off, resolution=64), Point(-tip_d, 0).buffer(A_W1 / 2 + off, resolution=48),
+           Polygon([(-A_DJ, -A_WJ / 2 - off), (-A_DJ, A_WJ / 2 + off), (-A_DJ - 0.01, A_WJ / 2 + off), (-A_DJ - 0.01, -A_WJ / 2 - off)])]
+    from shapely.ops import unary_union
+    o = unary_union(pts).convex_hull
+    o = affinity.rotate(o, -A_ANG, origin=(0, 0))          # spetsen (y negativ) uppåt
+    return affinity.translate(o, AXY, AXZ)
 
 
 # armen (för kontroller och bilder)
@@ -80,8 +85,9 @@ LG = trimesh.load(GRA); LV = trimesh.load(VIT)
 right = box(X_FACE, 60, -60, 10, 0, 60)
 LG = D(LG, [right]); LV = D(LV, [right])
 # gaveln: armens kontur + 1,2 mm gods, från x 34 till gavelns yta, inte under luckans undersida
-# bakom axeln (y > -8) högst radie 4: den delen vrids ner mot skålens kant när luckan öppnas
-gav2d = arm_outline(CL + 1.2, smal=False).intersection(sbox(-60, Z_RIM, AXY, 60)).union(Point(AXY, AXZ).buffer(4.0, resolution=64)).intersection(sbox(-60, Z_RIM, 10, 60))
+# bakom axeln (y > -8) högst radie 5,3: den delen vrids ner i haket i skålens kant när luckan öppnas
+gav2d = arm_outline(CL + 1.2).intersection(sbox(-60, -60, AXY, 60)).union(Point(AXY, AXZ).buffer(AXZ - NOTCH_Z - 0.3, resolution=64))
+gav2d = gav2d.intersection(sbox(-60, Z_RIM, 10, 60))        # inget under luckans undersida (skrivs ut liggande); väggen under armen finns längs den yttre halvan
 gavel = xext(gav2d, X_GAV, X_FACE)
 pocket = xext(arm_outline(CL), A_X0 - 0.2, X_FACE + 1)
 head = xcyl(HEAD_R, A_X0 - 0.2 - HEAD_H, A_X0, s=40)
@@ -94,12 +100,13 @@ for m in (LG, LV): assert m.is_watertight
 
 # distansring 08c på tappen: C-form, 3,3 lång, ytter Ø7, inner Ø3,5, öppning 2,7
 ring = D(xcyl(3.5, 0, RING_L, 0, 0, 64), [xcyl(1.75, -1, RING_L + 1, 0, 0, 48), box(-1, RING_L + 1, 1.2, 5, -1.35, 1.35)])
-# filmall 29: armens filade form, 2 mm tjock, hål Ø7,8 som sitter över navet
-mall = D(xext(arm_outline(), 0, 2.0), [xcyl(3.9, -1, 3)])
-mall.apply_translation([-mall.bounds[0][0], 0, 0])
+# skålen (07 röd) med haket under navet, i dess utskriftsram
+TO_ROD = np.array([-12.4, 23.6, 0.0])
+rod = trimesh.load(ROD); rod.apply_translation(-TO_ROD)
+rod = D(rod, [box(36.0, 40.05, -14.5, -2.0, NOTCH_Z, 28.1)]); assert rod.is_watertight
 
 os.makedirs(OUT, exist_ok=True); asm = os.path.join(OUT, "asm"); os.makedirs(asm, exist_ok=True)
-for n, m in (("lucka_svart", LG), ("lucka_vit", LV), ("servoarm_filad", arm)):
+for n, m in (("lucka_svart", LG), ("lucka_vit", LV), ("servoarm", arm), ("skal_rod_hak", rod)):
     m.export(os.path.join(asm, n + ".stl"))
 for n, m in (("08_lucka_svart.stl", LG), ("08_lucka_vit.stl", LV)):
     mm = m.copy(); mm.apply_translation(T); mm.export(os.path.join(OUT, n))
@@ -111,7 +118,7 @@ def flat(m, R):
 
 Ry = trimesh.transformations.rotation_matrix(np.pi / 2, [0, 1, 0])
 flat(ring, Ry).export(os.path.join(OUT, "08c_distansring_tapp.stl"))
-flat(mall, Ry).export(os.path.join(OUT, "29_filmall_servoarm.stl"))
+r2 = rod.copy(); r2.apply_translation(TO_ROD); r2.export(os.path.join(OUT, "07_farstukvist_rod.stl"))
 for f in sorted(os.listdir(OUT)):
     if f.endswith(".stl"):
         m = trimesh.load(os.path.join(OUT, f)); print(f, np.round(m.extents, 1), "tät", m.is_watertight)
