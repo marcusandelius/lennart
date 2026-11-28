@@ -94,6 +94,18 @@ Har servot en justerskruv för stilla-punkten [verifiera på servot] och guiden 
 
 Titta när skivan står still uppe: hålet ska ligga mitt över utfallet. Vinklarna och tiden ändras i fliken **Nötdosering**, utan ny deploy.
 
+### Luckan
+
+Servots vinklar säger inget om vilket håll som är öppet, eftersom det beror på hur servot sitter i luckan. Därför sparas luckans två lägen i fliken **Luckan**:
+
+1. Flytta luckan försiktigt med **−5°**, **−1°**, **+1°** och **+5°**. Reglaget börjar där stationen senast rapporterade luckan, så att första steget inte blir ett stort hopp.
+2. Flytta till stängt läge och tryck **Spara som stängd**. Flytta till öppet läge och tryck **Spara som öppen**.
+3. Använd sedan **Öppna** och **Stäng**. Luckan rör sig långsamt. Innan lägena är sparade gör knapparna ingenting.
+
+### Testbänk och "Vilken sorts servo är det?"
+
+I fliken **Servokort** finns en testbänk för valfri kanal 0–15. Guiden skickar två signaler, två sekunder var, en åt varje håll. Du svarar om servot vred sig och stannade (vinkelservo), snurrade hela tiden (360°-servo) eller inte reagerade. Gäller det nötdoseringens kanal kan inställningen för skivan ändras med en knapp. Under **Skicka en egen signal** går det att prova valfri signal i en sekund.
+
 ## Testa från statussidan
 
 När du är inloggad (via https://lennart.cam/admin) visas rutan **Testa stationen** längst ner på https://lennart.cam/status. Den syns inte för andra besökare, och servern kontrollerar inloggningen vid varje tryck.
